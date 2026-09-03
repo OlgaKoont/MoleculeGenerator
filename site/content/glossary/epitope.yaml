@@ -1,0 +1,9 @@
+id: epitope
+slug: epitope
+term: Epitope / hotspot
+term_ru: Эпитоп / hotspot
+definition: Участок target, к которому должен bind designed paratope. Ошибки hotspot specification
+  ломают target-conditioned design.
+related_ids:
+- cdr
+- conditioning

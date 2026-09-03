@@ -1,0 +1,46 @@
+id: paper-chroma
+slug: chroma
+title: Illuminating protein space with a programmable generative model
+authors: null
+year: '2023'
+venue: Peer-reviewed journal; Nature (Q1)
+publication_status: Peer-reviewed journal; Nature (Q1)
+doi: 10.1038/s41586-023-06728-8
+url: https://doi.org/10.1038/s41586-023-06728-8
+preprint_url: null
+tool_ids:
+- chroma
+main_task: Programmable de novo protein and complex generation
+claimed_novelty: null
+model_architecture: Backbone diffusion + equivariant graph networks + conditional random field
+  sequence design
+input_representation: null
+encoder_decoder: null
+generative_state: Backbone/all-atom structure and sequence
+conditioning: Substructure, symmetry, shape, class/annotation and custom differentiable conditioners
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: General protein evidence
+tested_designs: 'Early biophysical and crystallographic validation; exact count: NR'
+success_criterion: General protein evidence
+main_results: General protein evidence
+limitations: Weights access is gated; conditioner scores are not measured function; no antibody-specific
+  proof.
+demonstrates:
+- General protein evidence
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Illuminating protein space with a programmable generative model
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

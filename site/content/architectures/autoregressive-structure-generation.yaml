@@ -1,0 +1,28 @@
+id: autoregressive-structure-generation
+slug: autoregressive-structure-generation
+name: Autoregressive structure generation
+name_ru: Авторегрессионная генерация структуры
+intuition: 'Residues или fragments структуры добавляются последовательно: каждый новый frame conditioned
+  на предыдущие.'
+mathematical_formulation: $p(x)=\prod_i p(x_i\mid x_{<i}, c)$ где $x_i$ — frame или fragment.
+input_representation: Partial backbone plus conditioner.
+generated_state: Ordered frames/coordinates.
+training_objective: Next-frame NLL / FAPE.
+inference: Sequential placement; error accumulation possible.
+conditioning: Motif prefix, target surface.
+complexity_drivers:
+- N sequential steps
+strengths:
+- Явная likelihood структуры
+limitations:
+- Порядок генерации искусственен для 3D
+failure_modes:
+- Drift на длинных chains
+applicable_task_ids:
+- de-novo-backbone-generation
+not_for_task_ids:
+- humanization
+paper_ids: []
+subtypes: []
+glossary_ids:
+- sampling

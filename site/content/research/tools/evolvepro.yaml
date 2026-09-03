@@ -1,0 +1,349 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Что именно делает инструмент
+  level: 2
+  blocks:
+  - type: p
+    text: EVOLVEpro — это <strong>последовательный few-shot оптимизатор мутантов</strong>, а не генеративная нейросеть de novo. Пользователь задаёт parent sequence, пространство вариантов (обычно enumerated single mutants и, позже, combinatorial) и экспериментальные labels.
+  - type: p
+    text: 'На выходе: ranked list вариантов для следующего assay round. Фиксированы parent и определение библиотеки. Изменяется набор мутаций в предложенном batch. Метод parent-based, не de novo. Generated object — mutation set / ranked sequences, не backbone и не full-atom structure.'
+- title: 2. Архитектура в одном абзаце
+  level: 2
+  blocks:
+  - type: p
+    text: 'Замороженный protein language model (в published grid-search выбран ESM-2 15B, residue embeddings усредняются по длине) даёт вектор варианта. На накопленных labels обучается sklearn RandomForestRegressor (100 деревьев, friedman_mse). Следующий round — greedy top-\(k\) по \(\hat{y}\). PLM не fine-tune. UCB/EI/PI в experimental default отсутствуют: поле std_predictions заполняется нулями. [PAPER]+[CODE]'
+- title: 3. Модульная схема
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Module
+    - Model class
+    - Input
+    - Output
+    - Trained or frozen
+    - Generator or evaluator
+    rows:
+    - - Variant library construction
+      - user protocol / enumeration
+      - parent, allowed positions
+      - strings \(x\in U\)
+      - not a NN
+      - defines search space, not a sampler
+    - - PLM embedder (ESM-2 15B default after grid search)
+      - protein LM encoder
+      - AA sequence
+      - pooled vector \(e(x)\in\mathbb{R}^{d}\)
+      - frozen pretrained
+      - feature extractor, not generator
+    - - Optional PCA
+      - linear projection
+      - \(e(x)\)
+      - low-d features
+      - fit on embeddings
+      - optional featurizer
+    - - Top-layer surrogate
+      - RandomForestRegressor default; ridge/lasso/elasticnet/linear/MLP/XGB/kNN/GP optional
+      - \(e(x)\), labels \(y\)
+      - \(\hat{y}(x)\)
+      - trained each round on \(D_t\)
+      - evaluator / ranker
+    - - Selection rule
+      - sort by \(\hat{y}\) (learning_strategy=topn)
+      - unlabelled pool scores
+      - batch \(B_t\) of size \(k\)
+      - no extra training
+      - proposal rule (weak generator)
+    - - Assay
+      - ELISA / activity / multi-property assay
+      - expressed variants
+      - new \(y\)
+      - experimental
+      - experimental validation
+    source: '[PAPER] Jiang et al. Science/bioRxiv; [CODE] evolvepro/src/model.py, evolve.py'
+- title: 4. Математическая модель
+  level: 2
+  blocks:
+  - type: p
+    text: 'Условная вероятность последовательности не моделируется. Модель учит регрессию assay readout в embedding space. Generic:'
+  - type: math
+    latex: \hat{y}_t(x)=f_t\bigl(e_{\mathrm{PLM}}(x)\bigr),\qquad f_t=\mathrm{RandomForest}_{100}(\{(e(x_i),y_i):(x_i,y_i)\in D_t\})
+    caption: Tool-specific default. \(e_{\mathrm{PLM}}\) — frozen pooled embedding; \(f_t\) переобучается каждый раунд.
+    source: '[CODE] RandomForestRegressor in evolvepro/src/model.py; [PAPER] PLM+top-layer regressor'
+  - type: math
+    latex: B_{t+1}=\operatorname{TopK}_{x\in U_t}\ \hat{y}_t(x)
+    caption: Released experimental и default simulation strategy learning_strategy='topn'. Это не UCB.
+    source: '[CODE] evolvepro/src/evolve.py directed_evolution_simulation; evolve_experimental prints df_test.sort_values(y_pred)'
+  - type: p
+    text: Loss деревьев — decrease of Friedman MSE при сплитах (sklearn criterion='friedman_mse'), а не явно выписанный в статье ELBO. Для optional GP используется sklearn GaussianProcessRegressor с kernel=None (RBF-like default sklearn) — это не GP-UCB.
+  - type: p
+    text: 'Кодовые альтернативы отбора: random; topn2bottomn2 (половина top \(\hat{y}\), половина bottom); dist (max min-distance в embedding space). First round: random (default), diverse_medoids (K-medoids на PCA-10), explicit_variants.'
+  - type: warn
+    text: 'Не пишите \(a(x)=\mu+\kappa\sigma\) на этой странице как формулу EVOLVEpro. В top_layer для RF явно: y_std_train = np.zeros(...); y_std_test = np.zeros(...).'
+- title: 5. Физическое устройство состояния
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - '\(x\): аминокислотная идентичность варианта (mutation string относительно WT).'
+    - '\(e(x)\): статистический embedding последовательности, не координаты атомов.'
+    - '\(y\): экспериментальный scalar (activity; в multi-objective — weighted combination yield/translation/immunogenicity в T7 RNAP campaign).'
+    - Нет residue frames, torsions, interface tensors.
+- title: 6. Физико-химическая интерпретация
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Factor
+    - How present
+    - Explicit / implicit / absent
+    rows:
+    - - Sequence compatibility / evolutionary constraint
+      - через ESM-2 embeddings
+      - learned implicitly in frozen PLM
+    - - Fold compatibility
+      - только если коррелирует с embedding и с assay
+      - not explicit
+    - - Steric packing, H-bonds, electrostatics, hydrophobicity
+      - не считаются
+      - absent as physics; maybe correlated
+    - - Interface complementarity
+      - только если \(y\) — binding assay (REGN10987 ELISA)
+      - via label, not structure
+    - - Conformational entropy, solvent, protonation, glycans
+      - —
+      - absent
+    - - Developability / immunogenicity
+      - T7 campaign uses immunogenicity as one weighted label
+      - experimental label, not a developability NN
+- title: 7. Training
+  level: 2
+  blocks:
+  - type: p
+    text: 'Pretraining PLM: ESM-2 (Lin et al.), не часть репозитория EVOLVEpro; веса frozen. Fine-tune PLM: нет. [PAPER]'
+  - type: p
+    text: 'Surrogate training data: пользовательские labels текущего белка. In silico paper: 12 DMS datasets; grid search выбрал ESM-2 15B + average pooling + random forest. First-round size и \(k\) варьировали; в коде default num_mutants_per_round=16 в first_round, evolve_experimental number_of_variants=12 для печати top list. [PAPER]+[CODE]'
+  - type: p
+    text: 'Negative examples: низкие experimental scores в \(D_t\). Hardware PLM embedding: NR в точности для 15B на их кластере; surrogate fit — CPU sklearn. Reported training time RF: NR (секунды, [INTERPRETATION]).'
+- title: 8. Inference
+  level: 2
+  blocks:
+  - type: p
+    text: 'Подготовка: FASTA WT, CSV labels по раундам, предвычисленные embeddings. Кандидаты: все ещё не измеренные строки в embedding table. Нет diffusion/recycles. Ranking: sort y_pred descending. Runtime boundary: embedding PLM vs RF predict vs wet lab. Experimental default regressor=''randomforest''. [CODE]'
+- title: 9. Generator versus evaluator
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Component
+    - Role
+    - Integrated or external
+    - Required or optional
+    - Influences generation or only ranks afterward
+    rows:
+    - - Library enumeration
+      - defines \(U\)
+      - user / external
+      - required
+      - defines what can be proposed
+    - - ESM-2 embeddings
+      - features
+      - external pretrained, used in-loop
+      - required for published protocol
+      - features only; does not sample AA
+    - - Random forest \(\hat{y}\)
+      - ranker
+      - integrated
+      - required (default)
+      - selects next batch; does not invent variants outside \(U\)
+    - - GP / UCB / EI
+      - not used in default
+      - code optional GP without UCB
+      - optional, unused in evolve_experimental
+      - do not claim
+    - - ELISA / functional assay
+      - experimental evaluator
+      - external
+      - required for claims of improvement
+      - updates labels; is the only evidence of function
+    - - pLDDT / AF / docking
+      - not in released loop
+      - external if user adds
+      - not required
+      - must not be treated as affinity
+- title: 10. Почему, по мнению авторов, метод эффективен
+  level: 2
+  blocks:
+  - title: Proposed mechanism
+    level: 3
+    blocks:
+    - type: p
+      text: Few-shot регрессия в пространстве больших PLM embeddings позволяет экстраполировать activity с десятков labels. Авторы трактуют PLM как universal protein representation, а лёгкий top-layer — как адаптер под конкретный assay. [PAPER]
+  - title: Author claim
+    level: 3
+    blocks:
+    - type: p
+      text: 'Science abstract: rapid in silico directed evolution; improvements up to ~100× across proteins. Preprint: 2–515× depending on protein. Antibody example REGN10987: ELISA improvement порядка 63% и IC50 11.9 nM after 5 rounds — это <strong>не</strong> 100× для антител. [PAPER]'
+  - title: Evidence
+    level: 3
+    blocks:
+    - type: p
+      text: 'Retrospective: in silico DMS simulations vs random / other strategies. Prospective: REGN10987, PsaCas12f, prime editor RT, Bxb1, T7 RNAP multi-objective. Ablations: grid over embeddings, pooling, regressors, first-round strategies. [PAPER]'
+  - title: Causal support
+    level: 3
+    blocks:
+    - type: p
+      text: Выбор ESM-2 15B + RF поддержан grid search на DMS (ablation-like, но это model selection на тех же 12 DMS — риск overfitting протокола). Prospective gains поддержаны экспериментами на конкретных белках, не universal law. Связь «именно 15B causal» для wet-lab кампаний — не полностью изолирована отдельной wet-lab ablation. [INTERPRETATION]
+- title: 11. Claim–evidence matrix
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Claim
+    - Proposed mechanism
+    - Evidence type
+    - Dataset or experiment
+    - Comparator
+    - Metric/result
+    - Source location
+    - Caveat
+    rows:
+    - - PLM+few-shot AL ускоряет evolution
+      - frozen embeddings + iterative RF
+      - 3 ablation + 2 retrospective + 5 prospective (mixed)
+      - 12 DMS; 5 protein campaigns
+      - random / other regressors / other LMs in grid
+      - in silico recovery; wet-lab fold-change protein-specific
+      - Science/bioRxiv results; code grid_search
+      - 100× нельзя переносить на antibodies
+    - - ESM-2 15B лучший embedder
+      - larger PLM features
+      - 3 ablation/grid
+      - 12 DMS
+      - other ESM sizes / pooling
+      - selected by grid
+      - preprint methods/grid
+      - selection on same DMS used to advertise in silico performance
+    - - RF — подходящий top layer
+      - non-linear tabular head
+      - 3 grid
+      - DMS + experimental default
+      - ridge, GP, MLP, …
+      - RF default in evolve_experimental
+      - '[CODE]+[PAPER]'
+      - GP exists but unused in experimental helper
+    - - Работает для antibody affinity
+      - same loop on REGN10987 ELISA
+      - 4 prospective binding
+      - REGN10987
+      - parent / earlier rounds
+      - ~63% ELISA; IC50 11.9 nM / 5 rounds (preprint numbers)
+      - prospective section
+      - не 100×; ELISA ≠ full developability
+    - - Multi-objective T7 RNAP
+      - weighted labels 20/40/40
+      - 5 prospective functional
+      - T7 RNAP yield/translation/immunogenicity
+      - parent
+      - author-reported weighted improvement
+      - preprint campaign
+      - weights are design choices, not learned Pareto NN
+    - - UCB exploration essential
+      - —
+      - 1 architectural rationale only (NOT used)
+      - —
+      - —
+      - not implemented
+      - '[CODE]'
+      - do not cite as EVOLVEpro mechanism
+- title: 12. Ablation analysis
+  level: 2
+  blocks:
+  - type: p
+    text: 'Paper/preprint: systematic grid по embedding model, pooling (average vs other), regression_type, first_round_strategy, learning_strategy на DMS simulations. Это изолирует выбор протокола in silico, но не является полной factorial wet-lab ablation. [PAPER]'
+  - type: p
+    text: 'Code learning_strategy ablation: topn vs random vs dist vs topn2bottomn2. Published experimental helper hardcodes topn+RF. Статистическая значимость различий между стратегиями: NR как p-values в прочитанном preprint text (детали могут быть в Science SI — inaccessible here).'
+- title: 13. What the model does not represent
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - явный растворитель, протонирование, ионизация, металлы, гликозилирование;
+    - conformational entropy и long-timescale dynamics;
+    - структура комплекса, epitope geometry, docking;
+    - true binding free energy;
+    - expression/aggregation/immunogenicity, кроме случаев, когда они сами являются \(y\);
+    - uncertainty \(\sigma(x)\) в default RF.
+- title: 14. Evidence and limitations
+  level: 2
+  blocks:
+  - type: p
+    text: 'Author-reported: крупные fold-change на части ферментов; antibody campaign скромнее. Limitations: не zero-shot; library must include the useful mutants; assay noise; multi-mutant shift. Independent validation EVOLVEpro protocol на новых терапевтических mAb: NR в этом проходе.'
+- title: 15. Reproducibility
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Item
+    - Value
+    rows:
+    - - Repository
+      - <a href="https://github.com/mat10d/EvolvePro">github.com/mat10d/EvolvePro</a>
+    - - Inspected commit
+      - 1c77697d0c09bf6989a1562a55da99301a12e2cd (2025-06-11)
+    - - License
+      - GitHub license field Other/NOASSERTION; SPDX NR — проверить LICENSE в репозитории перед коммерческим использованием
+    - - Checkpoints
+      - ESM-2 weights external (fair ESM); RF fit on the fly, no protein-specific checkpoint
+    - - Key files
+      - evolvepro/src/model.py (first_round, top_layer); evolvepro/src/evolve.py (directed_evolution_simulation, evolve_experimental)
+    - - Paper vs code
+      - статья описывает PLM+regressor+iterative selection; код уточняет greedy \(\hat{y}\), нулевой std, default RF
+    - - Environment
+      - sklearn, pandas, numpy; ESM embeddings separately; experimental output_dir в коде содержит внутренний MIT path — пользователь должен задать свой
+  - title: Различия между статьёй и реализацией
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Topic
+      - Paper / preprint
+      - Released code
+      - Practical consequence
+      rows:
+      - - Acquisition
+        - iterative selection of promising variants; не утверждает UCB как единственное правило
+        - topn = sort y_pred; std zeros
+        - нельзя внедрять UCB, ссылаясь на EVOLVEpro repo
+      - - Regressor
+        - lightweight top-layer; RF among tested
+        - evolve_experimental hardcodes randomforest
+        - repro experimental helper ≠ full grid
+      - - Round size
+        - few-shot, ~10 labels discussed
+        - first_round default 16; helper prints 12
+        - budget is user-set
+      - - Science vs preprint numbers
+        - abstract ~100×
+        - preprint 2–515× protein-dependent
+        - не обобщать на antibodies
+      source: '[CODE] vs [PAPER]'
+- title: Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Jiang et al., Science 2025, DOI 10.1126/science.adr6006
+      url: https://doi.org/10.1126/science.adr6006
+    - text: bioRxiv 10.1101/2024.07.17.604015
+      url: https://doi.org/10.1101/2024.07.17.604015
+    - text: EvolvePro commit 1c77697
+      url: https://github.com/mat10d/EvolvePro/tree/1c77697d0c09bf6989a1562a55da99301a12e2cd
+    - text: 'Architecture: active learning'
+      url: /architectures/active-learning.html
+    - text: Workflow
+      url: /workflows/few-shot-active-learning.html
+commit: 1c77697d0c09bf6989a1562a55da99301a12e2cd (https://github.com/mat10d/EvolvePro)
+inaccessible:
+- 'Полный PDF Science (paywall) и отдельный SI PDF: методы, цифры кампаний и grid-search сверены с bioRxiv 10.1101/2024.07.17.604015 и с кодом; нюансы вёрстки Science-версии, отсутствующие в preprint, помечены NR.'

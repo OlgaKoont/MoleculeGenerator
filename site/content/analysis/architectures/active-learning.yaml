@@ -1,0 +1,280 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Страница описывает **класс** sequential decision-making, а не одну нейросеть. Tool-specific механизм EVOLVEpro проверен по preprint и released code; Science HTML недоступен в этом проходе."
+lede: "Active learning — это **организация цикла** «суррогат → выбор партии → эксперимент → обновление данных», а не фиксированная neural architecture. Surrogate, acquisition и способ порождения кандидатов задаются отдельно."
+inaccessible:
+  - source: "Jiang et al., Science 10.1126/science.adr6006 (полный HTML/PDF)"
+    reason: "Paywall / полный текст журнальной версии не получен в этом выпуске"
+    workaround: "Полностью прочитан bioRxiv HTML 10.1101/2024.07.17.604015; код mat10d/EvolvePro"
+sources:
+  - kind: PAPER
+    citation: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model (bioRxiv preprint, corresponding Science paper EVOLVEpro)"
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+    note: "Preprint; журнальная версия Science 10.1126/science.adr6006 не сличена постранично"
+  - kind: CODE
+    citation: "EvolvePro official repository, function top_layer / directed_evolution_simulation"
+    url: "https://github.com/mat10d/EvolvePro"
+    note: "Commit main 1c77697d0c09bf6989a1562a55da99301a12e2cd"
+  - kind: PAPER
+    citation: "Settles B. Active Learning Literature Survey. University of Wisconsin–Madison, 2009 (foundational AL survey — context only)"
+    url: "https://research.cs.wisc.edu/techreports/2009/TR1648.pdf"
+    note: "Не белковая статья; только для родовых acquisition functions"
+repo:
+  url: "https://github.com/mat10d/EvolvePro"
+  commit: "1c77697d0c09bf6989a1562a55da99301a12e2cd"
+  ref: "main"
+  license: "см. репозиторий; SPDX в этом проходе NR"
+  files:
+    - evolvepro/src/model.py
+    - evolvepro/src/evolve.py
+    - evolvepro/src/data.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Active learning (AL) — **workflow organization principle** / sequential experimental design. Это не generator backbone и не единственная нейросеть. Внутри цикла могут стоять Gaussian process, random forest, нейросеть, PLM-эмбеддинги плюс лёгкий регрессор."
+        source: INTERPRETATION
+      - text: "Объекты: кандидаты $x$ из дискретного пространства sequences / mutants; метки $y$ — experimental fitness, binding, activity или другая assay-величина. Задачи каталога: few-shot active learning, ML-guided directed evolution, иногда multi-objective оптимизация свойств."
+        source: INTERPRETATION
+      - text: "AL **не** порождает de novo fold. Если пул $U$ задан как enumerated library, метод **выбирает**, какие варианты измерить, а не рисует новую геометрию."
+        source: INTERPRETATION
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "На раунде $t$ есть накопленные измерения $D_t$. Surrogate оценивает, какие ещё не измеренные кандидаты стоит отправить в assay. После измерения партия $B_t$ добавляется к данным. Цель — при малом бюджете labels быстрее найти высокие $y$, чем при случайном скрининге."
+        source: PAPER
+        locator: "родовая постановка AL; EVOLVEpro preprint Results/Methods (few-shot iterative selection)"
+      - text: "Uncertainty моделируется **только если** surrogate её выдаёт (GP posterior, ensemble, dropout и т.д.). Random forest с точечным $\\hat y$ **не** даёт калиброванный $\\sigma(x)$. Нельзя писать «модель учится быстрее» без указания, что именно меняется: состав $D_t$ и, следовательно, surrogate."
+        source: INTERPRETATION
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Ниже — **родовая** pool-based active learning. Она **не** является уравнением released EVOLVEpro, если не сказано иное."
+        source: INTERPRETATION
+    equations:
+      - latex: "D_t=\\{(x_i,y_i)\\}_{i=1}^{n_t}"
+        caption: "Размеченный набор после раундов $1\\ldots t$."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: D_t, type: set, meaning: "пары кандидат–экспериментальная метка к раунду t"}
+          - {sym: x_i, type: object, meaning: "вариант (обычно sequence / mutation string)"}
+          - {sym: y_i, type: scalar, meaning: "assay label (activity, ELISA, yield, …)"}
+          - {sym: n_t, type: integer, meaning: "число уже измеренных вариантов, включая WT если он в таблице"}
+      - latex: "U_t=\\mathcal{X}\\setminus \\{x:(x,\\cdot)\\in D_t\\}"
+        caption: "Пул ещё не измеренных кандидатов. $\\mathcal{X}$ задаёт пользователь (single-mutant scan, combinatorial library, …)."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: "\\mathcal{X}", type: set, meaning: "допустимое пространство вариантов"}
+          - {sym: U_t, type: set, meaning: "unlabelled / not-yet-assayed pool"}
+      - latex: "p(y\\mid x,D_t)\\quad \\mu_t(x)=\\mathbb{E}[y\\mid x,D_t]\\quad \\sigma_t^2(x)=\\mathrm{Var}[y\\mid x,D_t]"
+        caption: "Predictive surrogate. $\\sigma_t$ определён, только если модель вероятностная или имеет явную оценку дисперсии."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        meaning: "Для sklearn RandomForestRegressor.predict released EVOLVEpro записывает std как нули — см. tool page."
+      - latex: "B_t \\in \\arg\\max_{B\\subset U_t,\\,|B|=k} A_t(B)"
+        caption: "Batch acquisition размера $k$ (бюджет раунда)."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: k, type: integer, meaning: "число variants на раунд"}
+          - {sym: A_t, type: function, meaning: "скалярная оценка полезности подмножества (или сепарабельная сумма по элементам)"}
+      - latex: "D_{t+1}=D_t\\cup\\{(x,y):x\\in B_t\\}"
+        caption: "Экспериментальное обновление после assay."
+        generic_or_specific: generic
+        source: INTERPRETATION
+    tables:
+      - caption: "Родовые acquisition functions (класс). Не утверждается, что EVOLVEpro их использует."
+        source: INTERPRETATION
+        headers: ["Имя", "Типичная формула (generic)", "Нужен ли $\\sigma$", "В released EVOLVEpro"]
+        rows:
+          - ["UCB", "$a(x)=\\mu(x)+\\kappa\\sigma(x)$", "да", "нет (не используется как правило отбора)"]
+          - ["Expected Improvement (EI)", "ожидаемое превышение над incumbent", "да (обычно GP)", "нет"]
+          - ["Probability of Improvement (PI)", "$P(y>y^{\\star})$", "да", "нет"]
+          - ["Thompson sampling", "argmax сэмпла из posterior", "да (байесовский surrogate)", "нет"]
+          - ["Entropy / BALD", "снижение энтропии параметров или предсказания", "да", "нет"]
+          - ["Diversity-aware batch", "acquisition + diversity / medoids", "не обязательно", "опция first-round `diverse_medoids`; не default subsequent rounds"]
+          - ["Pareto / multi-objective", "NSGA или scalarization", "зависит", "T7: weighted scalarization в preprint; RF может принимать несколько свойств [DOC/PAPER] — не NSGA в проверенном коде"]
+          - ["Top-N по $\\hat y$", "$B_t=\\mathrm{top}_k \\hat y(x)$", "нет", "**да, default `learning_strategy='topn'`**"]
+    paragraphs:
+      - text: "**Pool-based AL vs generative proposal.** В pool-based цикле кандидаты уже перечислены в $U_t$. Generative proposal (diffusion, AR LM) *создаёт* новые $x$ вне фиксированного списка. EVOLVEpro в released experimental path ранжирует **уже эмбеддированные** variants."
+        source: CODE
+        locator: "evolvepro/src/evolve.py evolve_experimental; embeddings index alignment"
+      - text: "**AL vs Bayesian optimization.** BO — подкласс, где surrogate обычно probabilistic (часто GP) и acquisition явно торгует exploration–exploitation. AL шире: можно брать greedy top-N без $\\sigma$. Released EVOLVEpro ближе к iterative supervised ranking, чем к классическому GP-BO."
+        source: INTERPRETATION
+      - text: "**AL vs zero-shot mutation scoring.** Zero-shot ранжирует substitutions по pretrained likelihood / inverse-folding $\\Delta\\ell$ **без** новых assay labels. AL **требует** $D_t$ и обновляет surrogate каждый раунд. Смешивать EVOLVEpro и ESM-1v как один метод нельзя."
+        source: INTERPRETATION
+      - text: "**AL vs ordinary supervised regression.** Одноразовый fit на фиксированном test set не выбирает следующие эксперименты. AL определяет, какие $x$ станут новыми train points."
+        source: INTERPRETATION
+      - text: "**Uncertainty в EVOLVEpro.** В `top_layer` после `model.predict` массивы `y_std_train` и `y_std_test` заполняются нулями даже для `regression_type=='gp'`. GaussianProcessRegressor доступен как опция fit, но **std не извлекается** (`predict` без `return_std`). Нельзя описывать released pipeline как UCB/EI."
+        source: CODE
+        locator: "evolvepro/src/model.py top_layer"
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Родовой AL не фиксирует тензоры. Для PLM-based few-shot (EVOLVEpro): $x$ кодируется frozen embedding $E(s)\\in\\mathbb{R}^{d}$ (residue-pooled average в выбранной конфигурации preprint), $y$ — скаляр assay. Amino-acid tokens внутри PLM; surrogate видит только вектор $E(s)$ и таблицу labels. Размерность $d$ зависит от выбранного PLM (ESM-2 15B в оптимальной конфигурации preprint); точное $d$ в Science SI в этом проходе NR."
+        source: PAPER
+        locator: "preprint: residue-pooled average embeddings; ESM-2 15B won grid search"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "$x$ физически — полипептидная последовательность (мутант относительно parent). $y$ — **экспериментальная** величина, заданная assay, а не вычисленная энергия. PLM embedding — статистический sequence prior, не координаты атомов. Трансляция/ротация структуры не действуют: структуры нет. Перестановка residues ломает биологический объект; chain permutation не определена."
+        source: INTERPRETATION
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    physchem:
+      - feature: "Amino-acid identity"
+        interpretation: "Задаётся в sequence $x$; PLM видит токены при эмбеддинге"
+        encoded: "прямо в $x$; косвенно в $E(s)$"
+        limitation: "Surrogate не оперирует атомами"
+      - feature: "Evolutionary sequence statistics"
+        interpretation: "Pretrained PLM"
+        encoded: "косвенно, frozen"
+        limitation: "Не тождественны функции; preprint отмечает слабую/отрицательную корреляцию ESM-2 pMMS с activity landscape"
+      - feature: "Binding / catalytic activity"
+        interpretation: "Только через experimental $y$"
+        encoded: "прямо как label, не как физика"
+        limitation: "Шум assay, proxy ELISA ≠ $K_d$ без калибровки"
+      - feature: "Steric packing, H-bonds, electrostatics, solvation, entropy"
+        interpretation: "Не считаются"
+        encoded: "не представлены"
+        limitation: "Могут коррелировать с $y$ только через данные"
+      - feature: "Uncertainty of fitness"
+        interpretation: "Родовой UCB требует $\\sigma$"
+        encoded: "в released EVOLVEpro не используется"
+        limitation: "Exploration только через first-round strategy или не-topn learning_strategy"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "В общем AL обучается surrogate $f_\\phi$ на $D_t$. PLM может быть frozen (EVOLVEpro) или fine-tuned (другие методы — не этот класс по умолчанию). Loss surrogate — обычно MSE регрессии; в RF — impurity decrease по выбранному criterion (в коде `friedman_mse`)."
+        source: CODE
+        locator: "RandomForestRegressor criterion='friedman_mse'"
+      - text: "Negative examples — variants с низким $y$, если они измерены; отдельного contrastive loss нет в released EVOLVEpro."
+        source: CODE
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    mermaid: |
+      flowchart TD
+        A["Пул вариантов U / embeddings E(s)"] --> B["Размеченные D_t"]
+        B --> C["Surrogate fit f_phi"]
+        A --> C
+        C --> D["Ranking: yhat(x) для x в U_t"]
+        D --> E["Batch B_t: top-k или иная strategy"]
+        E --> F["Wet-lab assay"]
+        F --> G["Новые y"]
+        G --> B
+        subgraph gen ["Выбор кандидатов — не sequence generator"]
+          D
+          E
+        end
+        subgraph eval ["Surrogate — evaluator внутри цикла"]
+          C
+        end
+        subgraph exp ["Эксперимент"]
+          F
+        end
+    mermaid_caption: "Pool-based AL. Схема оригинальная, основана на preprint EVOLVEpro и evolve.py."
+    mermaid_source: "Jiang et al. bioRxiv 10.1101/2024.07.17.604015; EvolvePro evolve.py"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Каждый раунд: refit surrogate на накопленном $D_t$. Pretraining — у PLM, не у top-layer (EVOLVEpro: PLM не fine-tune под activity). Split: в DMS-симуляции remaining pool играет роль test; в live experiment «test» — ещё не измеренные embeddings."
+        source: PAPER
+        locator: "preprint Methods; CODE evolve_experimental"
+      - text: "Утечка: если library содержит варианты, близкие к train по embedding, ranking может выглядеть сильным без обобщения на новый epitope/protein. Preprint симулирует на DMS, что **не** тождественно новому терапевтическому антигену."
+        source: INTERPRETATION
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт: embeddings всей библиотеки + labels текущих раундов. Нет diffusion steps, recycles, beam search. Отбор: sort по `y_pred`, `head(num_mutants_per_round)` при `topn`. First round: `random` (default в оптимальной конфигурации preprint) или `diverse_medoids` / `explicit_variants`."
+        source: CODE
+        locator: "learning_strategy branches in evolve.py"
+      - text: "Нейросетевой inference PLM (эмбеддинг) отделён от выбора партии и от assay. Structure prediction, docking, MD, developability — внешние, если пользователь их добавит; в ядре EVOLVEpro их нет."
+        source: CODE
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Conditioning = определение $\\mathcal{X}$ (позиции, alphabet, single vs multi-mutant files) и выбор измеряемой переменной `measured_var`. Нет hotspot/epitope tensors. Multi-objective в preprint T7 — веса yield / translation / immunogenicity; это scalarization, не CDR mask."
+        source: PAPER
+        locator: "preprint T7 multi-objective; CODE measured_var"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    items:
+      - "Размер пула $|U|$ — основной драйвер scoring (матрица embeddings $\\times$ RF predict)."
+      - "Число раундов $T$ и latency assay — обычно доминируют над GPU PLM после однократного эмбеддинга."
+      - "Число деревьев RF (`n_estimators=100` в коде) и размерность embedding."
+      - "Эмбеддинг ESM-2 15B — отдельная стоимость, один раз на variant."
+      - "Асимптотика GP $O(n^3)$ релевантна только если кто-то включит GP; default RF другой."
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Явные experimental labels замыкают цикл на **той функции, которую измеряют**, а не на evolutionary likelihood. Frozen PLM даёт фиксированный feature map без необходимости backprop по миллиардам параметров на 10–16 точках."
+        source: PAPER
+        locator: "preprint motivation; few-shot vs pretrain comparison"
+      - text: "Это **не** гарантия, что top-N найдёт глобальный оптимум или что RF калиброван. Преимущество относительно random screening показано в DMS-симуляциях и prospective кампаниях preprint — см. tool page, не обобщать на все белки."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    items:
+      - "Математически: greedy top-N без $\\sigma$ слабо исследует; возможен exploitation collapse."
+      - "Представление: нет геометрии интерфейса, нет явной физики."
+      - "Данные: качество и bias library; assay noise; few-shot переобучение."
+      - "Обобщение: новый белок / новый механизм связывания не покрыт PLM+RF, обученным на другом $D_t$."
+      - "Deployment: нужен closed-loop wet lab; это не zero-shot design tool."
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Exploitation collapse: все последующие раунды крутятся вокруг локального пика $\\hat y$ ([INTERPRETATION], типично для greedy AL)."
+      - "Плохая калибровка: высокий $\\hat y$ при шумном ELISA."
+      - "Distribution shift: multi-mutants вне single-mutant train."
+      - "Library misspecification: оптимальный мутант не входит в $U$."
+      - "Смешение pMMS/likelihood PLM с функцией — preprint как раз предостерегает, что они расходятся."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    tables:
+      - headers: ["Tool", "Generic architecture", "Tool-specific", "Важное отличие"]
+        rows:
+          - ["[EVOLVEpro](../tools/evolvepro.html)", "Pool-based AL + frozen PLM features + iterative refit", "RF + top-N; ESM-2 embeddings; first round random", "Нет UCB/EI в released selection"]
+          - ["[Makowski affinity/specificity](../tools/makowski-affinity-specificity.html)", "Supervised ML on labelled Ab variants", "Не разобран в этом выпуске на уровне code", "Не приравнивать к EVOLVEpro без чтения paper"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: [few-shot active learning](../tasks/few-shot-active-learning.html), [ML-guided directed evolution](../tasks/ml-guided-directed-evolution.html), [affinity maturation](../tasks/affinity-maturation.html) при наличии assay. Workflow: [few-shot / labelled mutation optimization](../workflows/few-shot-active-learning.html)."
+        source: INTERPRETATION
+      - text: "Не применимо как замена [de novo antibody design](../tasks/de-novo-antibody-design.html) или [CDR backbone generation](../tasks/cdr-backbone-generation.html). Не замена [zero-shot mutation](../architectures/zero-shot-mutation-scoring.html)."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "См. нумерованный список в конце страницы. Foundational AL surveys дают словарь UCB/EI; белковый few-shot цикл — EVOLVEpro preprint/Science. Не переносить UCB на EVOLVEpro."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv (2024)."
+    doi: "10.1101/2024.07.17.604015"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.17.604015"
+  - id: 2
+    text: "Jiang K. et al. Rapid in silico directed evolution by a protein language model with EVOLVEpro. Science (2025). Полный текст в этом выпуске не прочитан."
+    doi: "10.1126/science.adr6006"
+    url: "https://doi.org/10.1126/science.adr6006"
+  - id: 3
+    text: "EvolvePro, GitHub mat10d/EvolvePro, commit 1c77697d0c09bf6989a1562a55da99301a12e2cd."
+    url: "https://github.com/mat10d/EvolvePro"
+  - id: 4
+    text: "Settles B. Active Learning Literature Survey. University of Wisconsin–Madison Technical Report TR1648 (2009). Только контекст класса AL."
+    url: "https://research.cs.wisc.edu/techreports/2009/TR1648.pdf"
+unresolved:
+  - "Постраничные отличия Science vs bioRxiv (в т.ч. C143 vs REGN10987) не сверены по журнальному PDF."
+  - "Калибровка RF $\\hat y$ относительно $K_d$ не заявлена."
+  - "Точная размерность ESM-2 15B pooled vector в SI Science — NR здесь."
+paper_vs_code:
+  - paper_version: "bioRxiv 10.1101/2024.07.17.604015 (HTML прочитан); Science 10.1126/science.adr6006 не прочитан"
+    repo_commit: "1c77697d0c09bf6989a1562a55da99301a12e2cd"
+    model_version: "ESM-2 embeddings как признаки; RF sklearn"
+    file: "evolvepro/src/model.py, evolvepro/src/evolve.py"
+    difference: "Grid-search preprint включает UCB-подобные идеи на уровне литературы AL, но released selection — topn/dist/random/topn2bottomn2; y_std обнулён."
+    consequence: "Нельзя воспроизвести UCB-кампанию из коробки; default — greedy exploitation по $\\hat y$."
+physchem_table: []
+claim_evidence: []

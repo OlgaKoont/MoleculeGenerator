@@ -1,0 +1,249 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Nature HTML 10.1038/s41586-025-09721-5 просматривался (pipeline, prospective VHH/scFv, modest Kd, OrthoRep). Полные Methods/SI и repo commit не зафиксированы (GitHub commits/main timeout). Preprint bioRxiv 10.1101/2024.03.14.585103 — 429. Не описывать RF2 как generator."
+lede: "RFantibody — **многостадийный workflow**: antibody-fine-tuned RFdiffusion (CDR frames) → ProteinMPNN (sequence) → antibody-fine-tuned RoseTTAFold2 (filter). AF3 в исследовании — retrospective filter. Binding устанавливается assay/cryo-EM, не pLDDT."
+inaccessible:
+  - source: "Nature Methods/SI complete"
+    reason: "HTML частично; SI не выгружен"
+    workaround: "Narrative Results pipeline; catalog numbers from matrix cross-check"
+  - source: "bioRxiv 10.1101/2024.03.14.585103"
+    reason: "HTTP 429"
+    workaround: "Nature version"
+  - source: "RosettaCommons/RFantibody commit SHA"
+    reason: "API timeout"
+    workaround: "URL репозитория без SHA"
+sources:
+  - kind: PAPER
+    citation: "Bennett, Watson et al. Nature 10.1038/s41586-025-09721-5"
+    url: "https://doi.org/10.1038/s41586-025-09721-5"
+    doi: "10.1038/s41586-025-09721-5"
+  - kind: DOC
+    citation: "https://github.com/RosettaCommons/RFantibody MIT"
+    url: "https://github.com/RosettaCommons/RFantibody"
+repo:
+  url: "https://github.com/RosettaCommons/RFantibody"
+  commit: "NR (timeout)"
+  ref: "main"
+  license: "MIT (каталог YAML)"
+  files:
+    - "NR — listing не получен в этом проходе"
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** структура мишени, epitope hotspots, фиксированный antibody framework, длины CDR / contig, формат VHH или scFv. **Выход:** CDR backbones + sequences + комплекс-предложения. **Фиксируется:** framework и target (кроме designed CDRs). De novo CDR-mediated binder, не parent affinity maturation AL."
+        source: PAPER
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "Не одна сеть. (1) SE(3) diffusion denoiser на базе RFdiffusion, fine-tuned на antibody geometry, генерирует CDR frames при clamped FW/target. (2) ProteinMPNN назначает CDR sequences на полученный backbone. (3) Fine-tuned RF2 оценивает комплекс (self-consistency/confidence) и отфильтровывает кандидатов. AF3 — дополнительный retrospective ranker в статье, не generator."
+        source: PAPER
+  - id: math-model
+    title: "4. Математическая модель"
+    paragraphs:
+      - text: "Точные score-matching уравнения Ab-RFdiffusion в этом выпуске **NR** (Methods). Классово: reverse SE(3) на designed frames. MPNN: $p(s\\mid x_{\\mathrm{bb}})$. RF2: structure/complex prediction loss, **не** $p(K_d)$."
+        source: NR
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Стадия 1: noisy/clean residue frames CDRs. Стадия 2: amino-acid tokens. Стадия 3: predicted complex coordinates + confidence maps. Experimental fitness — только после display/SPR/cryo-EM."
+        source: PAPER
+  - id: physchem
+    title: "6. Физико-химическая интерпретация"
+    paragraphs:
+      - text: "Steric complementarity может отражаться в learned geometry + later RF2. H-bonds/electrostatics/solvation не explicit в diffusion. RF2/AF3 confidence — статистика структур, не ΔG. OrthoRep maturation — **экспериментальная** эволюция после слабых начальных Kd."
+        source: PAPER
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "Antibody fine-tune RFdiffusion и RF2; MPNN стандартный sequence recovery. Точные датасеты, фильтры, hardware — NR без Methods. Negative antigens как specificity objective — не описаны как главный loss."
+        source: NR
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "Кампании статьи: порядка 95 designs low-throughput или ~9000 display per target (цифры каталога/Nature narrative; уточнять по paper figures). Hit rate overall target success 0–2% (каталог). GPU hours/VRAM NR. Отделять diffusion wall-time от MPNN, RF2 recycles, AF3, wet-lab."
+        source: PAPER
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Mechanism:** antibody-specific fine-tune diffusion на CDR; hotspot-conditioned epitope; MPNN для sequences; RF2 filter для self-consistent complexes; experimental display/SPR/cryo-EM."
+        source: PAPER
+      - text: "**Claim:** atomically accurate de novo antibodies (VHH/scFv); некоторые нейтрализующие после maturation (TcdB). Initial affinities often modest (tens–hundreds nM)."
+        source: PAPER
+      - text: "**Causal support:** prospective binding/structure — **да** для selected designs. Ablation «зачем fine-tune» vs vanilla RFdiffusion — нужно SI; здесь не утверждать цифры. RF2 ranking не доказан как причина binding, только как filter перед экспериментом."
+        source: INTERPRETATION
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "Полные ablation tables Methods/SI в этом проходе не извлечены (NR). Не заполнять вымышленными процентами."
+        source: NR
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Оптимизация humanness CDR"
+      - "Явный растворитель, гликаны, Fc-эффектор (если не моделируется отдельно после IgG conversion)"
+      - "Конформационная энтропия"
+      - "Истинная ΔG"
+      - "Гарантия developability/manufacturability"
+      - "Free framework redesign"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Prospective: binders confirmed; cryo-EM для selected; hit rates modest vs miniprotein binder pipelines (authors). Framework fixed. Target holo conformation критичен. Independent validation вне авторов — NR здесь."
+        source: PAPER
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "MIT, GitHub RosettaCommons/RFantibody, weights claimed in catalog. Commit SHA **NR** (timeout). Inference example не прогонялся в этом выпуске."
+        source: NR
+modules:
+  - module: "Ab-finetuned RFdiffusion"
+    model_class: "SE(3) frame diffusion"
+    input: "target, hotspots, fixed FW, CDR contig"
+    output: "CDR backbone frames"
+    trained_or_frozen: "fine-tuned generator"
+    generator_or_evaluator: "generator"
+  - module: "ProteinMPNN"
+    model_class: "inverse folding"
+    input: "backbone"
+    output: "CDR sequences"
+    trained_or_frozen: "typically frozen pretrained MPNN"
+    generator_or_evaluator: "integrated generator stage"
+  - module: "Ab-finetuned RoseTTAFold2"
+    model_class: "structure/complex predictor"
+    input: "sequence+complex hypothesis"
+    output: "coordinates + confidence"
+    trained_or_frozen: "fine-tuned predictor"
+    generator_or_evaluator: "evaluator / filter"
+  - module: "AlphaFold3 (study)"
+    model_class: "complex predictor"
+    input: "sequences"
+    output: "models/confidence"
+    trained_or_frozen: "external"
+    generator_or_evaluator: "retrospective evaluator"
+  - module: "Display / SPR / cryo-EM / OrthoRep"
+    model_class: "experiment"
+    input: "designs"
+    output: "binding, structure, matured Kd"
+    trained_or_frozen: "n/a"
+    generator_or_evaluator: "experimental validation"
+gen_vs_eval:
+  - component: "RFdiffusion (Ab)"
+    role: "backbone generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "ProteinMPNN"
+    role: "sequence generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "RF2"
+    role: "complex predictor / ranker"
+    integrated_or_external: "integrated"
+    required_or_optional: "used as filter"
+    influences: "post_hoc (does not denoise frames)"
+  - component: "AF3"
+    role: "external complex predictor"
+    integrated_or_external: "external"
+    required_or_optional: "optional/retrospective"
+    influences: "post_hoc"
+  - component: "Assays"
+    role: "experimental"
+    integrated_or_external: "external"
+    required_or_optional: "required for binding claims"
+    influences: "not generation"
+claim_evidence:
+  - claim: "De novo VHH/scFv binders to specified epitopes can be generated"
+    mechanism: "Ab-RFdiffusion + MPNN + filters + experiment"
+    evidence_type: "prospective binding validation"
+    dataset: "multiple targets; 95 or ~9000 designs/campaign (catalog)"
+    comparator: "undesigned / failed targets; miniprotein pipelines (qualitative)"
+    metric: "binding, cryo-EM epitope; hit rate 0–2% overall (catalog)"
+    source: PAPER
+    locator: "Nature Results (HTML narrative)"
+    caveat: "Methods numbers need SI; modest initial Kd"
+  - claim: "Designed geometry matches experimental structures for selected cases"
+    mechanism: "frame diffusion + filtering"
+    evidence_type: "prospective binding validation"
+    dataset: "cryo-EM subset"
+    comparator: "design model"
+    metric: "structural agreement (details SI NR)"
+    source: PAPER
+    locator: "Nature"
+    caveat: "Selected successes, not all trajectories"
+  - claim: "Neutralization after OrthoRep maturation (TcdB)"
+    mechanism: "experimental evolution on designed starting points"
+    evidence_type: "prospective functional validation"
+    dataset: "TcdB campaign"
+    comparator: "parent designed clone"
+    metric: "neutralization / nM affinities after maturation"
+    source: PAPER
+    locator: "Nature"
+    caveat: "Maturation is not the neural generator"
+  - claim: "RF2/AF3 confidence equals affinity"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "false"
+    source: INTERPRETATION
+    locator: "scope rule"
+    caveat: "Confidence ≠ Kd"
+diagrams:
+  - code: |
+      flowchart TD
+        subgraph gen["Generative stages"]
+          RF["RFdiffusion Ab — CDR frames"]
+          MP["ProteinMPNN — sequence"]
+        end
+        subgraph eval["Integrated / external evaluators"]
+          R2["RF2 filter"]
+          AF["AF3 retrospective"]
+        end
+        subgraph exp["Experiment"]
+          D["Display/SPR"]
+          C["cryo-EM"]
+          O["OrthoRep"]
+        end
+        RF --> MP --> R2 --> D
+        R2 --> AF
+        D --> C
+        D --> O
+    caption: "Generator vs evaluator vs experiment. Оригинальная схема."
+    source_note: "Nature 10.1038/s41586-025-09721-5"
+paper_vs_code:
+  - paper_version: "Nature 10.1038/s41586-025-09721-5"
+    repo_commit: "NR"
+    model_version: "NR checkpoints this pass"
+    file: "NR"
+    difference: "Реализация не сверена построчно с Methods"
+    consequence: "Inference hyperparameters брать из repo configs после clone, не из этой страницы"
+citations:
+  - id: 1
+    text: "Bennett, Watson et al. Atomically accurate de novo design of antibodies with RFdiffusion. Nature. DOI 10.1038/s41586-025-09721-5"
+    doi: "10.1038/s41586-025-09721-5"
+    url: "https://doi.org/10.1038/s41586-025-09721-5"
+  - id: 2
+    text: "RosettaCommons/RFantibody"
+    url: "https://github.com/RosettaCommons/RFantibody"
+  - id: 3
+    text: "Dauparas et al. ProteinMPNN. Science 2022. Inverse-folding stage."
+    doi: "10.1126/science.add2187"
+unresolved:
+  - "Commit SHA, default diffusion steps, RF2 recycle count"
+  - "Full ablation of antibody fine-tune"
+  - "Developability panel beyond selected IgG conversion"
+physchem_table:
+  - feature: "Hotspots"
+    interpretation: "epitope residues"
+    encoded: "conditioning"
+    limitation: "user-defined, can be wrong"
+  - feature: "CDR frames"
+    interpretation: "loop backbone"
+    encoded: "generated"
+    limitation: "side chains later"
+  - feature: "RF2 PAE/pLDDT-like confidence"
+    interpretation: "predictor self-consistency"
+    encoded: "evaluator"
+    limitation: "≠ affinity"

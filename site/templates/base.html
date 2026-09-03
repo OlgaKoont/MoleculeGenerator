@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} — Генеративный дизайн белков и антител</title>
+  <link rel="stylesheet" href="{{ root }}static/styles.css?v=20260827-full">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+</head>
+<body>
+  <a class="skip" href="#main">К содержанию</a>
+  <header class="site-header">
+    <button class="menu-toggle" type="button" data-menu>Меню</button>
+    <a class="brand" href="{{ root }}index.html">Protein&nbsp;AbGen <span>документация</span></a>
+    <div class="search-wrap">
+      <input id="site-search" type="search" placeholder="Поиск по инструментам, задачам, papers…" aria-label="Поиск">
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <nav class="header-nav" aria-label="Разделы">
+      <a href="{{ root }}tasks/index.html">Задачи</a>
+      <a href="{{ root }}workflows/index.html">Workflows</a>
+      <a href="{{ root }}tools/index.html">Инструменты</a>
+      <a href="{{ root }}architectures/index.html">Architecture Guide</a>
+      <a href="{{ root }}compare/index.html">Сравнение</a>
+    </nav>
+  </header>
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Навигация">
+      <h2>Вход</h2>
+      <a href="{{ root }}index.html">Главная / выбор по данным</a>
+      <a href="{{ root }}about/index.html">Scope и правила</a>
+      <a href="{{ root }}evidence/index.html">Evidence</a>
+      <h2>Задачи</h2>
+      {% for group, items in nav_tasks %}
+        <div class="nav-group">
+          <a href="{{ root }}tasks/index.html#{{ group[1] }}">{{ group[0] }}</a>
+          <div class="nav-sub">
+            {% for t in items %}<a href="{{ root }}tasks/{{ t.slug }}.html">{{ t.name }}</a>{% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      <h2>Workflows</h2>
+      {% for w in nav_workflows %}<a href="{{ root }}workflows/{{ w.slug }}.html">{{ w.name }}</a>{% endfor %}
+      <h2>Инструменты</h2>
+      {% for t in nav_tools %}<a href="{{ root }}tools/{{ t.identity.slug }}.html">{{ t.identity.name }}</a>{% endfor %}
+      <h2>Architecture</h2>
+      <a href="{{ root }}architectures/index.html">Все концепции</a>
+      {% for a in nav_architectures %}<a href="{{ root }}architectures/{{ a.slug }}.html">{{ a.name }}</a>{% endfor %}
+      <h2>Справочники</h2>
+      <a href="{{ root }}papers/index.html">Papers</a>
+      <a href="{{ root }}glossary/index.html">Glossary</a>
+      <a href="{{ root }}compare/index.html">Compare architectures</a>
+    </nav>
+    <main class="content" id="main">
+      <div class="breadcrumbs">{% for b in breadcrumbs %}{% if not loop.last %}<a href="{{ b.href }}">{{ b.label }}</a> / {% else %}{{ b.label }}{% endif %}{% endfor %}</div>
+      {{ body | safe }}
+      {% if pager %}
+      <div class="pager">
+        <div>{% if pager.prev %}<a href="{{ pager.prev.href }}">← {{ pager.prev.label }}</a>{% endif %}</div>
+        <div>{% if pager.next %}<a href="{{ pager.next.href }}">{{ pager.next.label }} →</a>{% endif %}</div>
+      </div>
+      {% endif %}
+      <div class="footer">
+        Каталог по состоянию матрицы на 13.08.2026. Predictor ≠ generator. Internal score ≠ experimental affinity.
+        Неизвестные поля показаны как <span class="nr">NR</span>.
+      </div>
+    </main>
+    <aside class="toc" aria-label="На этой странице">
+      <h2>На этой странице</h2>
+      {{ toc | safe }}
+    </aside>
+  </div>
+  <script src="{{ root }}static/search-index.js?v=20260827-full"></script>
+  <script src="{{ root }}static/app.js?v=20260827-full"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+    onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false},{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}], throwOnError:false});"></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "strict" });
+  </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+id: miniprotein-binder-bindcraft
+slug: miniprotein-binder-bindcraft
+name: Target-conditioned miniprotein binder (BindCraft)
+use_case: Есть target structure и hotspots; нужен non-antibody binder.
+required_input:
+- target structure
+- hotspot residues
+- binder length
+stages:
+- name: AF2-gradient hallucination
+  architecture_class: Differentiable structure model
+  what_happens: Оптимизируется binder sequence/complex
+  generation_or_evaluation: generation
+  generator: bindcraft
+  intermediate_object: Draft binders
+  alternatives:
+  - alphaproteo
+  - boltzgen
+  node_links:
+  - bindcraft
+- name: MPNN redesign
+  architecture_class: Inverse folding
+  what_happens: Sequences переписываются под геометрию
+  generation_or_evaluation: generation
+  generator: proteinmpnn
+  intermediate_object: Redesigned sequences
+  alternatives: []
+  node_links:
+  - proteinmpnn
+- name: AF2 + PyRosetta filters
+  architecture_class: Integrated scorer
+  what_happens: Confidence/interface/energy filtering
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked candidates
+  alternatives:
+  - pyrosetta
+  node_links:
+  - alphafold2
+  - pyrosetta
+- name: Binding assays
+  architecture_class: null
+  what_happens: Измеряется binding/function
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Validated binders
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: GPU required. PyRosetta commercial terms separate. Exact runtime NR.
+evidence_level: 3–4 prospective binding/function; nanomolar examples. Not antibody.
+failure_points:
+- AF2 optimization bias.
+- Hotspot choice.
+- Interpreting AF2 confidence as Kd.
+decision_criteria:
+- Нужен antibody format? Нет.
+- Commercial Rosetta license?
+task_ids:
+- de-novo-non-antibody-binder-design
+- target-conditioned-binder-generation
+tool_ids:
+- bindcraft
+- proteinmpnn
+- alphaproteo
+architecture_ids:
+- inverse-folding
+- multi-objective-optimization
+paper_ids:
+- paper-bindcraft
+mermaid: "flowchart TD\n    A[Target + hotspots] --> B[AF2 hallucination]\n    B --> C[MPNN redesign]\n\
+  \    C --> D[AF2/Rosetta filters]\n    D --> E[Ranked miniprotein binders]\n    E --> F[Experimental\
+  \ binding]"

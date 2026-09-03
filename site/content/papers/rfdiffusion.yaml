@@ -1,0 +1,46 @@
+id: paper-rfdiffusion
+slug: rfdiffusion
+title: De novo design of protein structure and function with RFdiffusion
+authors: null
+year: '2023'
+venue: Peer-reviewed journal; Nature (Q1)
+publication_status: Peer-reviewed journal; Nature (Q1)
+doi: 10.1038/s41586-023-06415-8
+url: https://doi.org/10.1038/s41586-023-06415-8
+preprint_url: null
+tool_ids:
+- rfdiffusion
+main_task: De novo backbone generation; motif scaffolding; oligomers; target-conditioned binders
+claimed_novelty: null
+model_architecture: SE(3) diffusion fine-tuned from RoseTTAFold
+input_representation: null
+encoder_decoder: null
+generative_state: Protein backbone / complex geometry; sequence is downstream
+conditioning: Contigs, motifs, hotspots, target, symmetry, partial diffusion
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Strong general protein evidence; not antibody-specific
+tested_designs: Hundreds of designs across motif, binder and assembly campaigns; task-specific
+  counts in paper
+success_criterion: Strong general protein evidence; not antibody-specific
+main_results: Strong general protein evidence; not antibody-specific
+limitations: Backbone-only; sequence and validation are separate; input hotspot choice strongly
+  affects outcome; vanilla model fails on antibody loop geometry.
+demonstrates:
+- Strong general protein evidence; not antibody-specific
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: De novo design of protein structure and function with RFdiffusion
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

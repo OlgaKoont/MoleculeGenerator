@@ -1,0 +1,678 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — семейство сетей (geometric encoder + Transformer / pair track / IPA), не одна generative process и не задача inverse folding. В этом проходе прочитаны: Jing et al. GVP ar5iv HTML 2009.01411 (ICLR 2021: Algorithm 1, Eq. 1–5, protein graph k=30, CATH 4.2 CPD Table 1, MQA CASP); Høie/Hummer et al. AntiFold arXiv HTML 2405.03370 включая Supplementary Methods (Eq. 1 quoting Hsu; 4 GVP + 8+8 Transformer; 10 gap tokens; T=0.20; SAbDab 2074 + OAS 147458); Wu et al. tFold Nat. Commun. HTML 10.1038/s41467-025-67361-9 (Results + Methods: ESM-PPI, Evoformer-Single, IPA structure module, recycle; tFold-Ag 32 Evoformer-Single + 8 structure; phage then SPR). Hsu et al. ICML 2022: в этом проходе — PMLR abstract (PMLR 162:8946–8970) + AntiFold SI Eq. 1; архитектура/splits/recovery — prior catalog close-read bioRxiv HTML 10.1101/2022.04.10.487779 (зафиксирован в analysis/tools/esm-if1.yaml). Не сливать preprint и journal pagination Hsu. PMLR PDF Table A.1 numeric grid NR. AF2 SI Algorithm 22 (полный IPA) не копируется. TencentAI4S/tfold commit NR. facebookresearch/esm inverse_folding/*.py line-audit NR (SHA зафиксирован). OUP AntiFold HTML — Cloudflare, workaround arXiv."
+lede: "Geometric transformers — **backbone сети**: Transformer (или AF-like pair track / IPA) получает 3D геометрию (distances, orientations, frames, pair features), а не только sequential position. Это не generative process само по себе, не задача $p(s\\mid x)$, не sequence-only PLM и не predictor affinity."
+inaccessible:
+  - source: "Hsu et al. PMLR 162 PDF, в особенности Table A.1 numeric hyperparameter grid"
+    reason: "В этом проходе PDF/HTML appendix table не развёрнуты численно; ar5iv 2204.07148 и 2206.12094 отдают чужие статьи (ID collision)"
+    workaround: "PMLR abstract; AntiFold SI quoting Hsu Eq. 1 and 4 GVP + 8+8 TF; prior bioRxiv HTML close-read в /analysis catalog для ESM-IF1 (CATH split, 12M AF2, 142M, d=512, 8 heads, k=30, span mask, Table 1 recovery)"
+  - source: "Jumper et al. Nature 2021 SI Algorithm 22 (полный IPA listing)"
+    reason: "Намеренно не копируется; copyrighted block / не постраничный SI this pass"
+    workaround: "Качественно: tFold HTML — SE(3)-equivariant updates via IPA (citing Jumper); schematic pair-biased attention на этой странице помечен INTERPRETATION, не SI Eq."
+  - source: "TencentAI4S/tfold commit SHA + tFold Nature Communications SI PDF"
+    reason: "CODE unaudited this pass; SI PDF не постранично"
+    workaround: "Main HTML Methods: ESM-PPI further-pretrain ESM-2 monomers+multimers; tFold-Ag docking unit 32 Evoformer-Single + 8 structure; SPR after phage. Block count tFold-Ab Evoformer-Single — NR. FAPE weights — NR (authors: AF-family protocols)"
+  - source: "facebookresearch/esm esm/inverse_folding/*.py line audit"
+    reason: "extra_constraints: line-audit NR; commit только SHA"
+    workaround: "Архитектура GVP-Transformer — Hsu / AntiFold SI; не описывать released IF1 как чистый GVP-GNN Jing"
+  - source: "OUP Bioinformatics Advances HTML 10.1093/bioadv/vbae202"
+    reason: "Cloudflare / HTML недоступен (известный блокер)"
+    workaround: "arXiv 2405.03370 HTML + SI methods в том же документе"
+  - source: "Ingraham et al. NeurIPS 2019 Structured Transformer full methods"
+    reason: "Pointer / Jing comparison only; не close-read this pass"
+    workaround: "Jing Table 1: Structured Transformer vs GVP-GNN on CATH 4.2; ancestor, не catalog tool"
+  - source: "tFold bioRxiv 10.1101/2024.02.05.578892 постранично vs journal"
+    reason: "Journal HTML — канон this pass; preprint pagination не сличена"
+    workaround: "Не цитировать preprint-only block counts, если их нет в Nat. Commun. HTML"
+sources:
+  - kind: PAPER
+    citation: "Jing B. et al. Learning from Protein Structure with Geometric Vector Perceptrons. ICLR 2021; arXiv:2009.01411"
+    url: "https://arxiv.org/abs/2009.01411"
+    doi: "10.48550/arXiv.2009.01411"
+    note: "HTML ar5iv: Algorithm 1, Eq. 1, protein graph k=30 Cα, CATH 4.2 18204/608/1120, Table 1 CPD, MQA CASP"
+  - kind: PAPER
+    citation: "Hsu C. et al. Learning inverse folding from millions of predicted structures. ICML 2022, PMLR 162:8946–8970; bioRxiv 10.1101/2022.04.10.487779"
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2204.07148"
+    note: "Этот проход: PMLR abstract. Architecture/Table 1/splits — prior bioRxiv HTML + AntiFold SI Eq. 1. Не путать arXiv HTML 2206.12094 (чужая статья UBERT)."
+  - kind: PAPER
+    citation: "Høie M.H., Hummer A. et al. AntiFold: improved structure-based antibody design using inverse folding. Bioinformatics Advances 2025, 10.1093/bioadv/vbae202; arXiv:2405.03370"
+    url: "https://arxiv.org/abs/2405.03370"
+    doi: "10.1093/bioadv/vbae202"
+    note: "arXiv HTML + SI: fine-tune ESM-IF1; SAbDab 2074 + OAS 147458; CDRH3 AAR 60% vs ESM-IF1 43%; T=0.20; no wet-lab"
+  - kind: PAPER
+    citation: "Wu et al. De novo design of epitope-specific antibodies via a structure-driven computational workflow (tFold System). Nat. Commun. 10.1038/s41467-025-67361-9"
+    url: "https://www.nature.com/articles/s41467-025-67361-9"
+    doi: "10.1038/s41467-025-67361-9"
+    note: "HTML Results+Methods. Не приравнивать Hsu p(Y|X) к tFold. SPR after phage; Flu A highest-affinity clone off-epitope."
+  - kind: PAPER
+    citation: "Jumper et al. Highly accurate protein structure prediction with AlphaFold. Nature 2021 (IPA; predictor literature)"
+    url: "https://doi.org/10.1038/s41586-021-03819-2"
+    doi: "10.1038/s41586-021-03819-2"
+    note: "Pointer: IPA cited by tFold; полный SI Algorithm 22 не транскрибирован"
+  - kind: PAPER
+    citation: "Ingraham et al. Generative Models for Graph-Based Protein Design. NeurIPS 2019 (Structured Transformer)"
+    url: "https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html"
+    note: "Ancestor graph+attention CPD; Jing: replacing attention with GNN improved CPD. Не catalog tool."
+  - kind: CODE
+    citation: "oxpig/AntiFold — CLI temperature / region masks (prior catalog inspection)"
+    url: "https://github.com/oxpig/AntiFold"
+    note: "commit 789d46786624c01eb44f177ef4c0deeeb6e77469; this pass paper HTML, не повторный line-audit"
+  - kind: CODE
+    citation: "facebookresearch/esm SHA only; inverse_folding line-audit NR"
+    url: "https://github.com/facebookresearch/esm"
+    note: "commit 2b369911bb5b4b0dda914521b9475cad1656b2ac"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id geometric-transformers"
+    note: "antifold, esm-if1, tfold. ProteinMPNN / RFdiffusion / FlowDesign — другие ids."
+repo:
+  url: "https://github.com/oxpig/AntiFold"
+  commit: "789d46786624c01eb44f177ef4c0deeeb6e77469"
+  ref: "master (prior catalog inspection)"
+  license: "BSD-3-Clause (README / catalog YAML)"
+  files:
+    - antifold/main.py
+    - antifold/antiscripts.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **geometric inductive bias / backbone сети**: слои, которые встраивают 3D distances, orientations, residue frames или pair representations в Transformer (или AF-like pair track + IPA). Сама семья не задаёт $p(\\mathrm{data})$ и не выбирает mutants. Generated или scored state зависит от головы: дискретные AA tokens (inverse folding), обновлённые frames / atomic coords (structure module), либо masked sequence recovery поверх тех же представлений. Это не affinity head и не assay loop."
+        source: INTERPRETATION
+      - text: "Математический объект входа — residual tokens плюс геометрический encoder $E_{\\mathrm{geom}}(X)$: kNN-граф на Cα (GVP), либо sequence/pair features из PLM + Evoformer (tFold). Выход Transformer — invariant scalars для logits или pair/frame updates. Scored state (log $p$, ipLDDT, ipTM, AAR) — внутренний score, не $K_D$."
+        source: PAPER
+        locator: "Jing §3 protein graph; Hsu/AntiFold SI GVP then Transformer; tFold Fig. 3a ESM-PPI + Evoformer-Single + IPA"
+      - text: "Задачи каталога, куда bias реально входит: [inverse folding](/tasks/inverse-folding.html) и [structure-aware antibody sequence](/tasks/antibody-structure-aware-sequence-design.html) через [ESM-IF1](/tools/esm-if1.html) и [AntiFold](/tools/antifold.html); [antigen-conditioned antibody design](/tasks/antigen-conditioned-antibody-design.html) и [de novo antibody](/tasks/de-novo-antibody-design.html) через workflow [tFold](/tools/tfold.html) / [epitope-mab-tfold](/workflows/epitope-mab-tfold.html), где geometric stack — predictor/recovery, не единственный generator. Не few-shot ELISA AL."
+        source: MATRIX
+        locator: "architectures/geometric-transformers.yaml applicable_task_ids; workflows antibody-inverse-folding, epitope-mab-tfold"
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html): IF — задача/факторизация $p(s\\mid x)$, реализуемая и GVP-Transformer, и residue MPNN. Это **не** [graph neural networks](/architectures/graph-neural-networks.html): чистый message passing без global Transformer (ProteinMPNN; Jing GVP-GNN 3+3 / 8+8) живёт там. GVP-слой — encoder этого класса, не тождество «весь Jing = geometric transformer»."
+        source: INTERPRETATION
+      - text: "Это **не** [SE(3)-equivariant models](/architectures/se3-equivariant-models.html) как класс векторного выхода $f(Rx+t)=Rf(x)+t$: у Hsu после local-frame projection Transformer видит invariant tokens; итоговый $p(Y\\mid X)$ **инвариантен** (AntiFold SI; Hsu Appendix A.3 в prior read). IPA обновляет frames эквивариантно — это подтип пары, не лицензия называть ESM-IF1 equivariant decoder. Это **не** [invariant models](/architectures/invariant-models.html) целиком: invariance — свойство отображения, здесь один из этапов (GVP scalars / pair distances)."
+        source: PAPER
+        locator: "AntiFold SI rotation/translation invariant encoder; Jing Eq. 1 GVP; tFold IPA SE(3)-equivariant structure module"
+      - text: "Это **не** [protein language models](/architectures/protein-language-models.html): ESM-2/ProGen/IgLM — sequence-only. [tFold](/tools/tfold.html) имеет **оба** id: ESM-PPI — PLM-компонент; Evoformer-Single+IPA — этот класс. Не писать «tFold = geometric transformer целиком» и не подставлять Hsu $p(Y\\mid X)$ как уравнение tFold."
+        source: PAPER
+        locator: "tFold tFold-Ab four modules; extra_constraints this page"
+      - text: "Это **не** [frame diffusion](/architectures/frame-diffusion.html) и **не** [flow matching](/architectures/flow-matching.html): там train target — SE(3) score или $v_\\theta\\approx u_t$; RF/IPA там denoiser/drift, **без** architecture_id geometric-transformers у [RFdiffusion](/tools/rfdiffusion.html) и [FlowDesign](/tools/flowdesign.html)."
+        source: MATRIX
+        locator: "tools/rfdiffusion.yaml; tools/flowdesign.yaml omit this id"
+      - text: "Catalog tools с `architecture_id: geometric-transformers`: [ESM-IF1](/tools/esm-if1.html), [AntiFold](/tools/antifold.html), [tFold](/tools/tfold.html). Часто путают с [ProteinMPNN](/tools/proteinmpnn.html) (GNN IF, **нет** этого id), с чистым GVP-GNN Jing (literature, не tool), с AF2/AF3 как «тем же Transformer» без различения predictor vs generator, и с [IgLM](/tools/iglm.html) (PLM, нет 3D bias)."
+        source: MATRIX
+        locator: "mappings.py esm-if1, antifold, tfold"
+      - text: "Seed one-liner $A_{ij}=q_i^\\top k_j+b(d_{ij},R_i^{-1}R_j)$ — **схема pair-biased attention**, не уравнение default ESM-IF1 (там vanilla Transformer на invariant tokens) и не tFold FAPE. Не подставлять как loss каталожного инструмента."
+        source: INTERPRETATION
+        locator: "seed mathematical_formulation; Hsu/AntiFold SI: generic Transformer after GVP"
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Обычный Transformer видит порядок токенов и learned positions. Geometric variant добавляет, что residues близки в $\\mathbb{R}^3$ или как ориентированы их frames. Два рабочих механизма в каталоге: (i) локальная геометрия → invariant scalars → global self-attention (GVP-Transformer); (ii) pair track $z_{ij}$ и точки в локальных кадрах (Evoformer / IPA), где attention зависит от инвариантных расстояний, а кадры обновляются SE(3)-эквивариантно."
+        source: PAPER
+        locator: "Jing motivation CNN vs GNN; Hsu GVP then TF; tFold Evoformer-Single + IPA"
+      - text: "На inference меняется то, что умеет голова. IF: фиксированный backbone $X$, сэмплируется sequence $Y$ (AR decode или masked redesign). tFold-Ab: sequence → predicted antibody structure (recycle). tFold design: masked CDR tokens заполняются recovery head при clamped FR/epitope, параллельно предсказывается complex; low ipLDDT маскируются и идут в recycle. Веса $\\theta$ на inference фиксированы."
+        source: PAPER
+        locator: "AntiFold Fig. 1 sampled sequences; tFold Fig. 1a generator+filter; ipLDDT recycle"
+      - text: "Long-range contacts, которые kNN GNN обрезает ($k=30$ у Jing/Hsu), могут пройти через dense attention. Цена — $O(L^2)$ память pair/attention. Jing на CPD наоборот показал, что Structured Transformer (graph + attention) **хуже** GVP-GNN на CATH 4.2 — attention не автоматически лучше GNN; Hsu добавляет Transformer **после** GVP именно ради masked spans."
+        source: PAPER
+        locator: "Jing Table 1 Structured Transformer vs GVP-GNN; Hsu Fig. 4 span mask (prior bioRxiv read)"
+      - text: "Главный эмпирический рычаг **GVP-Transformer**: объём structural data (Hsu: +12M AF2 UniRef50) плюс span-masking, чтобы encoder не видел полный backbone на masked узлах. Главный рычаг **AntiFold**: antibody FT + 3:1 CDR vs FR loss weight + OAS predicted Fv. Главный рычаг **tFold-Ab**: MSA-free ESM-PPI вместо MSA search. Главный рычаг **tFold design**: epitope clamp + ipLDDT filter + phage — не «магия IPA»."
+        source: PAPER
+        locator: "Hsu predicted structures (PMLR abstract / Table 1 prior); AntiFold §2.2; tFold ESM-PPI vs MSA; Fig. 1 phage"
+      - text: "Предостережение по метрикам. Native sequence recovery / AAR, perplexity, IF $\\Delta\\log p$, ABodyBuilder2 RMSD designed vs crystal, tFold backbone RMSD / DockQ / ipLDDT / ipTM / iplddt **не** experimental affinity / $K_D$ / ELISA / BLI / SPR. Spearman 0.42 на Warszawski DMS — retrospective score, авторы: performance driven by de-selecting loss-of-binding variants. tFold SPR nanomolar — **после** phage display и virtual screen, не выход IPA."
+        source: PAPER
+        locator: "AntiFold Table 1 Sr 0.42 and Discussion de-selection; tFold Fig. 1b phage then SPR"
+      - text: "pLDDT AF2 на train Hsu — **входной** RBF feature predicted examples, не выход ESM-IF1. ipLDDT tFold — confidence structure head. Ни один не «считает $\\Delta G$»: energy head в loss этого класса нет."
+        source: PAPER
+        locator: "Hsu pLDDT as input (prior); tFold ipLDDT / iplddt Fig. 6c"
+      - text: "Промежуточные GVP vectors / pair $z_{ij}$ / noisy recycle features $\\neq$ MD-траектория фолдинга и $\\neq$ van der Waals potential. 10 gap tokens между H и L — конвенция представления комплексов, не физический линкер."
+        source: PAPER
+        locator: "AntiFold SI 10 position padding of gap tokens"
+      - text: "Не переносить UCB, DDPM $\\varepsilon$, Meier $\\Delta\\ell$ ESM-1v, FAPE как default GVP-Transformer. FAPE/distogram — AF-family structure losses tFold (weights NR), не train target ESM-IF1."
+        source: INTERPRETATION
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовая композиция класса. Затем подтипы с **разными** уравнениями: (A) GVP-Transformer IF — [ESM-IF1](/tools/esm-if1.html), [AntiFold](/tools/antifold.html); (B) Evoformer-Single + IPA + optional recovery — [tFold](/tools/tfold.html). Jing GVP Algorithm 1 — слой encoder, не отдельный catalog tool. Не одна seed-формула pair-bias на все."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** принадлежат классу как train target / default catalog tool: ProteinMPNN random-order CE; FrameDiff IGSO(3) score; FlowDesign CFM MSE; UCB/EI; Meier masked-marginal $\\Delta\\ell$; ProGen NLL без геометрии; полный AF2 SI IPA listing. Seed $A_{ij}=q^\\top k+b(d,R^{-1}R)$ — схема pair-biased подтипа, **не** уравнение ESM-IF1."
+        source: INTERPRETATION
+      - text: "Negative / non-binder / ELISA labels в loss GVP-Transformer: **нет** (CE vs native AA). tFold-Ag train — binding complexes from SAbDab; virtual screen позже использует низкий confidence как proxy non-binder, это **не** contrastive affinity loss. Не сравнивать AntiFold AAR, Hsu CATH recovery, tFold DockQ и tFold SPR как один benchmark."
+        source: PAPER
+        locator: "AntiFold CE on masked positions; tFold training on binding pairs; Fig. 5 virtual screen"
+      - text: "Родовая композиция $T_\\theta\\circ E_{\\mathrm{geom}}$ **не** является уравнением default-инструмента: ESM-IF1 оптимизирует AR CE; tFold-Ab — structure losses AF-family; tFold recovery — masked AA CE + structure. Не подставлять seed pair-bias one-liner как loss AntiFold."
+        source: INTERPRETATION
+      - text: "GVP-GNN-large Hsu (8+8 слоёв, 21M, prior bioRxiv) — всё ещё GNN без Transformer: на CATH-only recovery 42.2% tiny vs 39.2% large (overfit), с AF2 mix large 50.8%. Transformer даёт устойчивость к mask $>5$ AA (Fig. 4). Не путать три Hsu-архитектуры: tiny GVP-GNN, large GVP-GNN, GVP-Transformer (released ESM-IF1 = последняя)."
+        source: PAPER
+        locator: "prior Hsu Table 1 and Fig. 4; released checkpoint is GVP-Transformer"
+      - text: "tFold in silico CDR-H3 AAR 0.302 без prior и 0.317 с epitope (SAbDab-22-Design-Ab n=50) сравнимо с dyMEAN, которому нужен epitope. Авторы: высокий AAR не равен лучшему дизайну. Не подставлять эти доли как SPR hit rate (1.5–4.4% binders after display)."
+        source: PAPER
+        locator: "tFold Fig. 6b; Supplementary Table 4; Discussion 1.5–4.4%"
+      - text: "Jing MQA loss (Huber + pairwise GDT-TS) и CASP correlations **не** train target каталожных IF tools. Не переносить GDT-TS на ESM-IF1."
+        source: PAPER
+        locator: "Jing Appendix D Eq. 6 Huber pairwise"
+      - text: "Invariance $p(Y\\mid TX)=p(Y\\mid X)$ — свойство головы sequence, не лицензия называть ESM-IF1 SE(3)-equivariant generator координат. Equivariant path есть у IPA (tFold) и у внутренних GVP vectors до projection."
+        source: PAPER
+        locator: "AntiFold SI invariant encoder; tFold IPA equivariant updates"
+    equations:
+      - latex: "h = T_\\theta\\bigl(E_{\\mathrm{geom}}(X),\\,C\\bigr),\\qquad \\mathrm{out} = H_\\phi(h)"
+        caption: "Родовая постановка класса (generic INTERPRETATION). $E_{\\mathrm{geom}}$ кодирует 3D (GVP-GNN / ESM-PPI+Evoformer); $T_\\theta$ — Transformer или pair-updating stack; $H_\\phi$ — task head (AR logits / frames / recovery). Не loss RFdiffusion и не Hsu Eq. 1 целиком."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: X, type: "structure or sequence features", meaning: "backbone coords (IF) или sequence(+MSA antigen) (tFold)"}
+          - {sym: C, type: "conditioner", meaning: "masks, chain IDs, optional antigen coords / epitope / FR template"}
+          - {sym: "E_{geom}", type: "encoder", meaning: "GVP message passing или PLM+pair init"}
+          - {sym: "T_\\theta", type: "Transformer / Evoformer / IPA stack", meaning: "global или pair-biased attention"}
+          - {sym: "H_\\phi", type: "head", meaning: "softmax AA, structure module, или recovery"}
+        meaning: "Обучаются $\\theta,\\phi$ под конкретный loss подтипа. Семплируется выход головы, не «группа SE(3)»."
+    sections:
+      - id: math-gvp-layer
+        level: 3
+        title: "Слой GVP (Jing) — encoder, не Transformer"
+        paragraphs:
+          - text: "Чистый GVP-GNN (Jing CPD/MQA) — страница [GNN](/architectures/graph-neural-networks.html). Здесь слой нужен как геометрический encoder GVP-Transformer. Equivariance к rotations **and** reflections (Eq. 1). Chirality не штрафуется Algorithm 1."
+            source: PAPER
+            locator: "Jing Eq. 1; Algorithm 1; §3.2 protein graph"
+        equations:
+          - latex: "V_h=W_h V,\\quad s'=\\sigma\\bigl(W_m[\\|V_h\\|_2;s]+b\\bigr),\\quad V'=\\sigma^+(\\|W_\\mu V_h\\|_2)\\odot(W_\\mu V_h)"
+            caption: "Jing Algorithm 1 (сжато). $s\\in\\mathbb{R}^n$ invariant, $V\\in\\mathbb{R}^{\\nu\\times 3}$ equivariant. Hsu/AntiFold добавляют этот encoder перед Transformer. Не ΔG."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Jing Algorithm 1; Eq. 1"
+            symbols:
+              - {sym: "s,V", type: "R^n and R^{ν×3}", meaning: "scalar and vector channels at node/edge"}
+              - {sym: "W_h,W_\\mu,W_m", type: "matrices", meaning: "channel maps; не сферические гармоники TFN"}
+              - {sym: "\\sigma,\\sigma^+", type: "nonlinearities", meaning: "scalar gate; vector gated by row-wise norm"}
+            meaning: "Слой. Jing CPD loss — AR sequence CE на CATH; MQA — Huber на GDT-TS. Не catalog IF tool."
+      - id: math-gvp-transformer
+        level: 3
+        title: "Подтип A — GVP-Transformer inverse folding (ESM-IF1 / AntiFold; tool-specific)"
+        paragraphs:
+          - text: "Seq2seq encoder–decoder. Encoder: 4 GVP-GNN на kNN graph ($k=30$), change of basis векторных фич в локальные N–Cα–C frames → invariant scalars → 8 Transformer encoder + 8 AR decoder, 8 heads, $d=512$, $\\approx 142$M. $p(Y\\mid X)=p(Y\\mid TX)$ для $T\\in\\mathrm{SE}(3)$. Span mask до 30 AA, 15% coords; masked nodes исключаются из GVP, в Transformer — нули. **Не** уравнение tFold. Table A.1 optimizer/batch/lr — NR."
+            source: PAPER
+            locator: "AntiFold SI architecture citing Hsu; prior Hsu bioRxiv §GVP-Transformer, Appendix A.2–A.3"
+        equations:
+          - latex: "p_\\theta(Y\\mid X)=\\prod_{i=1}^{n}p_\\theta(y_i\\mid y_{<i},X),\\qquad \\mathcal{L}=-\\sum_i\\log p_\\theta(y_i^\\star\\mid y_{<i}^\\star,X)"
+            caption: "Hsu / AntiFold SI Equation (1). $X$ — backbone N, Cα, C ($3n$ coords). Порядок — последовательность цепи (не random MPNN order). Tool-specific ESM-IF1; AntiFold наследует факторизацию, меняет данные и маски."
+            generic_or_specific: "ESM-IF1/AntiFold [PAPER/SI]; tool-specific"
+            source: SI
+            locator: "AntiFold Supplementary Methods Eq. (1) citing Hsu et al."
+            symbols:
+              - {sym: Y, type: "AA sequence", meaning: "включая concatenated Fv с gap tokens у AntiFold"}
+              - {sym: X, type: "backbone coords", meaning: "N, Cα, C; optional antigen heavy atoms (AntiFold)"}
+              - {sym: n, type: "int", meaning: "длина токен-цепочки (с padding комплексов)"}
+            meaning: "Оптимизируется token CE. Семплируется categorical из softmax (temperature); recovery Hsu $T=10^{-6}$."
+          - latex: "p(Y\\mid X)=p(Y\\mid TX)\\qquad\\forall T\\in\\mathrm{SE}(3)"
+            caption: "Инвариантность IF выхода. Transformer сам по себе не SE(3)-equivariant: инвариантность — GVP + local frames. Не equivariant vector decoder."
+            generic_or_specific: "ESM-IF1 [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Hsu Appendix A.3 (prior); AntiFold SI invariant encoder"
+            symbols:
+              - {sym: T, type: "SE(3)", meaning: "глобальный поворот и сдвиг лабораторной системы"}
+            meaning: "Не обучается как constraint-loss; следует из архитектуры. Семплирование sequence не должно зависеть от позы PDB."
+      - id: math-ipa
+        level: 3
+        title: "Подтип B — pair-biased attention / Evoformer-Single + IPA (tFold; tool-specific; AF2 literature)"
+        paragraphs:
+          - text: "tFold-Ab: ESM-PPI → Evoformer-Single (sequence + pairwise) → IPA structure module → recycle. tFold-Ag docking unit: 32 Evoformer-Single + 8 structure blocks; antibody module frozen при train Ag; antigen features from pretrained AF2 (MSA). Extra sequence recovery head: masked CDR reconstruction + structure supervision (AF-family protocols; exact FAPE weights **NR**). Не копируем SI Algorithm 22. Не Hsu $p(Y\\mid X)$."
+            source: PAPER
+            locator: "tFold Fig. 3a; Fig. 4a 32+8; Fig. 6a recovery head; Methods dual-task"
+        equations:
+          - latex: "A_{ij}=\\mathrm{softmax}_j\\bigl(q_i^\\top k_j+b(z_{ij})+\\mathrm{IPA}(T_i,T_j)\\bigr)"
+            caption: "Схема класса pair-biased / IPA (INTERPRETATION), не дословный Jumper Algorithm 22 и не display Eq. tFold. $z_{ij}$ — pair track; $T_i=(R_i,t_i)$ local frames; attention на инвариантных расстояниях query/key points; обновление кадров SE(3)-эквивариантно (tFold HTML)."
+            generic_or_specific: "schematic [INTERPRETATION]; tFold uses IPA, exact logits NR"
+            source: INTERPRETATION
+            locator: "tFold structure module IPA citing Jumper; AF2 SI not transcribed"
+            symbols:
+              - {sym: "z_{ij}", type: "pair embedding", meaning: "Evoformer-Single pairwise representation"}
+              - {sym: "T_i", type: "SE(3) frame", meaning: "residue rigid body"}
+              - {sym: "b(\\cdot)", type: "pair bias", meaning: "learned function of pair features"}
+            meaning: "Train target tFold-Ab — structure (AF-family). Recovery head — masked AA CE. Sampling design — iterative unmask + confidence recycle, затем phage (experiment)."
+          - latex: "\\mathrm{AAR}=\\frac{1}{N}\\sum_{i=1}^{N}\\mathbf{1}\\bigl[\\arg\\max_a p_i(a)=y_i^{\\mathrm{obs}}\\bigr]"
+            caption: "Amino-acid recovery — ретроспективная метрика IF/design, не $K_D$. AntiFold SI Eq. (3); tFold Fig. 6b CDR-H3 AAR in silico (n=50 SAbDab-22-Design-Ab)."
+            generic_or_specific: "metric [SI/PAPER]"
+            source: SI
+            locator: "AntiFold SI Eq. (3); tFold Fig. 6b"
+            symbols:
+              - {sym: N, type: "int", meaning: "число оцениваемых позиций (CDR или all)"}
+            meaning: "Не оптимизируется как единственный tFold campaign loss; in silico probe."
+    tables:
+      - title: "Смежные постановки, которые нельзя смешивать"
+        source: INTERPRETATION
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["Geometric transformers (эта страница)", "CE $p(Y\\mid X)$ после GVP и/или structure+recovery на pair/IPA", "AR Transformer или recycle structure module", "[ESM-IF1](/tools/esm-if1.html), [AntiFold](/tools/antifold.html), [tFold](/tools/tfold.html) stack"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "$p(s\\mid x)$ (любой encoder)", "AR / random-order / masked", "пересечение с подтипом A; также ProteinMPNN"]
+          - ["[Graph neural networks](/architectures/graph-neural-networks.html)", "CE / χ / coord MSE на kNN", "message passing; MPNN decode", "[ProteinMPNN](/tools/proteinmpnn.html); Jing GVP-GNN literature"]
+          - ["[PLM](/architectures/protein-language-models.html)", "AR NLL или MLM без 3D", "token sample / Δℓ", "ProGen, IgLM, ESM-2; ESM-PPI — компонент tFold"]
+          - ["[SE(3) equivariant](/architectures/se3-equivariant-models.html)", "слой $f(Rx+t)=Rf(x)+t$", "зависит от головы", "GVP vectors внутри IF; IPA в tFold; не IF logits"]
+          - ["[Frame diffusion](/architectures/frame-diffusion.html)", "SE(3) score", "reverse IGSO(3)+Gaussian", "[RFdiffusion](/tools/rfdiffusion.html) — не этот id"]
+          - ["[Flow matching](/architectures/flow-matching.html)", "$v_\\theta\\approx u_t$", "ODE", "[FlowDesign](/tools/flowdesign.html) — не этот id"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы класса — amino-acid residues (иногда nanobody single chain). Jing/Hsu: proximity graph, $k=30$ nearest Cα. Рёбра Jing: unit vector Cα$_j-$Cα$_i$, 16 Gaussian RBF distances 0–20 Å, sinusoidal sequence-distance $j-i$. Это **вход GVP**, не pair track Evoformer."
+        source: PAPER
+        locator: "Jing §3.2 k=30; RBF 16 centers 0–20 Å"
+      - text: "ESM-IF1 / AntiFold node scalars: $\\{\\sin,\\cos\\}\\circ\\{\\phi,\\psi,\\omega\\}$ (Jing-style dihedrals) + binary mask; vectors: forward/reverse Cα directions + imputed Cβ direction (tetrahedral). Decoder: one-hot AA, causal $i\\to j$ только $i<j$. Hidden $d=512$ — Hsu text (prior); Table A.1 full grid NR."
+        source: PAPER
+        locator: "Jing node features; Hsu/AntiFold SI 4 GVP + 8+8; d=512 prior Hsu HTML"
+      - text: "Time embedding **нет** (это не diffusion/FM). Conditioner tensors: residue masks; chain concat; AntiFold IMGT region strings. ELISA / measured $y$ tensor **нет**."
+        source: PAPER
+        locator: "AntiFold Fig. 1 region to design; SI masking"
+      - text: "Вход сети vs внешний файл: PDB/CIF backbone (N, Cα, C); numbering — IMGT 1–128 для AntiFold region sampling (PAPER/DOC); tFold campaign Table 1 — **Chothia**. Не смешивать IMGT и Chothia без оговорки. Library CSV нет у IF; tFold oligo pools — synthesis after generation, не тензор сети."
+        source: PAPER
+        locator: "AntiFold IMGT; tFold Table 1 Chothia numbering"
+      - text: "AntiFold комплексы: H затем 10 gap tokens (missing coords) затем L — как Hsu complexes. Optional antigen heavy atoms как extra chain (`custom_chain`). Не docking."
+        source: SI
+        locator: "AntiFold SI concatenated light chain, 10 position padding"
+      - text: "tFold-Ab: ESM-PPI sequence/pair features from amino-acid sequence (MSA-free для antibody). tFold-Ag antigen unit: AF2 MSA + pair + initial coords (MSA **есть** у antigen, нет у antibody в Ag module). Epitope — extra inter-chain embedding (tFold-Ag-ppi). Pair representation memory $O(L^2)$."
+        source: PAPER
+        locator: "tFold-Ab MSA-free ESM-PPI; tFold-Ag antigen AF2 MSA; tFold-Ag-ppi epitope"
+      - text: "Размерности tFold Evoformer width / ESM-PPI parameter count в Nat. Commun. HTML **NR** (не выдумывать 650M). tFold-Ag docking: 32 Evoformer-Single blocks + 8 structure blocks — PAPER. tFold-Ab stack depth — NR."
+        source: NR
+        locator: "tFold-Ab Evoformer-Single block count not in main HTML"
+      - text: "Аугментации, меняющие геометрию/токены: Hsu/AntiFold span и shotgun coordinate masks; AntiFold 0.1 Å Gaussian noise на predicted OAS coords; Hsu pLDDT$<90$ mask на predicted train coords (prior). tFold recovery: 30% probability mask CDR AA при co-train (70% keep original). Random rotation как explicit SE(3) aug ESM-IF1 — NR this pass beyond invariance by construction."
+        source: PAPER
+        locator: "AntiFold SI Gaussian 0.1 Å; tFold Methods 30% CDR mask"
+      - text: "Batching Jing CPD (literature): structures grouped by size, max 1800 residues per batch (Appendix D). Hsu/ESM-IF1 batch size — Table A.1 NR. AntiFold: one pass OAS predicted, then SAbDab until 10 epochs without val-loss improvement. tFold: CD-Hit 95% identity, one representative per cluster per epoch."
+        source: PAPER
+        locator: "Jing Appendix D 1800 residues; AntiFold SI two-phase; tFold Methods CD-Hit 95%"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $X$ у подтипа A — атомы остова N, Cα, C в лабораторных координатах. $Y$ — идентичность residue (side-chain type), не χ-углы: packing в ESM-IF1/AntiFold отсутствует как decoder. Imputed Cβ vector Jing — тетраэдрическая геометрия, не экспериментальный Cβ."
+        source: PAPER
+        locator: "Jing backbone-only; AntiFold SI N, Cα, C"
+      - text: "Подтип B (tFold-Ab): predicted atomic-level 3D, включая side chains end-to-end (HTML: backbone and side-chain conformations), без Rosetta minimize в отличие от DeepAb/IgFold. Это **predictor output**, не guaranteed crystal pose. tFold-Ag обновляет и antibody, и antigen coords (flexible docking unit)."
+        source: PAPER
+        locator: "tFold-Ab end-to-end side chains; tFold-Ag updates Ab and Ag structures"
+      - text: "SE(3): ESM-IF1 encoder **invariant** к global rotation/translation ($p(Y\\mid TX)=p(Y\\mid X)$) — не equivariant vector head. GVP внутренние $V$ — equivariant к rotations and reflections, пока не спроецированы в local frame. IPA structure module — **equivariant** frame updates (tFold). Global rotation PDB не должна менять IF sequence; должна поворачивать tFold-Ab coords together with input if equivariance holds."
+        source: PAPER
+        locator: "Jing Eq. 1 reflections; Hsu invariance; tFold IPA SE(3)-equivariant"
+      - text: "Перестановка residues ломает пептидную химию и AR order IF. Chain concat H+L с gap tokens — **конвенция**, не физическая симметрия перестановки цепей. tFold nanobody: нет второй Ig chain — другой generated object, чем paired mAb."
+        source: PAPER
+        locator: "AntiFold SI H+L concat; tFold SAbDab-22H2-Nano"
+      - text: "Side chains: отсутствуют в generative state IF; присутствуют в tFold-Ab predicted structure; AntiFold refold RMSD считает backbone N/Cα/C после ABodyBuilder2 — **evaluator**, не AntiFold decoder."
+        source: PAPER
+        locator: "AntiFold SI RMSD N, Cα, C after ABodyBuilder2"
+      - text: "Промежуточный masked node / recycle representation / pair $z_{ij}$ $\\neq$ физическая траектория фолдинга и $\\neq$ энергия. 10 gap tokens $\\neq$ Gly-linker."
+        source: INTERPRETATION
+      - text: "Chirality: GVP Algorithm 1 equivariant to reflections unless chirality features added — не выдавать автоматическую L-stereo-правильность IF. tFold structure module наследует AF-like frames; stereo failure mode не квантифицирован в HTML (NR)."
+        source: PAPER
+        locator: "Jing Eq. 1 rotations and reflections"
+      - text: "Assay label (SPR $K_D$, phage ELISA OD) **не** координата state сети. Появляется только как внешний experiment после filter."
+        source: PAPER
+        locator: "tFold Fig. 1b experimental validation downstream of generator+filter"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Класс кодирует геометрическую статистику packing и (у tFold) predicted interface. Нет явного energy head: нельзя писать, что сеть «считает $\\Delta G$»."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Amino-acid identity"
+        interpretation: "химический тип side chain / sequence token"
+        encoded: "прямо как decoder logits (IF) или recovery head (tFold); encoder IF обычно не видит native AA на маске"
+        limitation: "CE/recovery ≠ стабильность или $K_D$"
+      - feature: "Backbone N/Cα/C and frames"
+        interpretation: "пептидная геометрия, φ/ψ, ориентация residue"
+        encoded: "прямо coords / dihedral scalars / local frames / IPA $T_i$"
+        limitation: "статический snapshot; не MD; IF не двигает backbone"
+      - feature: "kNN Cα neighborhood (k=30)"
+        interpretation: "локальный packing / contact shell"
+        encoded: "прямо как graph edges GVP"
+        limitation: "long-range только через Transformer; cutoff ~13 Å (Jing DimeNet comparison)"
+      - feature: "Antigen / hotspot / epitope coords or sites"
+        interpretation: "интерфейс Ab–Ag"
+        encoded: "AntiFold — optional extra chain coords; tFold-Ag-ppi — epitope embedding; Hsu IF1 — complex concat"
+        limitation: "не docking energy; не ELISA epitope map"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "физические взаимодействия"
+        encoded: "не представлены явно; могут быть implicit в structural stats"
+        limitation: "нет solvent, glycans, protonation в ESM-IF1/AntiFold"
+      - feature: "Side-chain packing / χ"
+        interpretation: "стерические clashes rotamers"
+        encoded: "tFold-Ab predicted atoms; IF — отсутствует; AntiFold RMSD — post-hoc ABodyBuilder2"
+        limitation: "predicted side chains ≠ crystal; packer — evaluator"
+      - feature: "Evolutionary statistics"
+        interpretation: "семейные частоты AA"
+        encoded: "косвенно через CATH/UniRef/OAS/SAbDab sequences; tFold ESM-PPI (ESM-2 further pretrain); IF не MSA at inference"
+        limitation: "не замена MSA-based evolutionary coupling как у AF2 antigen unit"
+      - feature: "Experimental binding y / SPR / phage"
+        interpretation: "измеренная функция"
+        encoded: "не в loss IF; tFold train на crystal binders, не на $K_D$; SPR только после display"
+        limitation: "нельзя читать log p / ipLDDT как $K_D$"
+      - feature: "Pair distogram / $z_{ij}$ / ipLDDT"
+        interpretation: "статистика попарных расстояний / model confidence"
+        encoded: "learned pair track и confidence head (tFold, AF-like)"
+        limitation: "не force field; DockQ correlation ≠ affinity"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры: GVP matrices + Transformer $\\theta$ (подтип A); ESM-PPI (further-pretrained ESM-2) + Evoformer-Single + IPA + recovery head (подтип B). Frozen vs trained: AntiFold fine-tunes весь ESM-IF1 stack (не frozen encoder). tFold-Ag: pretrained tFold-Ab **fixed** while training Ag docking unit. Antigen AF2 unit pretrained, not the IF generator."
+        source: PAPER
+        locator: "AntiFold FT ESM-IF1; tFold-Ag antibody feature unit remains fixed"
+      - text: "Generic loss подтипа A — token CE native sequence (Eq. 1 SI). Negative examples — другие 19 AA на masked/AR позициях, не non-binder antigens. Нет contrastive affinity, нет FAPE в ESM-IF1."
+        source: PAPER
+        locator: "AntiFold SI loss over masked positions"
+      - text: "AntiFold tool-specific: 3:1 CDR vs FR mask sampling weight; span + shotgun (7.5%+7.5%); layer-wise LR $LR_i=LR\\times 0.85^{i}$ ($i=0\\ldots 20$ layers); Gaussian 0.1 Å on predicted coords. Two-phase: one epoch OAS predicted, then SAbDab until 10 epochs no val improvement."
+        source: SI
+        locator: "AntiFold SI layer-wise decay Eq. (2); two-phase training"
+      - text: "Hsu pretrain (prior bioRxiv): CATH experimental + 12M AF2 UniRef50; mix ~1:80 experimental:predicted per epoch; binary token experimental vs predicted; pLDDT$<90$ mask. Fine-tune vs pretrain: AntiFold без ESM-IF1 init — val CDRH3 AAR 31.5% vs 58.4% со всеми augmentations (Table S4 vs S3 narrative). Pretrain — рычаг recovery, не affinity."
+        source: PAPER
+        locator: "AntiFold Table S4 0.315 CDRH3; main text 31.5% vs 58.4%"
+      - text: "tFold-Ab: structure prediction (AF-family supervision; FAPE/distogram weights **NR**). tFold-Ag stage 1 structure only; later stages random CDR masking 30% for joint recovery. Confidence ipTM/ipLDDT — auxiliary heads, не SPR labels."
+        source: PAPER
+        locator: "tFold three-stage training; 30% mask; established protocols 28, 29"
+      - text: "ESM-PPI: further pretrain ESM-2 on monomers **and** multimers — PLM objective (masked/sequence; exact MLM rate **NR** in HTML). Это не geometric transformer loss; pair/structure модули — отдельное обучение."
+        source: PAPER
+        locator: "tFold ESM-PPI further pre-training monomers and multimers"
+      - text: "Jing GVP-GNN CPD (literature): CE на CATH 4.2. MQA: Huber absolute + pairwise ranking on GDT-TS. Не переносить MQA loss на ESM-IF1."
+        source: PAPER
+        locator: "Jing Appendix D MQA Huber pairwise; CPD NLL"
+      - text: "Affinity labels в $\\mathcal{L}$: нет. tFold virtual screen использует confidence trained on binders vs assumed lower scores for non-binders — calibration, не supervised $K_D$."
+        source: PAPER
+        locator: "tFold trained exclusively on binding pairs; Fig. 5 AUC"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Порядок подтипа A: PDB backbone → featurize graph (dihedrals, kNN) → 4 GVP-GNN (scalar+vector) → project vectors into local frames → invariant token sequence → 8 Transformer encoder → 8 AR decoder with causal AA → softmax 20. Sequence появляется в decoder; geometry — только encoder. Likelihood ranking — тот же forward, evaluator."
+        source: PAPER
+        locator: "AntiFold SI 4 GVP + 8+8; Hsu encoder structure-only"
+      - text: "Порядок tFold-Ab: sequence → ESM-PPI (intra/inter-chain features) → Evoformer-Single updates sequence and pair → IPA maps to 3D → recycle previous features/structure. MSA search **нет**. Side chains из structure module, не отдельный packer в сети."
+        source: PAPER
+        locator: "tFold Fig. 3a four modules; recycling module"
+      - text: "Порядок tFold design: FR template + antigen sequence + epitope → tFold-Ag-ppi generator (masked CDRs, iplddt-greedy position, temperature) → predicted complex → filter (tFold-Ag and AlphaFold-Multimer confidence, clash with receptor, novelty edit distance, motif filter, A2binder-like score) → 10k Fabs/target → phage → SPR. Geometric stack здесь generator recovery **и** evaluator; phage — experiment. Не прятать display внутрь «одной IPA сети»."
+        source: PAPER
+        locator: "tFold Methods candidate selection numbered steps 1–7; Fig. 1a–b"
+      - text: "ABodyBuilder2 — train-time structure generator OAS и post-hoc refold evaluator AntiFold, не слой AntiFold inference. AF2 — train corpus Hsu и antigen encoder tFold-Ag, не ESM-IF1 forward."
+        source: PAPER
+        locator: "AntiFold ABodyBuilder2 train/test; tFold antigen AF2 unit"
+      - text: "Не смешивать inverse folding decoder с tFold recycle: у IF backbone clamped; у tFold-Ab coords — выход predictor."
+        source: INTERPRETATION
+      - text: "Sequence vs geometry vs score: подтип A — geometry только в encoder, sequence в decoder, score = log $p$ той же сети. Подтип B — sequence уже на входе ESM-PPI; geometry появляется в IPA; score = ipLDDT/ipTM/iplddt отдельных голов. Не читать любой score как $K_D$."
+        source: PAPER
+        locator: "Hsu encoder structure-only; tFold Fig. 3–6 heads"
+      - text: "Inverse folding packer, AF check и ABodyBuilder2 refold — внешние модули. Не прятать их внутрь «одной geometric transformer сети», если это другой checkpoint."
+        source: INTERPRETATION
+      - text: "tFold-Ag antigen path: AF2 MSA features — **другой** pretrained module, frozen wrt design head. Ensemble с AF-Multimer/AF3 выбирает max confidence — evaluator, не generator."
+        source: PAPER
+        locator: "tFold-Ag antigen AF2 unit; Fig. 4g ensemble"
+    mermaid: |
+      flowchart TD
+        IN["Input: backbone PDB or sequence plus epitope plus FR"] --> BRANCH{"Head type"}
+        BRANCH -->|"subtype A IF"| GVP["GVP-GNN encoder kNN"]
+        GVP --> INV["Local frames to invariant tokens"]
+        INV --> TF["GENERATOR: Transformer AR / masked CE"]
+        TF --> Y["Sequence Y"]
+        Y --> LL["EVALUATOR: log p / AAR not Kd"]
+        BRANCH -->|"subtype B tFold"| PPI["ESM-PPI then Evoformer-Single"]
+        PPI --> IPA["IPA structure module plus recycle"]
+        IPA --> PRED["PREDICTOR: frames / complex"]
+        PRED --> REC["optional recovery head CDRs"]
+        REC --> FILT["EVALUATOR: ipLDDT ipTM AF-Multimer"]
+        FILT --> PHAGE["EXPERIMENT: phage display"]
+        PHAGE --> SPR["EXPERIMENT: SPR competition"]
+        LL --> LAB["EXPERIMENT only if user assays"]
+    mermaid_caption: "Схема класса по Jing/Hsu/AntiFold SI и tFold Fig. 1/3/4/6 — не копипаст paper figures. Generator, predictor, evaluator и experiment разведены. ProteinMPNN и RFdiffusion не на этой стрелке."
+    mermaid_source: INTERPRETATION
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Hsu (prior bioRxiv HTML + PMLR abstract): CATH 4.3 topology split 80/10/10 — catalog numbers 16153 / 1457 / 1797 structures. UniRef50 AF2, exclude Gene3D HMM hits of val/test CATH topologies (leakage control). Sequences ≤500; Amber-relax predicted. Не README-вывод."
+        source: PAPER
+        locator: "prior Hsu bioRxiv CATH topology; PMLR abstract 12M predicted structures"
+      - text: "Jing CPD (literature, не tool): CATH 4.2 curated by Ingraham, 18204 / 608 / 1120. TS50: filter CATH train at 30% PSIBLAST to TS50 — no canonical split across methods."
+        source: PAPER
+        locator: "Jing §4 CATH 4.2 sizes; TS50 30% filter"
+      - text: "AntiFold: same split as AbMPNN — 2074 SAbDab complexes (protein antigen, resolution $<$5 Å) + 147458 OAS paired ABodyBuilder2 structures; 90% concatenated-CDR identity, 80/10/10. Val/test: drop 1 and 3 structures not modelable with ABodyBuilder2. Independent therapeutic-mAb holdout — NR."
+        source: PAPER
+        locator: "AntiFold §2.1 Data; SI SAbDab 2074"
+      - text: "tFold-Ab structures: SAbDab experimental before 31 Dec 2021 (8264 paired, 1693 heavy-only, 376 light-only after cleaning). Cluster CD-Hit 95% → 2873 clusters; one sample/cluster/epoch. Val: 1 Jan–30 Jun 2022, drop $>$95% ID to train. Test SAbDab-22H2-Ab n=169 and Nano n=73 (1 Jul–31 Dec 2022)."
+        source: PAPER
+        locator: "tFold Methods datasets antibody structures"
+      - text: "tFold-Ag complexes: 4834 Ab–Ag + 1319 nanobody–Ag before 31 Dec 2021; cluster by **antigen** 95% → 2459 clusters. Test cutoff 1 Jul 2022 for fair AF-Multimer/AF3 comparison; drop antigen $>$600 residues, missing interface, $>$50% missing Ab residues. Design campaign additionally fine-tuned generator on epitope-specific SAbDab **prior to 2024** excluding paratope — не тот же split, что 2022 test."
+        source: PAPER
+        locator: "tFold Methods AbAg datasets; candidate selection step 1 fine-tune before 2024"
+      - text: "Симуляция vs wet-lab: CATH/SAbDab AAR, RMSD, DockQ, CASP GDT-TS, virtual-screen AUC — in silico. AntiFold: **нет** prospective wet-lab. tFold: 10000 Fab/target phage then SPR — prospective binding **workflow**, не isolated geometric-net metric. Не смешивать."
+        source: PAPER
+        locator: "AntiFold no wet-lab; tFold 10000 pairs phage"
+      - text: "Teacher forcing: AR decoder Hsu/AntiFold — standard next-token (SI factorization). Self-conditioning как у Proteina — NR для этого класса. tFold recycle — iterative structure, не diffusion time-sample."
+        source: PAPER
+        locator: "AntiFold Eq. 1 AR; tFold recycling module"
+      - text: "Batching / GPU hours: Jing ~2 days Titan X, memory-bound. Hsu/AntiFold/tFold wall-clock train — NR this pass. Не выдумывать."
+        source: NR
+        locator: "Hsu Table A.1 batch/lr NR; tFold train hardware NR in HTML"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт подтипа A: PDB backbone (solved or predicted); optional partial coord masks; AntiFold IMGT Fv 1–128. Не шум $x_T$ diffusion. Не library 𝒳 EVOLVEpro."
+        source: PAPER
+        locator: "AntiFold Fig. 1 input PDB"
+      - text: "Алгоритм IF: AR decode N→C (комплексы: target chain first, 10 mask tokens between chains — Hsu). Temperature categorical; Hsu recovery $T=10^{-6}$ (почти greedy). AntiFold default $T=0.20$ на выбранных IMGT CDR (CODE CLI / SI sampling). logits scaled as $\\mathrm{logits}/t$ before softmax (ProteinMPNN-style, SI Eq. 7). Top-k — NR as default."
+        source: PAPER
+        locator: "AntiFold SI temperature 0.20; Hsu T=1e-6 prior"
+      - text: "AntiFold masked redesign: sample только выбранные regions; framework fixed unless unmasked. `--esm_if1_mode` — baseline weights, не AntiFold FT (DOC)."
+        source: CODE
+        locator: "antifold/main.py flags (prior inspection); README"
+      - text: "tFold-Ab: MSA-free structure from sequence; recycle previous prediction. Авторы: ~50× vs AF3 server, ~5000× vs AF-Multimer на их Fig. 3b (single A100 + 21 CPU except AF3 server) — **tool-specific runtime**, не аксиома класса, не переносить на ESM-IF1."
+        source: PAPER
+        locator: "tFold Fig. 3b; 50-fold AF3; 5000× AF-Multimer"
+      - text: "tFold design sampler: ~1M candidates / target from 1000 random seeds × 36 FR length combos; iterative position by highest iplddt; temperature on CDR1/2. Single-step recovery даёт повтор «YYY»; step-by-step снижает repeats (PAPER). Не beam search. Не UCB."
+        source: PAPER
+        locator: "tFold Methods ~1 million; iplddt step-by-step vs YYY motif"
+      - text: "Post-hoc evaluator: AntiFold ABodyBuilder2 RMSD; Hsu none in-loop; tFold filter confidence ≥0.7 top 20%, steric clash with receptor/ligand, edit-distance novelty, OAS motif filter, in-house specificity score (A2binder-derived) — **не** generator. AF-Multimer/AF3 — ensemble structure evaluator."
+        source: PAPER
+        locator: "tFold filter steps 3–6; AntiFold SI refold"
+      - text: "Чего в классе нет как стандарт: assay-in-the-loop, contig RFdiffusion, ODE steps, ProteinMPNN random decode order (другой класс). tFold phage panning — experiment after computational shortlist."
+        source: INTERPRETATION
+      - text: "Multi-state Hsu: geometric mean $p(Y\\mid A)p(Y\\mid B)$ as proxy $p(Y\\mid A,B)$ (prior). Dual PDBFlex — conditioner, не sampler class."
+        source: PAPER
+        locator: "Hsu multi-state (prior bioRxiv)"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается у подтипа A: backbone coordinates (clamped); partial span masks; chain IDs via concat; optional antigen coords (AntiFold). Не epitope tensor как у tFold-Ag-ppi, если пользователь не подал antigen chain."
+        source: PAPER
+        locator: "AntiFold optional antigen chain; Hsu partial masks"
+      - text: "AntiFold region masks: default CDR1/2/3; IMGT-weighted train masking ≠ inference region string. Nanobody mode — single chain. Classifier-free guidance **нет**."
+        source: PAPER
+        locator: "AntiFold Fig. 1 specify IMGT region; SI IMGT-weighted train only"
+      - text: "tFold зажимает: human FR template (campaign: IGHV3-23/IGKV1-5, IGHJ4/IGKJ1), antigen sequence, specified epitope, CDR length combinations (36; CDR1/2 fixed by V gene, CDR3 from OAS frequencies). Numbering Chothia в Table 1."
+        source: PAPER
+        locator: "tFold Table 1; Methods 36 most frequent CDR3 combinations"
+      - text: "tFold-Ag-ppi / contact: extra structural restraints (epitope sites, optional paratope, optional contact map) в inter-chain embedding. Это не ELISA labels."
+        source: PAPER
+        locator: "tFold-Ag-ppi epitope; tFold-Ag-contact maps"
+      - text: "Чего нет: measured_var / ELISA в attention; CATH label CFG (это Proteina, другой класс); contig map RFdiffusion; UCB acquisition."
+        source: INTERPRETATION
+      - text: "Hsu dual-state: two PDBFlex conformations (prior Fig. 7) — conditioner на flexible residues, не second assay."
+        source: PAPER
+        locator: "Hsu Fig. 7 dual-state (prior)"
+      - text: "MSA: нет у ESM-IF1/AntiFold inference и у tFold-Ab antibody path. Есть у tFold antigen AF2 unit. Не приписывать MSA conditioner ESM-IF1."
+        source: PAPER
+        locator: "tFold-Ab MSA-free; tFold-Ag antigen MSA"
+      - text: "Hotspot как RFdiffusion residue map — NR для catalog tools этого id. tFold epitope — residue sites on antigen, не diffusion hotspot encoding."
+        source: INTERPRETATION
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы подтипа A: $L$ residues (Fv ~128 IMGT; complexes + antigen atoms); kNN $k=30$ GVP $O(Lk)$ per layer × 4; Transformer $O(L^2)$ per layer × (8+8); AR decode $O(L)$ steps. Pair memory Evoformer **нет** у ESM-IF1."
+        source: PAPER
+        locator: "Jing k=30; Hsu 8+8 (prior); AntiFold IMGT 1–128"
+      - text: "Драйверы tFold: pair $O(L^2)$ Evoformer-Single; 32+8 blocks на Ag docking unit; recycles; antigen MSA search (доминирует, пока не закэширован). High-throughput vs one antigen: HTML — среднее время на комплекс падает с числом antibodies (Supplementary Fig. 8)."
+        source: PAPER
+        locator: "tFold-Ag 32+8; Supplementary Fig. 8 amortized antigen"
+      - text: "tFold-Ab vs AF-Multimer 5000× и vs AF3 server 50× — author-reported Fig. 3b, **structure prediction**, не generative IF sampling cost. EquiFold 1.02 s vs tFold-Ab 1.15 s на их бенчмарке — не класс-аксиома."
+        source: PAPER
+        locator: "tFold Fig. 3b; EquiFold 1.02 vs 1.15 s"
+      - text: "«Дешевле diffusion» — нет NFE-сравнения GVP-Transformer vs RFdiffusion в прочитанных papers этого класса. Не писать как факт. INTERPRETATION: один AR pass vs $T$ denoise steps — другая постановка, не измерение."
+        source: INTERPRETATION
+      - text: "Campaign cost tFold: 1M in silico → 10k synthesized Fabs/target × 4 antigens; phage 2–4 rounds; 10 Fc-fusions SPR. GPU train — NR. Library construction Twist oligo pools — experimental logistics, не NFE."
+        source: PAPER
+        locator: "tFold 10000 Fab; ten Fc-fusions"
+      - text: "OOM на больших комплексах — failure mode seed каталога (pair $L^2$). Cropping epitope away — user error, не формула."
+        source: INTERPRETATION
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Механизм: local GVP даёт геометрию без voxel CNN; global attention держит masked spans, на которых kNN GNN падает к background perplexity (Hsu Fig. 4, prior). Это следует из постановки encoder+Transformer, не из affinity."
+        source: PAPER
+        locator: "Hsu Fig. 4 (prior bioRxiv)"
+      - text: "Hsu Table 1 (prior): GVP-Transformer native recovery 51.6% на CATH topology-held-out с AF2 mix vs 38.3% CATH-only; buried 72%, surface 39% (PMLR abstract: 51% recovery, 72% buried, almost 10 pp over existing). Не обобщать на antibody CDR без FT."
+        source: PAPER
+        locator: "PMLR abstract; prior Table 1 51.6% / 38.3%"
+      - text: "Jing Table 1: GVP-GNN CATH all recovery 40.2% vs Structured Transformer 36.4% / perplexity 5.29 vs 6.85 — аргумент за GVP слой, не за «Transformer всегда лучше GNN»."
+        source: PAPER
+        locator: "Jing Table 1 All recovery/perplexity"
+      - text: "AntiFold test CDRH3 AAR 60% vs ESM-IF1 43% vs AbMPNN 56% (p$<0.005$ vs ESM-IF1). Mean CDR backbone RMSD after ABodyBuilder2 0.95 vs native 0.63, AbMPNN 0.98. Это retrospective IF, не SPR."
+        source: PAPER
+        locator: "AntiFold Table 1"
+      - text: "tFold-Ab: MSA-free Ab structure; CDR-H3 backbone RMSD 3.01 Å mean on SAbDab-22H2-Ab n=169 (Table 2 narrative). Speed claim Fig. 3b — prediction, не design success."
+        source: PAPER
+        locator: "tFold antibody RMSD H3 3.01 Å; Fig. 3c"
+      - text: "tFold campaign SPR after phage (workflow, не isolated IPA): best reported $K_D$ 45 pM PD-L1, 3.22 nM Flu A (epitope-matched second-best shown in Fig. 1e because top Flu A was off-epitope), 2.0 nM SC2RBD, 81.6 nM PD-1; ten Fc-fusions. SC2RBD-H330 neutralization IC50 0.42 nM. Не переносить на ESM-IF1/AntiFold."
+        source: PAPER
+        locator: "tFold Fig. 1c–h; Flu A off-epitope exception; Fig. 2d IC50 0.42 nM"
+      - text: "Явно: recovery / DockQ / ipLDDT **не** гарантия стабильности, экспрессии, developability или affinity. Hsu: recovery does not guarantee structural similarity of designed sequences (prior). tFold success rate binders ~1.5–4.4%; authors couple to display."
+        source: PAPER
+        locator: "tFold Discussion 1.5 to 4.4%; Hsu recovery caveat prior"
+      - text: "Invariance IF logits к позе PDB — практическое преимущество (не нужно канонизировать ориентацию). Это не термодинамика."
+        source: INTERPRETATION
+        locator: "follows p(Y|TX)=p(Y|X)"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: schematic IPA ≠ full SI; GVP reflection-equivariance может игнорировать chirality; Hsu Table A.1 NR — нельзя утверждать optimizer defaults; tFold FAPE weights NR."
+        source: NR
+      - text: "Представление: ESM-IF1/AntiFold backbone-only, нет glycans/PTM/solvent; 10 gap tokens — искусственный разрыв цепи; tFold campaign фиксированный human FR — не произвольный scaffold."
+        source: PAPER
+        locator: "tFold IGHV3-23/IGKV1-5; AntiFold backbone"
+      - text: "Физика/химия: pair/IPA/IF CE ≠ energy function; нет explicit H-bond/electrostatics head. Predicted side chains tFold ≠ crystal."
+        source: INTERPRETATION
+      - text: "Данные/bias: Hsu AF2-predicted train structures (pLDDT filter); CATH PDB-biased; AntiFold OAS predicted Fv + SAbDab complexes; tFold SAbDab-only vs AF3 broader molecular data — authors: weaker nanobody–Ag. Design fine-tune to 2024 SAbDab — leakage vs therapeutics **NR** полностью."
+        source: PAPER
+        locator: "tFold nanobody–Ag data scarcity; AntiFold OAS ABodyBuilder2"
+      - text: "Обобщение: general IF ≠ antibody CDR without FT (AntiFold ablation 31.5% vs 58.4%). tFold FR-constrained; epitopes absent from SAbDab (MPER PD-1 agonist attempt) → low confidence. Monomeric antigens only; peptide–MHC NR."
+        source: PAPER
+        locator: "tFold Discussion MPER; peptide-MHC cannot"
+      - text: "Deployment: ESM-IF1 MIT (catalog); AntiFold BSD-3-Clause + web; tFold custom Tencent license, commercial partnership. CODE tFold unaudited. Meta ESM repo maintenance / weight hosting — operational risk, не math."
+        source: MATRIX
+        locator: "tools/*.yaml licenses"
+      - text: "tFold filter poorly separates binders sharing identical FRs; confidence weakly sensitive to mutations (authors). AF3 false-positive complexes remain (SC2RBD 3/5 high-confidence non-blockers)."
+        source: PAPER
+        locator: "tFold Discussion discriminative power; Fig. 2e three non-competitive"
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Считать [ProteinMPNN](/tools/proteinmpnn.html) geometric transformer (это GNN IF). Считать весь tFold PLM или весь tFold inverse folding Hsu."
+        source: INTERPRETATION
+      - text: "Считать AF2/tFold-Ab генератором de novo backbone: это predictors. Считать IF $\\Delta\\log p$, ipLDDT, DockQ, AAR измеренным $K_D$."
+        source: INTERPRETATION
+      - text: "Приписать tFold SPR одному IPA блоку, игнорируя phage, 10k library, AF-Multimer filter и что highest-affinity Flu A binder был **off-epitope** (Fig. 1e exception)."
+        source: PAPER
+        locator: "tFold Fig. 1e Flu A highest-affinity off-epitope"
+      - text: "Greedy $T\\to 0$ recovery как «лучшая библиотека»: низкая diversity (Hsu recovery protocol). AntiFold T=0.20 — другой режим, не Hsu $10^{-6}$."
+        source: PAPER
+        locator: "AntiFold SI T=0.20 vs Hsu T=1e-6"
+      - text: "Неверный numbering (IMGT vs Chothia vs input PDB) → region masks мимо CDR. Predicted Fv как вход AntiFold без проверки."
+        source: PAPER
+        locator: "AntiFold IMGT recommended; tFold Table 1 Chothia"
+      - text: "Truncated crop / OOM → потеря epitope. Broken equivariance если обойти local-frame projection и кормить raw xyz в Transformer."
+        source: INTERPRETATION
+      - text: "Library misspecification tFold: unnatural motifs (EEEEE, YYYYY) если не фильтровать; single-step YYY bias. Distribution shift: nanobody design lower success (authors)."
+        source: PAPER
+        locator: "tFold motif filter; YYY; nanobody limitation"
+      - text: "Reflection-flip / wrong chirality если сеть не штрафует (GVP Eq. 1). Using Warszawski Spearman 0.42 as affinity maturation proof — authors contradict (de-selection of dead variants)."
+        source: PAPER
+        locator: "AntiFold Discussion de-selection; Jing reflections"
+    items:
+      - "Смешать preprint Hsu bioRxiv pagination с PMLR Table A.1, которого нет в HTML."
+      - "Сравнивать AntiFold AAR, tFold SPR и RFantibody yeast как один benchmark (разные generated objects и oracles)."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Reverse index `architecture_id: geometric-transformers` — три карточки. Foundational methods вне каталога — отдельные строки. Неравные oracles не ставить в колонку «успех»."
+        source: MATRIX
+    tables:
+      - title: "Реализации"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[ESM-IF1](/tools/esm-if1.html)", "GVP-Transformer IF (подтип A)", "4 GVP-GNN + 8+8 TF, $k=30$, 12M AF2 UniRef50 + CATH; AR $p(Y\\mid X)$; recovery $T=10^{-6}$; complexes 10 mask tokens", "ICML 2022; no primary wet-lab; facebookresearch/esm `2b369911…`, inverse_folding line-audit NR; Table A.1 NR"]
+          - ["[AntiFold](/tools/antifold.html)", "тот же стек, antibody FT", "SAbDab 2074 + OAS 147458; 3:1 CDR mask; $T=0.20$; IMGT 1–128; optional antigen", "Bioinformatics Advances; CDRH3 AAR 60%; Spearman 0.42 DMS ≠ $K_D$; no wet-lab; commit 789d467"]
+          - ["[tFold](/tools/tfold.html)", "Evoformer-Single + IPA + ESM-PPI (подтип B)", "tFold-Ab predictor; tFold-Ag 32+8; recovery head; epitope-conditioned design + phage", "Nat. Commun.; SPR after display; Flu A top clone off-epitope; commit NR; не Hsu Eq. 1"]
+          - ["Jing GVP-GNN (literature, не карточка tools)", "GNN с GVP слоями", "3 GVP message + 3 decoder CPD; MQA Huber GDT-TS; CATH 4.2", "Не Transformer; architecture_id GNN"]
+          - ["Ingraham Structured Transformer (literature)", "graph + attention CPD", "2019 ancestor", "Jing: attention hurting vs GNN on CATH; не tool"]
+          - ["[ProteinMPNN](/tools/proteinmpnn.html)", "не этот класс", "residue MPNN, random-order AR", "см. GNN / inverse folding"]
+          - ["[RFdiffusion](/tools/rfdiffusion.html)", "RF geometric stack as denoiser", "frame diffusion", "не architecture id geometric-transformers"]
+          - ["[FlowDesign](/tools/flowdesign.html)", "IPA as flow net", "CFM CDR", "см. flow-matching"]
+          - ["AF2 / AF3 (не generators каталога)", "Evoformer + IPA / diffusion", "recycles, MSA", "evaluators / tFold antigen unit / filter ensemble"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: sequence на фиксированном backbone — [ESM-IF1](/tools/esm-if1.html), [AntiFold](/tools/antifold.html), workflow [antibody inverse folding](/workflows/antibody-inverse-folding.html); general fixed-backbone как alternative в [fixed-backbone IF](/workflows/fixed-backbone-inverse-folding.html) (primary там ProteinMPNN). MSA-free Ab/complex prediction и epitope-conditioned design **filters** — [tFold](/tools/tfold.html) / [epitope-mab-tfold](/workflows/epitope-mab-tfold.html)."
+        source: MATRIX
+        locator: "workflow architecture_ids include geometric-transformers"
+      - text: "Задачи: [inverse-folding](/tasks/inverse-folding.html), [antibody-structure-aware-sequence-design](/tasks/antibody-structure-aware-sequence-design.html), [antigen-conditioned-antibody-design](/tasks/antigen-conditioned-antibody-design.html) только если geometric stack реально в пайплайне (tFold-Ag), не ELISA AL."
+        source: MATRIX
+      - text: "Не применимо как few-shot ELISA active learning (EVOLVEpro / Makowski — другие ids). Не как de novo backbone sampler: для этого [frame diffusion](/architectures/frame-diffusion.html) / [RFdiffusion](/tools/rfdiffusion.html). Не как sequence-only CDR LM: [IgLM](/tools/iglm.html), [PALM-H3](/tools/palm-h3.html)."
+        source: INTERPRETATION
+      - text: "Не сравнивать AntiFold AAR с tFold SPR и с RFantibody yeast: разные $f$, generated objects и oracles. Не решать codon optimization / expression этим классом."
+        source: INTERPRETATION
+      - text: "Если нужна новая CDR topology при свободном backbone — не AntiFold (backbone clamped). Если нет структуры Fv — не IF; использовать sequence generator, затем predictor."
+        source: PAPER
+        locator: "AntiFold backbone-constrained design; tFold needs FR template"
+      - text: "tFold custom license: deployment gate, не научный запрет постановки."
+        source: MATRIX
+        locator: "tools/tfold.yaml commercial review"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational слоя: Jing et al. ICLR 2021 (GVP) — HTML прочитан this pass. Foundational IF+Transformer: Hsu et al. ICML 2022 — PMLR abstract this pass; methods из prior bioRxiv HTML + AntiFold SI. Catalog: AntiFold arXiv HTML+SI this pass; tFold Nat. Commun. HTML this pass."
+        source: PAPER
+      - text: "Pointer-only: Ingraham NeurIPS 2019; Jumper Nature 2021 полный IPA SI; tFold SI PDF; Hsu PMLR Table A.1; TencentAI4S/tfold code; esm inverse_folding line-audit."
+        source: NR
+      - text: "Не библиография «всего по geometric deep learning»: TFN, SE(3)-Transformer Fuchs, EGNN — страница SE(3), не этот id. ProteinMPNN Science — GNN/IF pages."
+        source: INTERPRETATION
+      - text: "Preprint vs journal: Hsu bioRxiv vs PMLR — не сливать Table A.1. AntiFold arXiv vs OUP — OUP HTML inaccessible, numbers from arXiv. tFold journal HTML канон; bioRxiv 2024 не постранично сличен."
+        source: INTERPRETATION
+citations:
+  - id: "1"
+    text: "Jing B. et al. Learning from protein structure with geometric vector perceptrons. ICLR 2021."
+    url: "https://arxiv.org/abs/2009.01411"
+    doi: "10.48550/arXiv.2009.01411"
+  - id: "2"
+    text: "Hsu C. et al. Learning inverse folding from millions of predicted structures. PMLR 162:8946–8970 (2022)."
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2204.07148"
+  - id: "3"
+    text: "Høie M.H., Hummer A. et al. AntiFold. Bioinformatics Advances 5:vbae202 (2025); arXiv:2405.03370."
+    url: "https://arxiv.org/abs/2405.03370"
+    doi: "10.1093/bioadv/vbae202"
+  - id: "4"
+    text: "Wu et al. De novo design of epitope-specific antibodies via a structure-driven computational workflow. Nat. Commun. (tFold). 10.1038/s41467-025-67361-9."
+    url: "https://www.nature.com/articles/s41467-025-67361-9"
+    doi: "10.1038/s41467-025-67361-9"
+  - id: "5"
+    text: "Jumper J. et al. Highly accurate protein structure prediction with AlphaFold. Nature 2021 (IPA; pointer)."
+    url: "https://doi.org/10.1038/s41586-021-03819-2"
+    doi: "10.1038/s41586-021-03819-2"
+  - id: "6"
+    text: "Ingraham J. et al. Generative models for graph-based protein design. NeurIPS 2019 (Structured Transformer; pointer)."
+    url: "https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html"
+  - id: "7"
+    text: "oxpig/AntiFold commit 789d46786624c01eb44f177ef4c0deeeb6e77469 (prior catalog CODE inspection)."
+    url: "https://github.com/oxpig/AntiFold"
+  - id: "8"
+    text: "facebookresearch/esm commit 2b369911bb5b4b0dda914521b9475cad1656b2ac (SHA only; IF module unaudited this pass)."
+    url: "https://github.com/facebookresearch/esm"
+unresolved:
+  - "Hsu PMLR Table A.1: optimizer, batch size, learning rate, dropout — NR numerically this pass"
+  - "Line-by-line facebookresearch/esm inverse_folding InverseFoldingModel.forward на 2b369911"
+  - "tFold-Ab Evoformer-Single block count and ESM-PPI parameter count (HTML не даёт 650M)"
+  - "tFold exact FAPE / distogram loss weights (authors cite AF-Multimer/AF3 protocols 28, 29)"
+  - "TencentAI4S/tfold commit SHA and LICENSE SPDX"
+  - "Ingraham 2019 attention logits — не close-read; только Jing Table 1 comparison"
+  - "Independent prospective test of AntiFold on therapeutic mAbs outside AbMPNN split — NR"
+  - "Hsu dual-state Fig. 7 numeric perplexity — prior read, не переизвлечено this pass as new table"
+  - "Совпадение checkpoint name esm_if1_gvp4_t16_142M_UR50 с 142M — ESM docs, не hash файла весов"

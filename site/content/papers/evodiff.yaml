@@ -1,0 +1,47 @@
+id: paper-evodiff
+slug: evodiff
+title: 'Protein generation with evolutionary diffusion: sequence is all you need'
+authors: null
+year: 2023/2024
+venue: Preprint (Frontier/Watchlist)
+publication_status: Preprint (Frontier/Watchlist)
+doi: 10.1101/2023.09.11.556673
+url: https://doi.org/10.1101/2023.09.11.556673
+preprint_url: https://doi.org/10.1101/2023.09.11.556673
+tool_ids:
+- evodiff
+main_task: General sequence generation; sequence-space motif scaffolding; MSA-conditioned
+  generation
+claimed_novelty: null
+model_architecture: Discrete diffusion over amino-acid tokens; OA-DM / D3PM variants
+input_representation: null
+encoder_decoder: null
+generative_state: Amino-acid sequence
+conditioning: Sequence motif masks; MSA context; supports disordered regions
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Computational sequence, structural-plausibility and motif-scaffolding
+  evaluation
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary work
+success_criterion: Computational sequence, structural-plausibility and motif-scaffolding evaluation
+main_results: Computational sequence, structural-plausibility and motif-scaffolding evaluation
+limitations: Sequence-only generator; motif presence does not establish correct 3D placement
+  or function; prospective evidence absent.
+demonstrates:
+- Computational sequence, structural-plausibility and motif-scaffolding evaluation
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'Protein generation with evolutionary diffusion: sequence is all you need'
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Preprint (Frontier/Watchlist)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

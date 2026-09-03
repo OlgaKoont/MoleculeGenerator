@@ -1,0 +1,48 @@
+id: few-shot-active-learning
+slug: few-shot-active-learning
+name: Few-shot active learning
+group: Оптимизация существующих белков
+definition: Оптимизация с малым числом experimental labels на раунд.
+objective: Предложить informative variants при ограниченном бюджете assays.
+starting_inputs:
+- parent
+- ≥~10 labels/round
+- mutational space
+generated_objects:
+- ranked single or multi-mutants
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: PLM embedding + lightweight surrogate + acquisition
+  generates: Next-round library
+  representation: Embeddings
+  examples:
+  - evolvepro
+  limitation: Assay noise dominates
+  sampling: Active-learning acquisition
+  novel_topology: Нет
+  integrated_scoring: Supervised surrogate
+  complexity_drivers: Label budget
+consequences:
+- decision: Few-shot vs zero-shot
+  consequence: Другая потребность в labels; сравнивать нельзя.
+compute_consequences:
+- CPU/GPU modest.
+evidence_summary: EVOLVEpro reports large property gains across proteins; antibody transfer is
+  example-specific.
+incomparable:
+- Zero-shot mutation scoring ≠ few-shot AL.
+selection_guidance:
+- Есть labels — EVOLVEpro.
+- Нет labels — ESM-1v/structural evolution.
+architecture_ids:
+- active-learning
+- few-shot-mutation-optimization
+- bayesian-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- few-shot
+- active-learning
+downstream: false

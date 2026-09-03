@@ -1,0 +1,131 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Оптимизация мутантов при малом числе labels. Часто реализуется как AL, но логически это task-level protocol.
+  - type: p
+    text: Workflow around a surrogate. См. <a href="/architectures/active-learning.html">active learning</a> и <a href="/tools/evolvepro.html">EVOLVEpro</a>. Не отдельная NN.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 10–100 measurements → fit simple model in a good feature space → propose next mutants.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: f_t=\arg\min_f \sum_{(x,y)\in D_t}\ell(f(e(x)),y),\quad B=\mathrm{select}(U,f_t)
+    caption: Few-shot fit + selection. select may be greedy (EVOLVEpro) or BO.
+    source: '[CODE]+[PAPER] EVOLVEpro'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - PLM embeddings
+    - small label vector
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Mutants + assay.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - Few labels
+      - direct experimental chemistry of that assay
+      - explicit y
+      - assay-specific
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: Surrogate only.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - embed
+    - fit
+    - select
+    - assay
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: Online.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Score pool.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Library definition.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: Dominated by assay and PLM embed.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Закрывает петлю на эксперимент.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Не zero-shot.
+    - Library must contain the answer.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Too few labels for RF variance.
+    - Wrong pooling of embeddings.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - EVOLVEpro
+      - few-shot RF
+      - greedy top-k
+      - see tool page
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Когда labels доступны. Иначе zero-shot scoring.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Jiang et al. EVOLVEpro
+      url: https://doi.org/10.1126/science.adr6006

@@ -1,0 +1,341 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: 'Geometric transformers — <strong>семейство сетей</strong>, в которых Transformer (или AF-like pair track) получает 3D геометрию: distances, orientations, frames, pair features. Это не generative process само по себе: одна и та же семья бывает encoder inverse folding, structure predictor или denoiser/flow network.'
+  - type: p
+    text: 'Не путать с <a href="/architectures/graph-neural-networks.html">GNN</a> (message passing без global Transformer: ProteinMPNN, чистый GVP-GNN Jing). Не путать с <a href="/architectures/inverse-folding.html">inverse folding</a> как задачей \(p(s\mid x)\). Не путать с <a href="/architectures/se3-equivariant-models.html">SE(3) equivariance</a> / <a href="/architectures/invariant-models.html">invariance</a> как свойствами отображения. Не sequence-only <a href="/architectures/protein-language-models.html">PLM</a>.'
+  - type: p
+    text: 'В каталоге: <a href="/tools/esm-if1.html">ESM-IF1</a> и <a href="/tools/antifold.html">AntiFold</a> — GVP-Transformer IF (генератор sequence). <a href="/tools/tfold.html">tFold</a> — ESM-PPI + Evoformer-Single + IPA (в первую очередь predictor/filter; sequence recovery head — отдельный канал). ProteinMPNN / LigandMPNN сюда не входят.'
+  - type: p
+    text: 'Задачи: <a href="/tasks/inverse-folding.html">inverse folding</a>, <a href="/tasks/antibody-structure-aware-sequence-design.html">structure-aware sequence design</a>; antigen-conditioned design только если geometric stack реально участвует (tFold-Ag), не ELISA AL.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Обычный Transformer видит порядок токенов. Geometric variant добавляет, что residues близки в \(\mathbb{R}^3\) или как ориентированы их frames. GVP-Transformer: локальная геометрия → invariant scalars → global attention. Evoformer/IPA: pair track и точки в локальных кадрах.'
+  - type: p
+    text: Long-range contacts, которые kNN GNN обрезает, могут пройти через full attention. Цена — \(O(L^2)\) память pair/attention.
+  - type: warn
+    text: pLDDT / ipLDDT / sequence recovery / IF \(\Delta\log p\) ≠ experimental \(K_D\). Predictor recycles ≠ generator sampling. tFold SPR nanomolar — после phage display, не proof что IPA «предсказывает аффинность».
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Три subtype. Не смешивать GVP-GNN (это GNN) с GVP-Transformer и не выдавать полный IPA SI за уравнение класса.
+  - title: GVP (Jing) — геометрический слой, не Transformer
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        (s,V)&\mapsto(s'',V''),\quad s\in\mathbb{R}^n,\ V\in\mathbb{R}^{\nu\times 3},\\
+
+        V_h&=W_h V,\quad
+
+        s''=\sigma\bigl(W_m[\|V_h\|_2;s]+b\bigr),\\
+
+        V''&=\sigma^+(\|W_\mu V_h\|_2)\odot(W_\mu V_h).
+
+        \end{aligned}'
+      caption: Jing et al. ICLR 2021 Algorithm 1 (сжато). \(s'\) инвариантен, \(V'\) эквивариантен к вращениям/отражениям. Hsu добавляет vector gates (Jing 2021a). Чистый GVP-GNN (3+3 слоя, 1M) — страница GNN; здесь слой нужен как encoder GVP-Transformer.
+      source: '[PAPER] Jing et al. ICLR 2021; Hsu et al. ICML 2022 §2.2'
+  - title: GVP-Transformer (ESM-IF1 / AntiFold)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        p(Y\mid X)&=\prod_{i=1}^{n}p(y_i\mid y_{<i},X),\\
+
+        X&=(x_1^{\mathrm{N}},x_1^{\mathrm{C}\alpha},x_1^{\mathrm{C}},\ldots),\qquad
+
+        p(Y\mid X)=p(Y\mid TX).
+
+        \end{aligned}'
+      caption: 'Hsu: seq2seq encoder–decoder. Encoder — 4 GVP-GNN слоя на kNN graph (\(k=30\)), затем change of basis векторных фич в локальные residue frames → invariant scalars → 8 Transformer encoder + 8 AR decoder (142M). Span mask до 30 AA, 15% coords; masked nodes исключаются из GVP, в Transformer — нули. [PAPER] Table A.1.'
+      source: '[PAPER] Hsu et al. ICML 2022; AntiFold inherits the stack'
+    - type: p
+      text: 'GVP-GNN-large (8+8, 21M) — всё ещё GNN. Transformer даёт span-masked backbone: GVP-GNN падает к background perplexity при mask \(>5\) AA, GVP-Transformer держит умеренную точность. [PAPER] Fig. 4.'
+  - title: Pair-biased attention и IPA (AF-like / tFold / denoisers)
+    level: 3
+    blocks:
+    - type: math
+      latex: A_{ij}=\mathrm{softmax}_j\bigl(q_i^\top k_j+b(z_{ij})+\mathrm{IPA}(T_i,T_j)\bigr)
+      caption: 'Схема класса, не SI Algorithm 22. \(z_{ij}\) — pair track (Evoformer / Evoformer-Single). IPA: query/key points в локальных frames \(T_i=(R_i,t_i)\); attention зависит от инвариантных расстояний в глобальных координатах, обновление кадров SE(3)-эквивариантно. Полный IPA — Jumper et al. 2021 SI. tFold-Ab: ESM-PPI → Evoformer-Single → IPA structure module + recycle. [PAPER]'
+      source: '[PAPER] Jumper et al. Nature 2021 (predictor); Wu et al. Nat. Commun. 2025 tFold; Watson 2023 uses RF stack as denoiser'
+    - type: p
+      text: Не копируем copyrighted IPA listing. Tool-specific FAPE/distogram — на страницах предикторов; generative use — frame-diffusion / flow-matching, не эта страница как sampler.
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Что делает attention
+      - Роль
+      - Каталог
+      rows:
+      - - Geometric transformer (эта страница)
+        - geometry in logits / pair / IPA
+        - сеть
+        - ESM-IF1, AntiFold, tFold stack
+      - - <a href="/architectures/graph-neural-networks.html">GNN</a>
+        - message passing kNN
+        - локальный encoder
+        - ProteinMPNN; GVP-GNN Jing
+      - - <a href="/architectures/inverse-folding.html">Inverse folding</a>
+        - \(p(s\mid x)\)
+        - задача / факторизация
+        - пересекается с GVP-Transformer
+      - - <a href="/architectures/protein-language-models.html">PLM</a>
+        - sequence only
+        - нет 3D bias
+        - ProGen, IgLM, ESM-2
+      - - <a href="/architectures/frame-diffusion.html">Frame diffusion</a>
+        - RF/IPA как denoiser
+        - generative process
+        - RFdiffusion — не этот id
+      - - <a href="/architectures/flow-matching.html">Flow matching</a>
+        - IPA drift heads
+        - ODE field
+        - FlowDesign
+    - type: warn
+      text: FAPE не является default loss GVP-Transformer. UCB / ELISA loop не входят.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'ESM-IF1: N, C\(\alpha\), C; dihedral scalars; vector features from backbone; kNN \(k=30\) C\(\alpha\); binary mask feature. Decoder: one-hot AA, causal \(i\to j\) only for \(i<j\). [PAPER]'
+    - 'AntiFold: тот же стек; IMGT Fv 1–128; H+L через 10 gap tokens (как Hsu complexes); optional antigen heavy atoms. [PAPER]+[CODE]'
+    - 'tFold-Ab: ESM-PPI (ESM-2 650M further pretrain monomers+multimers) sequence/pair features; Evoformer-Single; frames via IPA. MSA-free. [PAPER]'
+    - 'tFold-Ag: frozen tFold-Ab for antibody; pretrained AF2 for antigen (MSA+coords); fusion + 32 Evoformer-Single + 8 structure (bioRxiv methods). [PAPER]'
+    - 'Ingraham Structured Transformer (2019) — graph + attention ancestor; не catalog tool; Jing: replacing attention with GNN improved CPD.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'GVP-Transformer generated state — discrete AA, не coordinates. Backbone вход фиксирован. tFold-Ab/Ag generated/predicted state — atomic coordinates + (опционально) recovered sequence. Global SE(3): ESM-IF1 \(p(Y\mid TX)=p(Y\mid X)\) (Appendix A.3). IPA обновляет frames эквивариантно. Chirality: GVP Algorithm 1 equivariant to reflections unless chirality features added — не выдавать автоматическую stereo-правильность.'
+  - type: p
+    text: Pair track не есть MD trajectory и не van der Waals potential.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - Backbone N/C\(\alpha\)/C
+      - peptide geometry
+      - coords
+      - no side-chain packing in ESM-IF1
+    - - Dihedrals / local frames
+      - \(\phi/\psi\) / orientation
+      - scalars / GVP vectors
+      - static snapshot
+    - - kNN \(k=30\)
+      - local packing neighborhood
+      - graph edges
+      - long-range only via Transformer
+    - - Pair distogram / \(z_{ij}\)
+      - Cβ–Cβ / pairwise geometry stats
+      - learned pair track
+      - not a force field
+    - - IPA frames
+      - rigid residue bodies
+      - SE(3) updates
+      - not experimental pose
+    - - IF CE / recovery
+      - which AA occur in similar geometries
+      - softmax over 20
+      - not \(\Delta G\)
+    - - ipLDDT (tFold)
+      - model confidence
+      - structure head
+      - not SPR \(K_D\)
+    - - H-bonds, solvent, glycans
+      - —
+      - absent unless implicit
+      - AntiFold/ESM-IF1 do not model glycans
+    source: '[INTERPRETATION] класс; tool rows — cited papers'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'GVP-Transformer: CE native sequence. Negative — другие 19 AA. Нет FAPE. Pretrain: CATH experimental + 12M AF2 UniRef50 (Gene3D/HMM exclude val/test topologies). Mixing predicted/experimental: higher predicted ratio helped large models. [PAPER]'
+  - type: p
+    text: 'AntiFold: fine-tune CE с 3:1 CDR vs framework; span/shotgun mask; layer-wise LR \(\alpha=0.85\); 0.1 Å Gaussian noise on predicted coords. Без ESM-IF1 pretrain CDRH3 AAR 31.5% vs 58.4% со всеми augmentations (validation). [PAPER]'
+  - type: p
+    text: 'tFold-Ab: structure prediction (FAPE/distogram-like AF family — exact loss weights NR this pass). tFold-Ag multitask: structure head + masked sequence recovery. ESM-PPI frozen or further-pretrained as described; antibody module frozen when training Ag. [PAPER]'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - backbone or sequence(+epitope)
+    - geometric encoder (GVP / ESM-PPI+Evoformer)
+    - Transformer / IPA
+    - sequence logits or frames
+    - sample AA or recycle structure
+    - external assay / phage / AF check
+    note: Схема класса. Не копия Hsu Fig. 1 / tFold Fig. 3.
+  - type: p
+    text: 'GVP-Transformer: encoder structure-only; decoder encoder-out + one-hot. tFold design: framework + antigen + epitope → fill CDRs, score ipLDDT, recycle low-confidence masks; then phage. Geometric stack здесь predictor/recovery, не единственный generator. [PAPER]'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'Hsu: CATH 4.3 topology 80/10/10; UniRef50 AF2 structures, exclude Gene3D HMM hits of val/test CATH codes. Recovery sampling \(T=10^{-6}\) (почти greedy). [PAPER]'
+  - type: p
+    text: 'AntiFold: 2074 SAbDab + 147458 OAS/ABodyBuilder2; 90% concatenated-CDR identity split. [PAPER]'
+  - type: p
+    text: 'tFold-Ab/Ag: SAbDab before 31 Dec 2021 (GitHub card). Nat. Commun. design campaign: four antigens, phage then SPR. Leakage vs therapeutic mAbs: NR this pass. [PAPER]/[DOC]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'ESM-IF1: AR decode N→C (complexes: 10 mask tokens between chains; target chain first). Temperature; Hsu recovery used \(T=10^{-6}\). AntiFold default \(T=0.20\) on IMGT CDR masks. [PAPER]+[CODE]'
+  - type: p
+    text: 'tFold-Ab: MSA-free structure from sequence; recycle. Authors: ~50× vs AF3 server, ~5000× vs AF-Multimer wall-clock (their Fig. 3b) — tool-specific, not class axiom. tFold design: sequence recovery head + confidence recycle, then display library. [PAPER]'
+  - type: p
+    text: IPA denoisers (RFdiffusion) sample frames for T steps — канон на frame-diffusion.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Fixed backbone / partial coord masks (Hsu span mask). Multi-chain coords. Dual-state: two PDBFlex conformations lower perplexity at flexible residues (Hsu Fig. 7). AntiFold: region masks, optional antigen. tFold: human FR template, antigen sequence, specified epitope. [PAPER]'
+  - type: p
+    text: Нет ELISA labels в attention. Нет UCB.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: 'GVP encoder \(O(Lk)\) with \(k=30\); Transformer \(O(L^2)\) per layer × (8+8). Pair track Evoformer \(O(L^2)\) dominates + recycles. tFold-Ab motivation: drop MSA search. OOM on large complexes — failure mode каталога.'
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'GVP-Transformer + AF2 data: 51.6% native recovery on CATH topology-held-out vs 38.3% CATH-only; +9.4 pp vs best CATH-only GVP-GNN (42.2%). Buried 72%, surface 39%. Complex perplexity 3.81 vs 6.32 chain-only. [PAPER]'
+    - 'Long mask: Transformer держит perplexity, GVP-GNN нет (Fig. 4). SARS-CoV-2 RBD (no TM>0.5 to train) recovery 53.6%. [PAPER]'
+    - AntiFold CDRH3 AAR 60% vs ESM-IF1 43% / AbMPNN 56% (retrospective). [PAPER]
+    - 'tFold-Ab: MSA-free Ab structure; tFold campaign SPR after phage: best \(K_D\) 3.22 nM Flu A, 81.6 nM PD-1, 0.045 nM PD-L1, 2.0 nM SC2RBD (ten Fc-fusions). Это workflow evidence, не isolated IPA metric. [PAPER]'
+  - type: p
+    text: 'Recovery ≠ fold in vitro; Hsu explicitly: recovery does not guarantee structural similarity. Likelihood ratios vs Rocklin/AAV — zero-shot correlations, not antibody affinity. [PAPER]'
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: schematic IPA ≠ full SI; GVP reflection-equivariance may ignore chirality.'
+    - 'Представление: ESM-IF1 backbone-only; no glycans/PTM.'
+    - 'Физика: pair/IPA ≠ energy function.'
+    - 'Данные: AF2-predicted train structures; CATH topology split still PDB-biased; AntiFold OAS predicted Fv.'
+    - 'Обобщение: general IF ≠ antibody CDR without FT; tFold FR-constrained.'
+    - 'Deployment: ESM-IF1 MIT; tFold custom Tencent license; IPA denoisers live on other pages.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Считать ProteinMPNN geometric transformer.
+    - Считать AF2/tFold-Ab генератором backbone (это predictors).
+    - Считать IF \(\Delta\log p\) или ipLDDT измеренным \(K_D\).
+    - Приписать tFold SPR одному IPA блоку, игнорируя phage panning (highest-affinity Flu A binder был off-epitope). [PAPER]
+    - OOM / truncated crop → потеря epitope.
+    - Greedy \(T\to 0\) recovery как «лучшая библиотека» (низкая diversity; Hsu).
+    - Reflection-flip / wrong chirality если сеть не штрафует.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool / method
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/esm-if1.html">ESM-IF1</a>
+      - GVP-Transformer IF
+      - 4 GVP + 8+8 TF; 12M AF2; k=30
+      - ICML 2022; no primary wet-lab; facebookresearch/esm, commit NR
+    - - <a href="/tools/antifold.html">AntiFold</a>
+      - same stack, Ab FT
+      - SAbDab+OAS; CDR weight; T=0.20
+      - verified IF page; no wet-lab
+    - - <a href="/tools/tfold.html">tFold</a>
+      - Evoformer-Single + IPA (+ ESM-PPI)
+      - Ab/Ag predictors; recovery head; phage
+      - Nat. Commun.; SPR after display; commit NR
+    - - <a href="/tools/proteinmpnn.html">ProteinMPNN</a>
+      - не этот класс
+      - residue MPNN
+      - см. GNN / inverse folding
+    - - <a href="/tools/rfdiffusion.html">RFdiffusion</a>
+      - RF geometric stack as denoiser
+      - frame diffusion
+      - не architecture id geometric-transformers
+    - - <a href="/tools/flowdesign.html">FlowDesign</a>
+      - IPA as flow net
+      - CFM CDR
+      - см. flow-matching
+    - - AF2 / RF2 (не generators каталога)
+      - Evoformer + IPA
+      - recycles, MSA
+      - evaluators
+    - - Ingraham Structured Transformer
+      - graph + attention CPD
+      - 2019 ancestor
+      - 'не tool; Jing: attention hurting vs GNN'
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо: sequence на фиксированном backbone (<a href="/tools/esm-if1.html">ESM-IF1</a>, <a href="/tools/antifold.html">AntiFold</a>, <a href="/workflows/antibody-inverse-folding.html">antibody IF</a>); MSA-free Ab/complex prediction и epitope-conditioned design filters (<a href="/tools/tfold.html">tFold</a>).'
+  - type: p
+    text: 'Не применимо как few-shot ELISA AL или как de novo backbone sampler (для этого <a href="/architectures/frame-diffusion.html">frame diffusion</a>). Не сравнивать AntiFold AAR с tFold SPR и с RFantibody yeast: разные \(f\) и generated objects.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Jing et al., Learning from Protein Structure with Geometric Vector Perceptrons, ICLR 2021.
+      url: https://openreview.net/forum?id=1YLJDvSx6J4
+    - text: Hsu et al., Learning inverse folding from millions of predicted structures, ICML 2022, PMLR 162:8946–8970.
+      url: https://proceedings.mlr.press/v162/hsu22a.html
+    - text: Hsu et al. bioRxiv 10.1101/2022.04.10.487779.
+      url: https://doi.org/10.1101/2022.04.10.487779
+    - text: Høie et al., AntiFold, Bioinformatics Advances 2025, 10.1093/bioadv/vbae202.
+      url: https://doi.org/10.1093/bioadv/vbae202
+    - text: Jumper et al., Highly accurate protein structure prediction with AlphaFold, Nature 2021 (IPA; predictor).
+      url: https://doi.org/10.1038/s41586-021-03819-2
+    - text: Wu et al., De novo design of epitope-specific antibodies via a structure-driven computational workflow, Nat. Commun. 2025, 10.1038/s41467-025-67361-9 (tFold).
+      url: https://doi.org/10.1038/s41467-025-67361-9
+    - text: tFold bioRxiv methods 10.1101/2024.02.05.578892.
+      url: https://doi.org/10.1101/2024.02.05.578892
+    - text: Ingraham et al., Generative Models for Graph-Based Protein Design, NeurIPS 2019 (Structured Transformer).
+      url: https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html
+    - text: Architecture inverse folding
+      url: /architectures/inverse-folding.html
+    - text: Architecture graph neural networks
+      url: /architectures/graph-neural-networks.html
+    - text: Architecture frame diffusion
+      url: /architectures/frame-diffusion.html
+    - text: Tool ESM-IF1
+      url: /tools/esm-if1.html
+    - text: Tool AntiFold
+      url: /tools/antifold.html
+    - text: Tool tFold
+      url: /tools/tfold.html
+inaccessible:
+- AlphaFold2 SI Algorithm 22 (полный IPA block) намеренно не копируется; на странице — схематичный invariant-point attention, не постраничный SI.
+- facebookresearch/esm (ESM-IF1 weights/code) в этом проходе не аудировался по commit; гиперпараметры Table A.1 и recovery — PMLR 162 Hsu et al. / bioRxiv 10.1101/2022.04.10.487779.
+- tFold Nature Communications SI / TencentAI4S/tfold commit не аудированы; Evoformer-Single+IPA и SPR — Nat. Commun. HTML 10.1038/s41467-025-67361-9; 32+8 blocks tFold-Ag — bioRxiv 10.1101/2024.02.05.578892.
+- RFdiffusion не помечен этим architecture id; RF 3-track как denoiser живёт на frame-diffusion.

@@ -1,0 +1,49 @@
+id: protein-language-models
+slug: protein-language-models
+name: Protein language models
+name_ru: Белковые языковые модели (PLM)
+intuition: 'PLM обучаются на amino-acid sequences как на тексте: предсказывать следующий или masked
+  residue. Полученные представления кодируют evolutionary statistics, которые можно использовать для
+  generation, infilling и mutation scoring.'
+mathematical_formulation: 'Для autoregressive LM: $p(x)=\prod_i p(x_i\mid x_{<i})$. Для masked LM:
+  максимизируется $\log p(x_M\mid x_{\setminus M})$. Embeddings $h_i$ затем могут питать decoder или
+  surrogate.'
+input_representation: Amino-acid tokens, special start/end/mask tokens, иногда chain/species/function
+  tags.
+generated_state: Discrete amino-acid tokens; иногда likelihoods для всех 20 residues.
+training_objective: Cross-entropy / masked language modelling loss на больших sequence corpora (UniRef,
+  OAS и т.д.).
+inference: Ancestral sampling, nucleus/top-k, temperature scaling, или scoring всех substitutions.
+conditioning: Prefix, control tags, concatenation, или adapters/fine-tuning.
+complexity_drivers:
+- Длина sequence
+- Размер модели
+- Число samples
+strengths:
+- Сильный sequence prior
+- Не требует структуры
+- Хорошо масштабируется на corpora
+limitations:
+- Нет прямой geometry
+- Likelihood ≠ function
+- Dataset bias семейств и species
+failure_modes:
+- Галлюцинации несворачиваемых sequences
+- Слабый перенос на редкие formats (VHH, cyclic peptides)
+applicable_task_ids:
+- general-protein-sequence-generation
+- cdr-sequence-generation
+- single-mutation-proposal
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-progen
+- paper-esm3
+- paper-iglm
+subtypes:
+- Autoregressive PLM
+- Masked PLM
+- Multimodal PLM
+glossary_ids:
+- protein-language-model
+- sampling

@@ -1,0 +1,42 @@
+id: frame-diffusion
+slug: frame-diffusion
+name: Frame diffusion
+name_ru: Диффузия residue frames
+intuition: Каждый residue задаётся локальным SE(3) frame (ориентация + translation). Диффундируют
+  вращения и смещения, что лучше соответствует белковой кинематике, чем сырые координаты.
+mathematical_formulation: 'SO(3)×R³ diffusion: translations — Gaussian, rotations — IGSO(3) или geodesic
+  random walk. Denoiser предсказывает frame updates.'
+input_representation: Noisy residue frames; optional sequence; contig/hotspot maps.
+generated_state: Clean residue frames → backbone reconstruction.
+training_objective: Score matching on SE(3), often with auxiliary sequence or distogram heads.
+inference: Reverse SE(3) process; motif frames clamped.
+conditioning: Fixed frames, target coordinates, symmetry copies.
+complexity_drivers:
+- N residues
+- T steps
+- equivariant network width
+strengths:
+- Естественная модель backbone
+- Хорошая база для RFdiffusion-like design
+limitations:
+- Sequence обычно отдельным этапом
+- Loop geometry для antibodies требует fine-tune
+failure_modes:
+- Broken peptide geometry
+- Vanilla protein prior on CDR loops
+applicable_task_ids:
+- de-novo-backbone-generation
+- cdr-backbone-generation
+- de-novo-antibody-design
+not_for_task_ids:
+- humanization
+paper_ids:
+- paper-rfdiffusion
+- paper-framediff
+- paper-rfantibody
+subtypes:
+- IGSO(3) frame diffusion
+glossary_ids:
+- diffusion
+- backbone
+- equivariance

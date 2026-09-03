@@ -1,0 +1,68 @@
+id: entry
+last_verified: "2026-08-13"
+title: "ML-генераторы для дизайна белков и антител"
+decision_options:
+  - id: only-target-structure
+    label: "Есть только target structure"
+    recommends:
+      tasks: [target-conditioned-binder-generation, de-novo-non-antibody-binder-design]
+      workflows: [miniprotein-binder-bindcraft, de-novo-backbone-then-mpnn]
+  - id: epitope-hotspot
+    label: "Есть известный epitope / hotspot"
+    recommends:
+      tasks: [antigen-conditioned-antibody-design, target-conditioned-binder-generation]
+      workflows: [de-novo-antibody-rfantibody, miniprotein-binder-bindcraft, epitope-mab-tfold]
+  - id: fixed-backbone
+    label: "Есть фиксированный protein backbone"
+    recommends:
+      tasks: [inverse-folding]
+      workflows: [fixed-backbone-inverse-folding]
+  - id: parent-antibody
+    label: "Есть parent antibody"
+    recommends:
+      tasks: [single-mutation-proposal, humanization, affinity-maturation]
+      workflows: [zero-shot-mutation, humanization-framework]
+  - id: complex
+    label: "Есть antibody–antigen complex"
+    recommends:
+      tasks: [joint-cdr-sequence-structure-design, antibody-structure-aware-sequence-design]
+      workflows: [cdr-codesign-diffab, antibody-inverse-folding, zero-shot-mutation]
+  - id: labelled-mutations
+    label: "Есть labelled mutation data"
+    recommends:
+      tasks: [few-shot-active-learning, multi-objective-optimization]
+      workflows: [few-shot-active-learning]
+  - id: sequences-only
+    label: "Есть только protein/antibody sequences"
+    recommends:
+      tasks: [general-protein-sequence-generation, cdr-sequence-generation]
+      workflows: [sequence-first-de-novo, antibody-sequence-infilling]
+  - id: new-topology
+    label: "Нужна совершенно новая topology"
+    recommends:
+      tasks: [de-novo-backbone-generation, joint-sequence-structure-generation]
+      workflows: [de-novo-backbone-then-mpnn, joint-multimodal-generation]
+  - id: humanize
+    label: "Нужно humanize antibody"
+    recommends:
+      tasks: [humanization, framework-redesign]
+      workflows: [humanization-framework]
+  - id: affinity-specificity
+    label: "Нужно оптимизировать affinity или specificity"
+    recommends:
+      tasks: [affinity-maturation, specificity-optimization]
+      workflows: [zero-shot-mutation, few-shot-active-learning]
+incomparable:
+  - ["Backbone generators", "Sequence-only generators", "Разный генерируемый объект"]
+  - ["Fixed-backbone inverse folding", "De novo backbone generation", "Разная исходная постановка"]
+  - ["De novo design", "Parent-antibody mutation optimization", "Разный радиус поиска"]
+  - ["Zero-shot mutation scoring", "Few-shot active learning", "Разная потребность в labels"]
+  - ["Antibody-specific workflows", "General binder generators", "Разная геометрия и evidence"]
+  - ["VHH/nanobody", "Fv/Fab/IgG", "Разный формат"]
+  - ["Internal confidence/energy", "Measured affinity/function", "Prediction ≠ experiment"]
+evidence_scale:
+  - {level: "1", name: "in silico / retrospective computational"}
+  - {level: "2", name: "retrospective antibody/protein evaluation"}
+  - {level: "3", name: "prospective binding"}
+  - {level: "4", name: "prospective function"}
+  - {level: "5", name: "developability / manufacturability"}

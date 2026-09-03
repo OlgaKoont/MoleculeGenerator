@@ -1,0 +1,583 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — scorer substitutions без новых assay labels, не few-shot surrogate и не de novo topology. Прочитаны: Meier et al. ESM-1v bioRxiv 10.1101/2021.07.09.450648 v2 HTML Method §3 masked-marginal (preprint; journal pagination не сличена); Hie et al. Efficient evolution Nat. Biotechnol. HTML Methods+Results (journal 10.1038/s41587-023-01763-2; wild-type-marginal consensus, не Meier Eq. 1); Shanker et al. bioRxiv 10.1101/2023.12.19.572475 HTML Methods+campaign (preprint; Science 10.1126/science.adk8946 HTML Cloudflare — journal body не page-sync; abstract Science: «up to 25-fold» neutralization vs preprint 26-fold). CODE brianhie/efficient-evolution, varun-shanker/structural-evolution, facebookresearch/esm — не line-audit (commit NR). Hie Supplementary Tables 1–12 numeric cells HTML частично; Science SI NR. AntiFold не имеет этого architecture_id."
+lede: "Zero-shot mutation scoring — **scorer** (иногда mutation-proposal workflow): ранжирует substitutions parent'а по pretrained likelihood без новых $y$. Это не generator новой topology, не few-shot surrogate на ELISA и не affinity predictor. Masked-marginal Meier, wild-type-marginal Hie и IF $p(x\\mid Y)$ Shanker — **разные** формулы."
+inaccessible:
+  - source: "Meier et al. journal version (if any beyond bioRxiv) + Appendix A scoring-scheme proofs"
+    reason: "Канон — bioRxiv HTML §3; appendix derivations не построчно"
+    workaround: "Eq. (1) masked-marginal + additive T; Table 5 WT/mutant/pseudolikelihood хуже — основной HTML"
+  - source: "Hie Nat. Biotechnol. Supplementary Tables 2–12 / Data 1 per-Kd cells"
+    reason: "HTML отдаёт часть таблиц без полной матрицы Kd"
+    workaround: "Campaign numbers из Main/Fig. 2–3 prose; k per antibody — Methods"
+  - source: "Shanker Science 10.1126/science.adk8946 full HTML/SI"
+    reason: "Cloudflare; в этом проходе канон — bioRxiv HTML"
+    workaround: "Methods scoring, 31/25 variants, 26-fold IC50, 37-fold KD,app — preprint; Science-only 25-fold abstract не сливать с 26-fold"
+  - source: "brianhie/efficient-evolution commit SHA + scoring functions"
+    reason: "CODE unaudited this pass"
+    workaround: "WT-marginal, α=1, six-model consensus, k — Nature Methods"
+  - source: "varun-shanker/structural-evolution commit SHA"
+    reason: "CODE unaudited"
+    workaround: "ESM-IF1 ckpt 2022-04-10, top-10 unique residues/chain — bioRxiv Methods"
+  - source: "facebookresearch/esm ESM-1v / ESM-IF1 score_sequence symbols"
+    reason: "не line-audit"
+    workaround: "Meier/Hsu via papers; CLI flags — NR"
+sources:
+  - kind: PAPER
+    citation: "Meier J. et al. Language models enable zero-shot prediction of the effects of mutations on protein function. bioRxiv 10.1101/2021.07.09.450648"
+    url: "https://www.biorxiv.org/content/10.1101/2021.07.09.450648v2.full"
+    doi: "10.1101/2021.07.09.450648"
+    note: "Preprint: ESM-1v 650M×5, UniRef90 2020-03, masked-marginal Eq. 1, 41 DMS Spearman; не catalog tool"
+  - kind: PAPER
+    citation: "Hie B.L. et al. Efficient evolution of human antibodies from general protein language models. Nat. Biotechnol. (2023) 10.1038/s41587-023-01763-2"
+    url: "https://www.nature.com/articles/s41587-023-01763-2"
+    doi: "10.1038/s41587-023-01763-2"
+    note: "Journal: WT-marginal consensus ESM-1b+ESM-1v; seven IgG; BLI/pseudovirus; tool esm-1v-efficient-evolution"
+  - kind: PAPER
+    citation: "Shanker V.R., Bruun T.U.J., Hie B.L., Kim P.S. Inverse folding of protein complexes… bioRxiv 10.1101/2023.12.19.572475"
+    url: "https://www.biorxiv.org/content/10.1101/2023.12.19.572475v1.full"
+    doi: "10.1101/2023.12.19.572475"
+    note: "Preprint of Science adk8946: ESM-IF1 on Ab–Ag complex; Ly-1404/SA58; не сливать 26- vs 25-fold"
+  - kind: PAPER
+    citation: "Hsu et al. Learning inverse folding from millions of predicted structures. ICML 2022 / ESM-IF1"
+    url: "https://doi.org/10.48550/arXiv.2206.12094"
+    doi: "10.48550/arXiv.2206.12094"
+    note: "Pointer: GVP-Transformer p(x|Y); Shanker uses checkpoint 2022-04-10; full Hsu не close-read this pass"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id zero-shot-mutation-scoring"
+    note: "esm-1v-efficient-evolution, structural-evolution — only"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль — **scorer** pretrained density $p_\\theta(s\\mid c)$ на мутационном перечислении. Workflow каталога превращает ranking в mutation proposal, но train target класса **нет**: θ заморожен. Это не sequential design loop с обновлением $f_\\phi$ по $y$ и не geometric inductive bias как определение класса."
+        source: INTERPRETATION
+      - text: "Scored state — discrete substitutions относительно parent: обычно 19 альтернатив × позиции VH/VL (или белка). Generated object каталога — ranked list, не новая складка. Conditioner $c$: последовательность (Meier/Hie) или backbone/complex coords (Shanker). Intermediate embedding ≠ энергия."
+        source: PAPER
+        locator: "Hie Methods all single-residue substitutions VH/VL; Shanker ~4300 singles"
+      - text: "Задачи: [single-mutation proposal](/tasks/single-mutation-proposal.html), [affinity maturation](/tasks/affinity-maturation.html) как zero-shot-then-assay. Workflow: [zero-shot mutation](/workflows/zero-shot-mutation.html). Seed исключает [few-shot active learning](/tasks/few-shot-active-learning.html): там нужны labels."
+        source: MATRIX
+        locator: "architectures/zero-shot-mutation-scoring.yaml applicable / not_for"
+      - text: "Это **не** [few-shot mutation optimization](/architectures/few-shot-mutation-optimization.html) / [active learning](/architectures/active-learning.html): EVOLVEpro учит $f_\\phi$ на assay. Hie/Shanker **не** обновляют веса по BLI между раундами — round 2 комбинирует уже измеренные singles."
+        source: PAPER
+        locator: "Hie two laboratory rounds; Jiang EVOLVEpro — соседний класс"
+      - text: "Это **не** [protein language models](/architectures/protein-language-models.html) целиком: PLM — семейство ролей (AR, MLM, frozen $E$, Δℓ). Здесь только роль **scorer**. [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html) несёт оба id."
+        source: INTERPRETATION
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html) как generator $p(s\\mid x)$ для redesign маски. Shanker **использует** IF likelihood для ranking при **заданном** complex — пересечение id у [structural evolution](/tools/structural-evolution.html), но канон этой страницы — zero-shot scoring, не sampling FASTA. [AntiFold](/tools/antifold.html) — IF generator, **нет** этого architecture_id."
+        source: MATRIX
+      - text: "Это **не** [masked-token infilling](/architectures/masked-token-infilling.html): infill семплирует span. Δℓ не порождает de novo CDR library. Не [sequence diffusion](/architectures/sequence-diffusion.html)."
+        source: INTERPRETATION
+      - text: "Catalog tools: [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html), [structural evolution](/tools/structural-evolution.html). Путают с [EVOLVEpro](/tools/evolvepro.html) (few-shot), [AntiFold](/tools/antifold.html) (IF sample), [ProteinMPNN](/tools/proteinmpnn.html), AbLang/Sapiens (Hie baseline, не catalog tools)."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Pretrained модель кодирует, какие аминокислоты «естественны» в контексте $c$. Inference **не** семплирует шумовую траекторию: перечисляются mutants, считается scalar score, сортировка. Меняется ranked list, не координаты."
+        source: INTERPRETATION
+      - text: "Гипотеза Hie (Fig. 1b): среди evolutionarily plausible substitutions доля high-fitness выше, чем в полном 19×N. Модель не знает антиген. [PAPER]"
+        source: PAPER
+        locator: "Hie Fig. 1a,b; Introduction no antigen/structure"
+      - text: "Рычаг **Meier**: masked-marginal — маскировать все мутированные позиции, log-odds vs WT; additive по $T$. На validation masked marginal лучше WT/mutant/pseudolikelihood (Table 5). [PAPER]"
+        source: PAPER
+        locator: "Meier §3 Eq. (1); Table 5"
+      - text: "Рычаг **Hie** (другой!): wild-type-marginal $p(x'_i\\mid \\mathbf{x})$ **без** маски сайта, consensus $M=6$ (ESM-1b + пять ESM-1v), порог $\\alpha=1$, затем $k$ так, что $|\\mathcal{A}|\\sim 10$. Authors: WT-marginal **строже** masked-marginal (Extended Data Fig. 1). Не подставлять Meier Eq. 1 как default [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html)."
+        source: PAPER
+        locator: "Hie Methods acquiring substitutions; Ext. Data Fig. 1"
+      - text: "Рычаг **Shanker**: conditioner — полный Ab–Ag backbone; score — AR joint $p(x\\mid Y)$. Antigen coords улучшают Spearman к DMS $K_D$ (CR9114-H1: 0.17 Ab-only → 0.65 complex). Не ESM-1v sequence-only. [PAPER preprint]"
+        source: PAPER
+        locator: "Shanker Fig. 2a; Results 0.17 vs 0.65"
+      - text: "Предостережение. Δℓ, IF log-likelihood, Spearman к DMS, enrichment «high fitness» percentile, ESM ppl **не** равны experimental $K_d$ / ELISA / BLI / IC50. Hie и Shanker **измеряют** BLI и pseudovirus **после** ranking — это assay, не выход сети. «Implicitly learns binding» (Shanker) — интерпретация корреляции, не energy head ΔG."
+        source: PAPER
+        locator: "Shanker Methods: model has no access to fitness; Hie BLI Methods"
+      - text: "Не сравнивать 160-fold mAb114 UCA (Hie, Fab $K_d$ ebolavirus GP) с 26-fold Ly-1404 IC50 BQ.1.1 (Shanker preprint) как один benchmark: parent, oracle и antigen разные."
+        source: PAPER
+        locator: "Hie Supplementary Table 6; Shanker Fig. 3d"
+      - text: "Round-2 combinations — экспериментальный эпистаз, не train-time contrastive. Hie для части Abs вручную выбирает комбинации; Shanker переранжирует $2^{n}-1$ IF likelihood."
+        source: PAPER
+        locator: "Hie Methods round 2; Shanker Acquisition Round 2"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовой ranking без новых labels. Затем подтипы: (A) Meier masked-marginal; (B) Hie WT-marginal consensus — tool [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html); (C) Shanker IF $p(x\\mid Y)$ — tool [structural evolution](/tools/structural-evolution.html). Не одна формула на все tools."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** принадлежат классу как train target: UCB/EI; EVOLVEpro RF; AR NLL ProGen как generator; FAPE; diffusion score; MLM как infill loss. IF sampling temperature AntiFold — generator соседнего класса. Meier few-shot MSA Transformer (семейные seq на входе) — не protocol Hie."
+        source: INTERPRETATION
+      - text: "Seed one-liner $\\Delta\\ell=\\log p(s^{\\mathrm{mut}}\\mid c)-\\log p(s^{\\mathrm{wt}}\\mid c)$ — generic sketch; **не** уравнение default Hie (там отношение маргиналов при полном $\\mathbf{x}$) и не AR product Shanker."
+        source: INTERPRETATION
+      - text: "Negative / non-binder labels в score: нет. Ranking не требует $y$; $y$ появляется только в wet-lab оценке кампании."
+        source: PAPER
+        locator: "Meier zero-shot no supervision; Hie no binding data to model"
+    equations:
+      - latex: "\\mathrm{score}_\\theta(s^{\\mathrm{mut}},s^{\\mathrm{wt}},c)=\\ell_\\theta(s^{\\mathrm{mut}}\\mid c)-\\ell_\\theta(s^{\\mathrm{wt}}\\mid c)"
+        caption: "Родовой zero-shot contrast parent vs mutant при conditioner $c$ (sequence и/или structure). $\\ell$ — log-probability (маргинал или joint). Семплирования de novo нет: enumerate + argsort. Generic: не checkpoint Hie и не ESM-IF1."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "класс; конкретика ℓ — подтипы PAPER"
+        symbols:
+          - {sym: "s^{mut}", type: "sequence", meaning: "кандидат с substitutions"}
+          - {sym: "s^{wt}", type: "sequence", meaning: "parent"}
+          - {sym: c, type: "context", meaning: "токены и/или backbone Y"}
+          - {sym: "\\ell_\\theta", type: "scalar", meaning: "pretrained log-likelihood; θ frozen"}
+          - {sym: "\\theta", type: "params", meaning: "не обновляется на assay y"}
+        meaning: "Оптимизации θ нет. Семплируется (выбирается) top-k из конечного списка mutants."
+    sections:
+      - id: math-meier
+        level: 3
+        title: "Подтип A — masked-marginal Δℓ (Meier ESM-1v; foundational, не карточка tools)"
+        paragraphs:
+          - text: "Вход маскируется на всех $t\\in T$. Additive для multiple mutations. Не WT-marginal Hie. Не catalog-tool equation."
+            source: PAPER
+            locator: "Meier §3; input masked at every mutated position"
+        equations:
+          - latex: "\\Delta\\ell(T)=\\sum_{t\\in T}\\bigl[\\log p(x_t=x^{\\mathrm{mt}}_t\\mid x_{\\setminus T})-\\log p(x_t=x^{\\mathrm{wt}}_t\\mid x_{\\setminus T})\\bigr]"
+            caption: "Meier Eq. (1). Коррелирует с DMS function, не калибрует $K_d$ антител. Literature-specific."
+            generic_or_specific: "Meier [PAPER]; literature-specific"
+            source: PAPER
+            locator: "Meier Method Eq. (1)"
+            symbols:
+              - {sym: T, type: "set of positions", meaning: "мутированные сайты"}
+              - {sym: "x_{\\setminus T}", type: "sequence", meaning: "контекст; T замаскирован"}
+              - {sym: "x^{mt}_t", type: "AA", meaning: "мутантный residual"}
+              - {sym: "x^{wt}_t", type: "AA", meaning: "дикий тип"}
+            meaning: "Ранжирование вариантов для корреляции с DMS. Не BLI-кампания Hie."
+      - id: math-hie
+        level: 3
+        title: "Подтип B — wild-type-marginal consensus (Hie; tool-specific)"
+        paragraphs:
+          - text: "$p_j(x'_i\\mid\\mathbf{x})$ при **полном** (немаскированном) $\\mathbf{x}$. $\\alpha=1$. $M=6$: ESM-1b + ESM-1v×5. $k$ под $|\\mathcal{A}_{\\mathrm{VH}}\\cup\\mathcal{A}_{\\mathrm{VL}}|\\approx 10$; extra filter: substitution highest at site for ≥1 model. Tool-specific [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html). CODE NR."
+            source: PAPER
+            locator: "Hie Methods; k listed per antibody"
+        equations:
+          - latex: "\\mathcal{M}(p_j)=\\{(i,x'_i): p_j(x'_i\\mid\\mathbf{x})/p_j(x_i\\mid\\mathbf{x})>\\alpha\\},\\quad f(x'_i)=\\sum_{j=1}^{M}\\mathbf{1}[(i,x'_i)\\in\\mathcal{M}(p_j)],\\quad \\mathcal{A}=\\{(i,x'_i): f\\ge k\\}"
+            caption: "Hie acquisition. Не Meier masked Eq. 1. Не IF joint. α=1; k user-supplied (Methods: 1–4 по цепям)."
+            generic_or_specific: "Hie [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Hie Methods three displayed equations"
+            symbols:
+              - {sym: "p_j", type: "MLM", meaning: "j-я модель ансамбля"}
+              - {sym: "\\mathbf{x}", type: "WT sequence", meaning: "полный контекст, сайт не mask"}
+              - {sym: "\\alpha", type: "scalar", meaning: "1 в кампании"}
+              - {sym: k, type: "int", meaning: "порог голосов; задаёт |A|~10"}
+              - {sym: M, type: "int", meaning: "6"}
+            meaning: "Выбирается множество singles для BLI round 1."
+      - id: math-shanker
+        level: 3
+        title: "Подтип C — inverse-folding joint likelihood на комплексе (Shanker; tool-specific)"
+        paragraphs:
+          - text: "$Y\\in\\mathbb{R}^{N\\times 3\\times 3}$ (HTML: три атома на residue; канон Hsu N/Cα/C vs «β-carbon» HTML — unresolved typesetting). $p(x\\mid Y)=\\prod_i p(x_i\\mid x_{<i},Y)$. Top-10 unique residues на VH и на VL против Ab–RBD structure. Round 2: IF score комбинаций beneficial. Tool-specific [structural evolution](/tools/structural-evolution.html). Не masked MLM."
+            source: PAPER
+            locator: "Shanker Methods IF description and acquisition"
+        equations:
+          - latex: "p(x\\mid Y)=\\prod_{i=1}^{N}p(x_i\\mid x_{<i},Y),\\quad Y\\in\\mathbb{R}^{N\\times 3\\times 3}"
+            caption: "Shanker/Hsu AR IF. Ranking substitutions по этой likelihood vs parent (exact Δ HTML garbled — NR формула разности). Не Hie WT-marginal."
+            generic_or_specific: "Shanker [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Shanker Methods Inverse folding model description"
+            symbols:
+              - {sym: Y, type: "R^{N×3×3}", meaning: "backbone coords комплекса"}
+              - {sym: x, type: "sequence", meaning: "оцениваемая цепь"}
+              - {sym: N, type: "int", meaning: "длина (лимит ESM-1v сравнения 1024)"}
+            meaning: "Семплируется top-k singles, затем top IF-комбинации. θ ESM-IF1 frozen (ckpt 2022-04-10)."
+    tables:
+      - title: "Смежные постановки, которые нельзя смешивать"
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["[Zero-shot scoring](/architectures/zero-shot-mutation-scoring.html) (этот класс)", "нет task loss; pretrained ℓ", "enumerate 19×pos, rank", "ESM-1v evolution; structural evolution"]
+          - ["[Few-shot / AL](/architectures/few-shot-mutation-optimization.html)", "supervise $f_\\phi$ на y", "top-N / acquisition", "[EVOLVEpro](/tools/evolvepro.html)"]
+          - ["[PLM](/architectures/protein-language-models.html) целиком", "MLM/AR pretrain", "generate или embed", "ProGen, IgLM, ESM3, …"]
+          - ["[Inverse folding](/architectures/inverse-folding.html) как generator", "CE $p(s\\mid x)$", "temperature sample FASTA", "[AntiFold](/tools/antifold.html), [ProteinMPNN](/tools/proteinmpnn.html)"]
+          - ["[Masked infilling](/architectures/masked-token-infilling.html)", "infill span loss", "unmask / ILM", "IgLM, ESM3, EvoDiff-OADM"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Hie/Meier: токены AA, раздельно VH и VL. Нет pair/distogram, нет time embedding, нет contig. Маска Meier — только scoring positions $T$; Hie scoring **без** маски сайта."
+        source: PAPER
+        locator: "Hie VH/VL separately; Meier mask T"
+      - text: "Shanker: sequence tokens + geometric encoder features из $Y$. Комплекс: Ab variable + antigen RBD (PDB 7MMO Ly-1404; 7Y0W SA58). Внешний файл — PDB, не library CSV."
+        source: PAPER
+        locator: "Shanker Fig. 3e PDBs; Methods structures Supplementary Table 1"
+      - text: "Размерности: ESM-1v 650M (Meier); пять seeds. ESM-1b architecture pointer Rives. Hidden width ESM-1v — NR this pass. $Y$: $N\\times 3\\times 3$. ESM-1v max length 1024 (Shanker excluded Cas9)."
+        source: PAPER
+        locator: "Meier 650M; Shanker N×3×3; Cas9 >1024"
+      - text: "Аугментации геометрии: нет rotation-aug в scoring Hie (sequence-only). Shanker: структура фиксирована; не описывают random SE(3) jitter как train (IF уже pretrained)."
+        source: INTERPRETATION
+      - text: "Kabat regions: Hie/Shanker аннотируют FR/CDR через abYsis post-hoc, не как входной tensor."
+        source: PAPER
+        locator: "Hie Methods abYsis 3.4.1 Kabat"
+      - text: "Ensemble: Hie шесть forward passes на mutant. Meier DMS — среднее пяти masked-marginal. Не выдумывать batch size кода."
+        source: PAPER
+        locator: "Hie six LMs; Meier five-model ensemble"
+      - text: "Conditioner antigen sequence: **нет** у Hie. У Shanker antigen входит как coords (+ sequence of other chains в complex scoring)."
+        source: PAPER
+        locator: "Hie no antigen; Shanker Ab-Ag vs Ab-only"
+      - text: "Library CSV: нет. Перечисление полное 20-алфавит (Shanker ~4300). Hie затем фильтр consensus, не полный experimental 19×N."
+        source: PAPER
+        locator: "Shanker all ~4300; Hie filtered A"
+      - text: "PDB numbering: вход IF — coords; numbering для region labels — внешний abYsis/Kabat, не learned."
+        source: NR
+        locator: "явного tensor numbering в Methods нет"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический score ↔ правдоподобие токенов при $c$, не ↔ атомы mutational Δ. Assay label $K_d$/IC50 появляется **после** wet-lab, не в $p_\\theta$."
+        source: PAPER
+        locator: "Shanker no access to fitness during train/eval of IF"
+      - text: "SE(3): Hie/Meier — не применимо (sequence). Shanker/IF — invariant geometric encoder (Hsu GVP); глобальный поворот комплекса не должен менять $p(x\\mid Y)$ если модель инвариантна. Перестановка residues ломает chain order. Concat цепей — часть complex input Shanker."
+        source: PAPER
+        locator: "Hsu GVP-Transformer via Shanker; Hie sequence-only"
+      - text: "Side chains: в Hie state отсутствуют. Shanker HTML: нет side-chain atoms в $Y$ («cannot learn explicit H-bonds/disulfides»). Packing не часть scorer."
+        source: PAPER
+        locator: "Shanker Results: no side chain atomic coordinates"
+      - text: "Masked token / WT context ≠ траектория фолдинга и ≠ ΔG. Round-1 single ≠ MD."
+        source: INTERPRETATION
+      - text: "Complex $Y$ должен быть credible. Неверный штамм/эпитоп — distribution shift (Shanker всё же скорит CR9114 vs H1/H3 при H5 structure: Spearman 0.65/0.50 — корреляция DMS, не гарантия дизайна)."
+        source: PAPER
+        locator: "Shanker cross-reactive H5 structure vs H1/H3 data"
+      - text: "Hie: 36/76 recommended singles в framework — физически далеки от интерфейса; авторы не утверждают, что модель «видит» epitope."
+        source: PAPER
+        locator: "Hie Results 36/76 FR"
+      - text: "Chirality/ω: не в state sequence scorer."
+        source: INTERPRETATION
+      - text: "Intermediate ensemble vote $f$ — дискретная агрегация моделей, не физическая энергия."
+        source: PAPER
+        locator: "Hie f indicator sum"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head. «Evolutionary plausibility» и «fold into backbone» — статистические priors, не ΔG."
+        source: PAPER
+        locator: "Hie evolutionary plausibility; Shanker fold into backbone"
+    physchem:
+      - feature: "identity AA"
+        interpretation: "замена vs parent"
+        encoded: "прямо (перечисление токенов)"
+        limitation: "additive/single-site игнорирует эпистаз до round 2 assay"
+      - feature: "backbone / frames / torsions"
+        interpretation: "остов комплекса"
+        encoded: "прямо только у Shanker (Y); у Hie не представлена"
+        limitation: "нужен правильный PDB; нет side chains"
+      - feature: "antigen / hotspot coords"
+        interpretation: "интерфейс"
+        encoded: "Shanker — весь antigen backbone; Hie — не представлена"
+        limitation: "не epitope tensor RFantibody; HTML IF без H-bond chemistry"
+      - feature: "H-bonds / electrostatics / solvation / entropy"
+        interpretation: "физика связывания"
+        encoded: "не представлены"
+        limitation: "нельзя сказать, что модель считает ΔG"
+      - feature: "evolutionary statistics"
+        interpretation: "UniRef / CATH-AF structures"
+        encoded: "косвенно через pretrain θ"
+        limitation: "Hie: мало Ab в UniRef; AbLang/Sapiens проиграли general PLM на трёх UCA"
+      - feature: "experimental y (Kd, IC50, ELISA)"
+        interpretation: "измеренная функция"
+        encoded: "не в score; только post-hoc assay"
+        limitation: "Spearman к DMS ≠ prospective Kd"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "На шаге scoring **ничего** не учится. θ = pretrained ESM-1v/1b или ESM-IF1. Frozen."
+        source: PAPER
+        locator: "Meier no gradient at inference; Shanker zero-shot"
+      - text: "Pretrain Meier: MLM на UniRef90 2020-03 ~98M; 650M; 5 seeds; ppl 7.29 holdout. Optional family-spiked fine-tune — **не** protocol Hie antibody campaign."
+        source: PAPER
+        locator: "Meier ESM-1v paragraph; spiked fine-tune §"
+      - text: "ESM-1b: UniRef50 2018-03 ~27M (Hie). Не путать с ESM-2 15B EVOLVEpro embeddings."
+        source: PAPER
+        locator: "Hie Methods ESM-1b UniRef50"
+      - text: "ESM-IF1: sequence recovery на 12M AF2 structures + CATH (Hsu pointer); Shanker ckpt 2022-04-10. Train на **single-chain**; inference на multimeric complex — zero-shot transfer, не fine-tune на Ab–Ag."
+        source: PAPER
+        locator: "Shanker trained on single-chain; checkpoint date"
+      - text: "Loss класса scoring: нет. Negative/non-binder/contrastive/affinity в Δℓ: **нет**."
+        source: PAPER
+        locator: "Meier unsupervised; Hie no task-specific supervision"
+      - text: "Hie round 2 не fine-tune LM. Shanker round 2 пересчитывает IF likelihood комбинаций — всё ещё frozen θ."
+        source: PAPER
+        locator: "Hie/Shanker Methods round 2"
+      - text: "AntiFold fine-tune SAbDab+OAS — **другой** tool и architecture_id; не приписывать к structural-evolution."
+        source: MATRIX
+      - text: "Baselines Hie (abYsis, UniRef90 MSA frequencies, AbLang, Sapiens) — отдельные scorers, не θ кампании."
+        source: PAPER
+        locator: "Hie comparison sequence-based methods"
+      - text: "Не обучается AF/docking/Rosetta. Не FAPE."
+        source: INTERPRETATION
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    mermaid: |
+      flowchart TD
+        PAR["Parent sequence and/or complex PDB"] --> ENUM["Enumerate singles 19 x positions"]
+        ENUM --> HIE["SCORER Hie: WT-marginal 6 LMs consensus"]
+        ENUM --> MEI["SCORER Meier: masked-marginal ensemble"]
+        ENUM --> IF["SCORER Shanker: ESM-IF1 p(x|Y) on complex"]
+        HIE --> RANK["Ranked substitutions — not Kd"]
+        MEI --> RANK
+        IF --> RANK
+        RANK --> PICK["Top-k / unique residues"]
+        PICK --> EXP["EXPERIMENT: BLI / pseudovirus / DMS oracle"]
+        EXP --> R2["Optional round-2 combinations"]
+        R2 --> IF
+        R2 --> EXP
+        subgraph scorerblk ["Scorer frozen θ"]
+          HIE
+          MEI
+          IF
+        end
+        subgraph expblk ["Experiment / evaluator"]
+          EXP
+        end
+    mermaid_caption: "Схема класса по Meier §3, Hie Methods, Shanker Methods — не копипаст Fig. 1. Generator de novo отсутствует; scorer отделён от BLI/IC50."
+    mermaid_source: INTERPRETATION
+    paragraphs:
+      - text: "Порядок Hie: WT seq → все singles VH, все singles VL → 6 LM likelihood ratios → $\\mathcal{A}$ → экспрессия → BLI. Sequence только; geometry нет."
+        source: PAPER
+        locator: "Hie Methods"
+      - text: "Порядок Meier DMS: mask T → Eq. 1 → Spearman vs assay table. Нет proposal workflow обязательно."
+        source: PAPER
+        locator: "Meier Fig. 1 task"
+      - text: "Порядок Shanker campaign: PDB complex → score ~4300 → top 10 unique/chain → pseudovirus IC50 → combine beneficial → IF rescore combos → assay. Geometry с шага 1; sequence mutant подставляется в AR score."
+        source: PAPER
+        locator: "Shanker Acquisition Methods"
+      - text: "Не прятать ProteinMPNN/AF внутрь ESM-1v. Shanker не предсказывает структуру — $Y$ дан."
+        source: PAPER
+        locator: "Shanker uses supplied backbone"
+      - text: "Tm, polyspecificity, NetMHCpan — **evaluators** Hie post-hoc, не scorer."
+        source: PAPER
+        locator: "Hie Additional characterization"
+      - text: "DMS Livesey–Marsh / Markin — in silico oracle для enrichment (Hie Fig. 4; Shanker Fig. 1d), не wet-lab antibody $K_d$."
+        source: PAPER
+        locator: "Hie Fig. 4; Shanker 10 proteins DMS"
+      - text: "Experiment box: BLI, Fab $K_d$, IgG apparent $K_d$, IC50. Только они устанавливают affinity/function."
+        source: PAPER
+        locator: "Hie/Shanker assay Methods"
+      - text: "Нет recycle AF, нет beam, нет docking в forward pass."
+        source: INTERPRETATION
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Scoring pass **не** имеет split по антителам кампании. Pretrain Meier: UniRef90 2020-03; holdout ppl 7.29. Hie: те же веса, датасеты **до** открытия SARS-CoV-2 Abs кампании (авторы: нет disease-specific leakage в UniRef на эти Abs)."
+        source: PAPER
+        locator: "Hie datasets precede SARS-CoV-2 antibodies; Meier ppl 7.29"
+      - text: "ESM-IF1 train: Hsu (pointer) AF2-predicted + experimental; Shanker не retrains. Leakage: scoring Ab–Ag PDB, на которых IF не учился как complexes — claimed generalization, не измеренный train-overlap PDB IDs (NR)."
+        source: PAPER
+        locator: "Shanker single-chain training; PDB IDs 7MMO/7Y0W as input"
+      - text: "Batching scoring: NR в Hie besides <1 s/antibody. Meier: batch inference V100 jobs <1 h vs pretrain 6 days × 64 V100 — это pretrain cost, не scoring campaign."
+        source: PAPER
+        locator: "Hie runtime; Meier training 64 V100"
+      - text: "Teacher forcing: IF AR при **оценке** полной последовательности (teacher-forced WT prefix + mutant token) — деталь decode Hsu; Shanker HTML «autoregressive as chain rule». Exact teacher-forcing vs full-seq logp API — CODE NR."
+        source: NR
+      - text: "Симуляция: Hie Fig. 4 / Shanker Fig. 1d — DMS already collected (Livesey–Marsh). Prospective: Hie seven Abs BLI; Shanker Ly-1404/SA58. Не смешивать Spearman DMS с fold-change IC50."
+        source: PAPER
+        locator: "Hie Fig. 4 vs Fig. 2; Shanker Fig. 1d vs Fig. 3"
+      - text: "Hie antibody split: нет ML split; семь выбранных клинических/UCA серий (Supplementary Table 1). Не 80/10/10."
+        source: PAPER
+        locator: "Hie seven antibodies list"
+      - text: "Filters resolution PDB: Shanker uses deposited complexes; Å cutoff NR."
+        source: NR
+      - text: "Self-conditioning: нет."
+        source: INTERPRETATION
+      - text: "Не выводить hyperparams из GitHub README."
+        source: INTERPRETATION
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт Hie: одна WT VH и одна WT VL. Старт Shanker: WT seq + PDB complex. Старт Meier: WT seq (+ optional MSA for MSA Transformer few-shot — не Hie)."
+        source: PAPER
+        locator: "Hie single starting sequence; Shanker structure+seq"
+      - text: "Алгоритм: полный enumeration singles (алфавит 20, исключая WT). Hie: consensus + k. Shanker: sort IF likelihood, top 10 unique positions/chain (20 singles round 1). Temperature/top-k softmax **не** используются в ranking (это не decoder sampling)."
+        source: PAPER
+        locator: "Hie |A|~10; Shanker top ten unique residues each chain"
+      - text: "Hie k: MEDI8852 2/2; UCA 2/2; mAb114 4/4; mAb114 UCA 2/2; S309 VH 2 VL 1; REGN10987 2/2; C143 2/2. [PAPER]"
+        source: PAPER
+        locator: "Hie Methods k values"
+      - text: "Post-hoc: expression, BLI, Tm, PSP polyspecificity, NetMHC, neutralization — **experiment/evaluator**. Не generator."
+        source: PAPER
+        locator: "Hie Methods assays"
+      - text: "Чего нет: beam, AF recycle, epitope clamp, classifier-free guidance, UCB."
+        source: INTERPRETATION
+      - text: "Round 2 Hie: recombine affinity-enhancing (or affinity-preserving for S309/REGN10987); не все Abs — exhaustive combinations (MEDI8852 да; другие — manual). [PAPER]"
+        source: PAPER
+        locator: "Hie Methods second round"
+      - text: "Round 2 Shanker: up to four 2-mutation chain combos; IF ranks all $2^{n}-1$ (Ly-1404 VH 8 beneficial → 255); top five; plus up to two dual-chain. Totals 31 and 25 variants. [PAPER preprint]"
+        source: PAPER
+        locator: "Shanker Acquisition; 31 Ly-1404, 25 SA58"
+      - text: "Hie compute: <1 s per antibody GPU; 742 Thera-SAbDab ~3 min; EPYC 7502P + A40 48GB. [PAPER] Shanker wall-clock scoring — NR."
+        source: PAPER
+        locator: "Hie Computational efficiency"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Hie: только parent sequence. Нет antigen, structure, ELISA labels, CATH, hotspot map."
+        source: PAPER
+        locator: "Hie: without antigen, binding, homologs, structure"
+      - text: "Shanker: $Y$ variable regions both chains + RBD; settings ablation Ab-only / VH-only / Ab–Ag. Лучший retrospective — полный комплекс."
+        source: PAPER
+        locator: "Shanker Fig. 2 three settings"
+      - text: "Нет classifier-free guidance. Нет contig RFdiffusion."
+        source: NR
+      - text: "Не приписывать epitope tensor / measured_var. Library $\\mathcal{X}$ = enumerated mutants, не experimental combinatorial library CSV."
+        source: INTERPRETATION
+      - text: "Meier few-shot: extra MSA sequences into MSA Transformer — **другой** режим, не catalog Hie."
+        source: PAPER
+        locator: "Meier §3.1 few-shot MSA Transformer"
+      - text: "Hie scoring VH и VL **независимо** (два conditioner sequence). Не paired transformer."
+        source: PAPER
+        locator: "Hie Methods separately"
+      - text: "Shanker combinatorials: conditioner тот же $Y$; меняется только $x$."
+        source: PAPER
+        locator: "Shanker joint likelihood all positions"
+      - text: "Masking CDR-only: не default Hie/Shanker (unbiased all variable domain). AntiFold region mask — другой tool."
+        source: PAPER
+        locator: "Hie ~half FR; Shanker all regions"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $N$ residues × 19 substitutions × $M$ ensemble forwards (Hie $M=6$) или один IF AR pass на mutant (Shanker). Attention $O(N^2)$ внутри LM/IF."
+        source: INTERPRETATION
+      - text: "Hie: линейно по числу Abs; 742 in ~3 min на A40. [PAPER] Не «дешевле diffusion» без NFE-сравнения в paper — не писать."
+        source: PAPER
+        locator: "Hie 742 Thera-SAbDab ~3 min"
+      - text: "Assay latency доминирует: 8–14 variants round 1, 1–11 round 2 (Hie); 20 singles then combos (Shanker). #rounds = 2 laboratory, не ML epochs."
+        source: PAPER
+        locator: "Hie 8–14 and 1–11; Shanker 20 singles"
+      - text: "GPU scoring cheap vs expression. Meier pretrain 64×V100×6 days — не cost пользователя scoring."
+        source: PAPER
+        locator: "Meier 6 days 64 V100"
+      - text: "Combinatorial round 2: $2^{n}$ IF scores (255 при n=8) — всё ещё tiny vs 20^N."
+        source: PAPER
+        locator: "Shanker 255 candidate sequences"
+      - text: "Shanker GPU hours — NR."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: не нужны $y$ и (у Hie) не нужна структура — низкий порог входа."
+        source: PAPER
+        locator: "Hie end user single WT sequence"
+      - text: "Hie: семь Abs, ≤20 variants, два раунда; 71–100% round-1 Fab sub-μM; 14–71% ≥1.1-fold $K_d$; all but REGN10987 ≥2-fold. Clinically relevant: MEDI8852 H7 HK17 Fab 0.21→0.03 nM (7-fold); mAb114 GP 3.4-fold; C143 neutralization 32-fold Beta (VL G53V), 19-fold D614G (VL T33N-G53V); mAb114 UCA 160-fold Fab $K_d$. [PAPER] Не обобщать на все Abs."
+        source: PAPER
+        locator: "Hie Results; Fig. 3b; Supp. Tables"
+      - text: "Hie 122 variants, 121 expressed. Tm>70 °C tested affinity-enhancing; 21/31 higher Tm than WT. Polyspecificity без существенного сдвига (Fig. 3a). [PAPER]"
+        source: PAPER
+        locator: "Hie expression; Tm; PSP"
+      - text: "Shanker preprint: 35%/30% singles improve IC50 (≥1.1) vs encoded strain; all 15 multi-mut round 2 better than WT; Ly-1404 7-mut VH 26-fold IC50 BQ.1.1 (31 variants); SA58 11-fold (25 variants); $K_{D,\\mathrm{app}}$ XBB.1.5 up to 37-fold. Science abstract «25-fold» — не page-sync. [PAPER preprint]"
+        source: PAPER
+        locator: "Shanker Fig. 3; Fig. 4c"
+      - text: "Retrospective: IF Spearman CR9114-H1 0.65 vs ESM-1v 0.08 при Ab–Ag input — **DMS $K_D$ library**, не Hie campaign. [PAPER preprint]"
+        source: PAPER
+        locator: "Shanker Fig. 2a"
+      - text: "Явно: fold-change на одном parent/antigen **не** гарантия стабильности, экспрессии, affinity к другому epitope. Likelihood ≠ $K_d$."
+        source: INTERPRETATION
+      - text: "Hie vs AbLang/Sapiens/abYsis на трёх UCA avidity: general PLM лучше (Supp. Table 12). Не сравнивать с EVOLVEpro hit rate."
+        source: PAPER
+        locator: "Hie Supplementary Table 12"
+      - text: "Framework mutations: механизм «не только CDR» следует из unbiased enumeration, не из docking."
+        source: PAPER
+        locator: "Hie 36/76 FR; Shanker F24Y V90S FR"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: additive Δℓ / single-site round 1 не моделирует эпистаз; WT- vs masked-marginal — разные калибровки; IF AR teacher-forcing details NR."
+        source: PAPER
+        locator: "Meier additive; Hie Ext. Data Fig. 1"
+      - text: "Представление: Hie слеп к геометрии интерфейса; Shanker слеп к side-chain chemistry; оба не multi-objective optimizer."
+        source: PAPER
+        locator: "catalog limitations; Shanker no side chains"
+      - text: "Физика: нет ΔG head; Tm не объясняет все affinity gains (MEDI8852 Tm down). [PAPER]"
+        source: PAPER
+        locator: "Hie Tm vs affinity paragraph"
+      - text: "Данные: UniRef мало Abs; SARS-CoV-2 Abs после cutoff train — claimed, не audit leakage. C143/REGN в UniRef как sequences — NR beyond authors' statement."
+        source: PAPER
+        locator: "Hie few thousand antibody-related UniRef"
+      - text: "Обобщение: REGN10987 слабее (1.3-fold screening antigen). Highly matured Abs — меньший fold-change. Unnatural selection pressures — Discussion Hie."
+        source: PAPER
+        locator: "Hie REGN10987; Discussion fitness peak"
+      - text: "Deployment: CODE unaudited; Science vs preprint numbers; не catalog antibody de novo. Shanker требует PDB."
+        source: INTERPRETATION
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Конкретные ошибки."
+        source: INTERPRETATION
+    items:
+      - "Подставить Meier masked Eq. 1 как код [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html) (Hie = WT-marginal + consensus)."
+      - "Считать Δℓ / IF LL равным $K_d$ или ELISA без assay."
+      - "Смешать с EVOLVEpro: нет labels → zero-shot; есть ~10+ y → few-shot."
+      - "Shanker без credible complex (wrong epitope/strain) — Hie sequence-only безопаснее, IF нет."
+      - "Ожидать de novo CDR topology / hotspot binder — не тот generated object."
+      - "AntiFold temperature sampling как этот architecture_id."
+      - "Сравнивать 160-fold UCA $K_d$ и 26-fold VOC IC50 как один leaderboard."
+      - "Игнорировать epistasis: остановиться после round-1 singles, когда paper's gains often in combinations."
+      - "MSA-Transformer few-shot Meier как Hie protocol."
+      - "AbLang/Sapiens вместо general PLM, когда Hie benchmark показал хуже на UCA."
+      - "Скоринг subsequence: Meier methionine calibration / start-M bias."
+      - "Длина >1024 (Shanker Cas9 excluded) для ESM-1v comparison."
+      - "Round-2 combinatorial explosion без IF rescoring (Shanker) или без assay filter (Hie)."
+      - "Journal 25-fold vs preprint 26-fold silently merged."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Reverse index: ровно два catalog tools. Остальное — литература / путаница. Неравные oracles не в одной колонке успеха."
+        source: MATRIX
+    tables:
+      - title: "Catalog tools с architecture_id zero-shot-mutation-scoring"
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html)", "zero-shot sequence likelihood ranking", "Hie WT-marginal, α=1, ESM-1b+5×ESM-1v, k~10, two BLI rounds; CODE **NR**", "Нет структуры/антигена; не Meier Eq. 1; не EVOLVEpro"]
+          - ["[Structural evolution](/tools/structural-evolution.html)", "zero-shot IF likelihood ranking", "ESM-IF1 on Ab–Ag $Y$; top-10 unique/chain; 31+25 variants preprint; CODE **NR**; Science body **NR**", "Нужен complex PDB; joint AR $p(x\\mid Y)$; также architecture_id inverse-folding"]
+      - title: "Литература / не этот architecture_id"
+        headers: ["Method", "Generic architecture", "Implementation", "Important difference"]
+        rows:
+          - ["Meier ESM-1v (не карточка tools)", "masked-marginal Δℓ", "Eq. 1, 41 DMS Spearman, 650M×5", "Foundational scorer; Hie — другой маргинал"]
+          - ["[AntiFold](/tools/antifold.html)", "IF generator + optional rank", "FT ESM-IF1 Abs; **нет** zero-shot-mutation-scoring id", "Sampling FASTA; DMS correlation ≠ Hie/Shanker campaign"]
+          - ["[EVOLVEpro](/tools/evolvepro.html)", "few-shot", "frozen ESM-2 + RF", "Нужны labels; incompatible comparison"]
+          - ["AbLang / Sapiens / abYsis", "sequence baselines", "Hie Supp. Table 12", "Не catalog tools"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: [single-mutation proposal](/tasks/single-mutation-proposal.html), [affinity maturation](/tasks/affinity-maturation.html) при малом бюджете; workflow [zero-shot mutation](/workflows/zero-shot-mutation.html). Sequence-only → [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html); есть complex → [structural evolution](/tools/structural-evolution.html)."
+        source: MATRIX
+      - text: "Запрет: [few-shot active learning](/tasks/few-shot-active-learning.html) как замена, если labels уже есть — [EVOLVEpro](/tools/evolvepro.html). De novo antibody CDR 3D — [frame diffusion](/architectures/frame-diffusion.html)/[RFantibody](/tools/rfantibody.html) или [joint diffusion](/architectures/joint-sequence-structure-diffusion.html). Humanization FR redesign как diffusion — [HuDiff](/tools/hudiff.html). Inverse folding redesign маски — [AntiFold](/tools/antifold.html)."
+        source: MATRIX
+      - text: "Запрет: multi-objective Pareto на library (Makowski) этим scorer'ом. Combinatorial 19^k без round-2 strategy."
+        source: INTERPRETATION
+      - text: "Нельзя решать codon/CHO/secretion. Нельзя выдавать NetMHC count за immunogenicity trial."
+        source: PAPER
+        locator: "Hie HLA computational proxy"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational scoring: Meier bioRxiv (прочитан HTML §3). Catalog: Hie Nat. Biotechnol. journal HTML (прочитан Methods+Results); Shanker bioRxiv HTML (прочитан Methods+campaign). Hsu ESM-IF1 — pointer. Science adk8946 body — inaccessible this pass."
+        source: PAPER
+      - text: "Catalog paper pages: [paper-esm-1v-efficient-evolution](/papers/esm-1v-efficient-evolution.html), [paper-structural-evolution](/papers/structural-evolution.html). CODE repos — pointer-only."
+        source: MATRIX
+      - text: "Не библиография всего variant-effect: DeepSequence, EVMutation — Meier baselines. Livesey–Marsh — DMS meta, не architecture. AntiFold analysis — соседняя IF-страница."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Meier et al. ESM-1v zero-shot mutation effects. bioRxiv 10.1101/2021.07.09.450648."
+    url: "https://doi.org/10.1101/2021.07.09.450648"
+    doi: "10.1101/2021.07.09.450648"
+  - id: 2
+    text: "Hie et al. Efficient evolution of human antibodies from general protein language models. Nat. Biotechnol. 10.1038/s41587-023-01763-2."
+    url: "https://doi.org/10.1038/s41587-023-01763-2"
+    doi: "10.1038/s41587-023-01763-2"
+  - id: 3
+    text: "Shanker et al. Inverse folding of protein complexes enables unsupervised antibody evolution. bioRxiv 10.1101/2023.12.19.572475."
+    url: "https://doi.org/10.1101/2023.12.19.572475"
+    doi: "10.1101/2023.12.19.572475"
+  - id: 4
+    text: "Shanker et al. Science 10.1126/science.adk8946 (journal; body not page-synced this pass)."
+    url: "https://doi.org/10.1126/science.adk8946"
+    doi: "10.1126/science.adk8946"
+  - id: 5
+    text: "Hsu et al. ESM-IF1. ICML 2022 / arXiv:2206.12094."
+    url: "https://arxiv.org/abs/2206.12094"
+    doi: "10.48550/arXiv.2206.12094"
+unresolved:
+  - "brianhie/efficient-evolution and varun-shanker/structural-evolution commit SHA / function names"
+  - "Science adk8946 SI and 25-fold vs preprint 26-fold body reconciliation"
+  - "Shanker HTML Y atoms α/β-carbon vs Hsu N-Cα-C typesetting"
+  - "Exact IF Δ formula mutant vs WT (HTML garbled); teacher-forcing API"
+  - "Hie Supplementary Tables full Kd matrices"
+  - "Meier journal pagination / NeurIPS camera-ready if any"
+  - "ESM-1v hidden size / layers beyond 650M"
+  - "PDB train-overlap of 7MMO/7Y0W with ESM-IF1 AF2 corpus"
+  - "AntiFold DMS Spearman numbers not copied here (wrong architecture_id)"

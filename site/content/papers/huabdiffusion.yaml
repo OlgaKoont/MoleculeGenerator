@@ -1,0 +1,49 @@
+id: paper-huabdiffusion
+slug: huabdiffusion
+title: 'HuAbDiffusion: humanized antibody generation from CDRs'
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Briefings in Bioinformatics; Q1 status NR
+publication_status: Peer-reviewed journal; Briefings in Bioinformatics; Q1 status NR
+doi: 10.1093/bib/bbaf658
+url: https://doi.org/10.1093/bib/bbaf658
+preprint_url: null
+tool_ids:
+- huabdiffusion
+main_task: Humanized variable-region generation from CDRs
+claimed_novelty: null
+model_architecture: Discrete language diffusion
+input_representation: null
+encoder_decoder: null
+generative_state: Whole humanized V-region sequences
+conditioning: CDRs retained; human sequence prior
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Paper reports retained or increased affinity for selected
+  humanized antibodies
+tested_designs: 'Evaluated on 22 mAbs; exact prospective subset and per-variant count: NR
+  here'
+success_criterion: Paper reports retained or increased affinity for selected humanized antibodies
+main_results: Paper reports retained or increased affinity for selected humanized antibodies
+limitations: Service opacity and no verified source; humanization metrics do not equal immunogenicity;
+  experimental subset details need extraction.
+demonstrates:
+- Paper reports retained or increased affinity for selected humanized antibodies
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'HuAbDiffusion: humanized antibody generation from CDRs'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Briefings in Bioinformatics; Q1 status
+    NR'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

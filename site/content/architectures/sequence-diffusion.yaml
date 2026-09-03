@@ -1,0 +1,40 @@
+id: sequence-diffusion
+slug: sequence-diffusion
+name: Sequence diffusion
+name_ru: Диффузия в пространстве sequences
+intuition: Amino-acid tokens постепенно зашумляются до random categories, а модель учится восстанавливать
+  sequence. Удобно для masked local redesign и unconditional generation.
+mathematical_formulation: 'Discrete DDPM/D3PM: $q(x_t\mid x_{t-1})$ — категориальный noise. Denoiser
+  предсказывает $p(x_0\mid x_t)$ или posterior $p(x_{t-1}\mid x_t)$.'
+input_representation: Noisy amino-acid tokens; optional MSA/motif masks.
+generated_state: Discrete sequence state.
+training_objective: Variational bound / cross-entropy on clean tokens.
+inference: T denoising steps from noise or from partially noised motif.
+conditioning: Motif clamping, classifier-free guidance, MSA.
+complexity_drivers:
+- T steps
+- L length
+- guidance evaluations
+strengths:
+- Любой subset можно зафиксировать маской
+- Не требует AR order
+limitations:
+- Много steps
+- Sequence plausibility ≠ 3D
+failure_modes:
+- Слишком мало steps
+- Motif scaffolding без 3D constraints
+applicable_task_ids:
+- general-protein-sequence-generation
+- humanization
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-evodiff
+- paper-hudiff
+subtypes:
+- D3PM
+- OA-DM
+- Autoregressive diffusion
+glossary_ids:
+- diffusion

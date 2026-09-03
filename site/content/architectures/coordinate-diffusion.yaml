@@ -1,0 +1,39 @@
+id: coordinate-diffusion
+slug: coordinate-diffusion
+name: Coordinate diffusion
+name_ru: Диффузия координат
+intuition: Зашумляются Cartesian coordinates атомов или Cα. Denoiser предсказывает чистые координаты
+  или score $\nabla \log p(x_t)$.
+mathematical_formulation: 'VP/VE SDE: $dx=f(x,t)dt+g(t)dW$. Обучение score matching $\mathbb{E}\|s_\theta(x_t,t)-\nabla
+  \log p(x_t\mid x_0)\|^2$.'
+input_representation: Noisy coordinates, residue types if known, masks.
+generated_state: Continuous 3D coordinates.
+training_objective: Denoising score matching / noise-prediction MSE.
+inference: Numerical SDE/ODE integrator, optional equivariant constraints.
+conditioning: Coordinate clamping of motif/target, hotspots, symmetry.
+complexity_drivers:
+- N atoms/residues
+- T steps
+- number of trajectories
+strengths:
+- Прямая генерация geometry
+- Легко фиксировать motif coordinates
+limitations:
+- Нужна эквивариантность или augmentation
+- Bond geometry может ломаться без constraints
+failure_modes:
+- Exploded coordinates
+- Clashes at low T
+applicable_task_ids:
+- de-novo-backbone-generation
+- full-3d-structure-generation
+not_for_task_ids:
+- cdr-sequence-generation
+paper_ids:
+- paper-chroma
+- paper-rfdiffusion-aa
+subtypes:
+- Cα diffusion
+- All-atom diffusion
+glossary_ids:
+- diffusion

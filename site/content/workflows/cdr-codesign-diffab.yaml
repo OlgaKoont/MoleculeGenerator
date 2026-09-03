@@ -1,0 +1,80 @@
+id: cdr-codesign-diffab
+slug: cdr-codesign-diffab
+name: Antigen-conditioned CDR co-design
+use_case: Есть antibody–antigen complex context; нужно co-design CDR sequence и geometry.
+required_input:
+- antigen–antibody complex
+- framework
+- CDR masks
+stages:
+- name: Joint sequence–structure sampling
+  architecture_class: Equivariant diffusion / GNN / flow matching
+  what_happens: Обновляются residue type и geometry
+  generation_or_evaluation: generation
+  generator: diffab
+  intermediate_object: CDR proposals
+  alternatives:
+  - dymean
+  - flowdesign
+  - abdiffuser
+  node_links:
+  - diffab
+  - joint-sequence-structure-diffusion
+- name: Energy/structure metrics
+  architecture_class: Computational scorers
+  what_happens: Ранжирование по energy/DockQ/ddG
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked designs
+  alternatives:
+  - dockq
+  node_links:
+  - dockq
+- name: Independent complex prediction
+  architecture_class: External predictor
+  what_happens: Проверка вне generator
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Filtered set
+  alternatives:
+  - alphafold3
+  node_links:
+  - alphafold3
+- name: Experimental tests
+  architecture_class: null
+  what_happens: Если переходите в wet-lab
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Assayed clones
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: GPU required. DiffAb repository archived. FlowDesign public code NR.
+evidence_level: 'DiffAb/dyMEAN: 1–2 in silico. FlowDesign/AbDiffuser: narrow prospective, with
+  caveats.'
+failure_points:
+- No input complex.
+- Energy as affinity.
+- Archived code.
+decision_criteria:
+- Нужен prospective open pipeline? Лучше RFantibody.
+- Нужен методологический co-design benchmark? DiffAb.
+task_ids:
+- joint-cdr-sequence-structure-design
+- antigen-conditioned-antibody-design
+tool_ids:
+- diffab
+- dymean
+- flowdesign
+- abdiffuser
+architecture_ids:
+- joint-sequence-structure-diffusion
+- flow-matching
+- se3-equivariant-models
+paper_ids:
+- paper-diffab
+- paper-dymean
+- paper-flowdesign
+mermaid: "flowchart TD\n    A[Antibody-antigen complex + CDR mask] --> B[Joint generator]\n  \
+  \  B --> C[CDR sequence-structure]\n    C --> D[Energy / DockQ / ddG]\n    D --> E[Independent\
+  \ complex predictor]\n    E --> F[Optional assays]"

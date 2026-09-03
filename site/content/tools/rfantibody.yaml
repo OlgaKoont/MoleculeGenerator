@@ -1,0 +1,260 @@
+identity:
+  id: rfantibody
+  name: RFantibody
+  slug: rfantibody
+  aliases:
+  - RFantibody
+  version: null
+  release_year: 2025/2026
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/RosettaCommons/RFantibody
+  official_documentation: null
+  official_service: null
+  license: MIT; free for commercial use
+  commercial_use_status: Code + weights
+  publication_status: Peer-reviewed journal; Nature (Q1); issue 2026
+classification:
+  task_ids:
+  - de-novo-antibody-design
+  - de-novo-vhh-nanobody-design
+  - antigen-conditioned-antibody-design
+  - cdr-backbone-generation
+  - joint-cdr-sequence-structure-design
+  workflow_ids:
+  - de-novo-antibody-rfantibody
+  architecture_ids:
+  - frame-diffusion
+  - inverse-folding
+  - se3-equivariant-models
+  generator_classes:
+  - backbone-structure-generator
+  - target-conditioned-binder
+  output_modalities:
+  - sequence
+  - structure
+  - joint
+  supported_formats: VHH/nanobody and scFv; conversion of selected scFvs to IgG tested
+  de_novo_or_optimization: De novo CDR-mediated binder on a chosen framework
+  general_protein_relevance: Antibody-focused
+  antibody_relevance: Direct antibody-specific evidence
+  VHH_relevance: Strong direct evidence
+  mutation_relevance: Not parent-mutation optimization
+  compatibility_group: antibody-binder
+generation:
+  exact_generated_object: CDR backbones, CDR sequences, antibody–target complex proposals
+  required_input: Target structure, epitope hotspots, fixed antibody framework, CDR lengths
+  conditioning: Fixed framework, hotspots, CDR lengths, VHH/scFv format
+  fixed_components: Antibody framework and target (except designed CDRs)
+  editable_components: CDR backbones and sequences
+  generated_components: CDR geometry, CDR sequences, complex proposals
+  support_for_single_mutations: 'No'
+  support_for_combinatorial_mutations: Yes across CDRs
+  support_for_multi_objective_optimization: No explicit multi-objective optimizer
+  candidate_generation_mechanism: Antibody-fine-tuned RFdiffusion → ProteinMPNN CDR sequence → fine-tuned
+    RoseTTAFold2 filter
+architecture:
+  base_model: Antibody-fine-tuned RFdiffusion + ProteinMPNN + fine-tuned RoseTTAFold2
+  model_family: SE(3) diffusion workflow, not a single network
+  model_type: Target-conditioned antibody backbone + sequence workflow
+  input_representation: Target coordinates, hotspot residues, fixed framework frames, CDR length/contig
+    specification
+  node_features: null
+  edge_or_pair_features: null
+  encoder: RoseTTAFold-derived equivariant denoiser (antibody-fine-tuned)
+  decoder: Reverse diffusion over frames then MPNN sequence decoder
+  latent_or_generative_state: Noisy residue frames for CDRs; then discrete CDR tokens
+  equivariance: SE(3)-equivariant diffusion
+  conditioning_mechanism: Hotspot constraints, framework fixation, contig/CDR lengths, target structure
+  generation_mechanism: Iterative denoising of CDR frames → inverse folding → RF2 filtering
+  sampling_procedure: Multiple diffusion trajectories; MPNN samples per backbone; RF2/AF3 ranking
+  training_objectives: Diffusion denoising on antibody-like geometry (fine-tune) plus MPNN sequence
+    recovery; RF2 is a predictor
+  losses: Diffusion score-matching / frame denoising (RFdiffusion family); MPNN cross-entropy; RF2
+    structure losses are predictor losses
+  architectural_modifications: null
+  computational_complexity_drivers: Trajectories × denoising steps × MPNN candidates × RF2 recycles
+  output: CDR backbones, CDR sequences, antibody–target complex proposals
+  internal_scorer: Fine-tuned RF2 self-consistency/confidence; AF3 used retrospectively in the study
+  structure_generation: Да, CDR/backbone geometry
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix + Nature paper status)
+workflow_components:
+  primary_generator: Antibody RFdiffusion + ProteinMPNN
+  integrated_generators:
+  - Antibody-fine-tuned RFdiffusion
+  - ProteinMPNN
+  integrated_scorers:
+  - Fine-tuned RF2 self-consistency/confidence; AF3 retrospective filtering
+  integrated_structure_predictor: Fine-tuned RoseTTAFold2 included
+  integrated_complex_predictor: Fine-tuned RoseTTAFold2
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - AF3 recommended retrospectively; experimental binding/epitope/function tests mandatory
+  optional_external_dependencies:
+  - Backbone generation, sequence design and complex filtering integrated
+  breakdown:
+  - name: Antibody RFdiffusion + ProteinMPNN
+    role: primary_generator
+    architecture_class: Antibody-fine-tuned RFdiffusion → ProteinMPNN CDR sequence → fine-tuned RoseTTAFold2
+      filter
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Fine-tuned RF2 self-consistency/confidence; AF3 retrospective filtering
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Fine-tuned RoseTTAFold2 included
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: AF3 recommended retrospectively; experimental binding/epitope/function tests mandatory
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: 'Antibody-fine-tuned RFdiffusion/RF2 (exact corpora: NR here)'
+  preprocessing: null
+  negative_examples: NR as an explicit specificity-training set
+  fine_tuning: Yes, from general RFdiffusion/RF2 toward antibody geometry
+  label_requirements: null
+  reported_training_hardware: NR
+  reported_training_time: NR
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: Must separate diffusion, MPNN, RF2, optional AF3, and wet-lab
+  CPU: null
+  GPU: Required (qualitative; hours/VRAM NR)
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: No MSA database required for the diffusion stage (Author-reported workflow
+    character); RF2 details NR
+evidence:
+  evidence_level: 3–4 prospective binding and functional validation
+  retrospective_validation: null
+  prospective_binding_validation: Correct epitope and designed geometry for selected structures; TcdB
+    neutralization after maturation; initial affinities can be modest
+  prospective_functional_validation: Correct epitope and designed geometry for selected structures;
+    TcdB neutralization after maturation; initial affinities can be modest
+  developability_validation: null
+  tested_design_count: 95-design low-throughput or 9,000-design display campaigns per target; overall
+    target success 0–2%; multiple confirmed VHH/scFv binders
+  success_criterion: Correct epitope and designed geometry for selected structures; TcdB neutralization
+    after maturation; initial affinities can be modest
+  independent_validation: null
+  evidence_summary: Correct epitope and designed geometry for selected structures; TcdB neutralization
+    after maturation; initial affinities can be modest
+  prospective_flag: true
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Framework fixed.
+  - target holo conformation/hotspots critical.
+  - lower hit rates than general miniprotein binder pipelines.
+  - CDR humanness not optimized.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited antibody pilot
+relations:
+  related_tools:
+  - rfdiffusion
+  - proteinmpnn
+  - tfold
+  alternatives:
+  - tfold
+  - boltzgen
+  complementary_tools:
+  - proteinmpnn
+  - antifold
+  incompatible_comparisons:
+  - alphaproteo
+  - bindcraft
+  - boltzgen
+  - esm-1v-efficient-evolution
+  - structural-evolution
+  paper_ids:
+  - paper-rfantibody
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids:
+  - rf2
+  - alphafold3
+  - experimental-assays
+  - proteinmpnn
+  glossary_ids:
+  - diffusion
+  - inverse-folding
+  - epitope
+  - framework
+  - cdr
+  - plddt
+detailed_architecture:
+  summary_card:
+    Base architecture: RFdiffusion (Ab) + ProteinMPNN + RF2
+    Model type: Multi-stage generative workflow
+    Representation: SE(3) frames, then residue graph
+    Generation unit: CDR frames then amino-acid tokens
+    Conditioning: Target, hotspots, fixed framework, CDR lengths
+    Output: Sequence–structure antibody–target proposals
+    Sampling: Diffusion trajectories + MPNN sampling
+    Internal scorer: RF2 confidence / self-consistency
+    Structure generation: Да (CDRs/backbone)
+  input_representation: Target structure + epitope hotspots + fixed antibody framework + CDR length
+    contigs. Framework coordinates are clamped; CDRs are generated.
+  encoder: Equivariant RoseTTAFold-derived trunk as diffusion denoiser. ProteinMPNN is a separate
+    encoder/decoder on the resulting backbone. RF2 is not a generator.
+  latent_or_generative_state: Continuous noisy 3D frames for designed CDR residues, then discrete
+    sequence tokens.
+  conditioning_mechanism: Coordinate clamping of framework and target; hotspot residue constraints;
+    contig specification of CDR lengths; VHH vs scFv format choice.
+  generation_mechanism: 1) Зашумляются CDR frames. 2) Forward process — SE(3) noise as in RFdiffusion.
+    3) Denoiser предсказывает cleaner frames. 4) Число sampling steps — implementation/default, exact
+    default NR here. 5) Framework и target фиксируются. 6) Sequence назначается MPNN после backbone.
+    7) RF2 фильтрует комплексы.
+  training_objectives: Antibody-fine-tuned diffusion objective on structural data; MPNN CE; RF2 trained
+    as structure/complex predictor. Do not collapse these losses into one 'affinity loss'.
+  integrated_evaluation: RF2 is an integrated complex predictor/filter. AF3 is described as retrospective/recommended
+    external filter. Neither is experimental affinity. Display/SPR remain mandatory for binding claims.
+  architectural_limitations:
+  - feature: Fixed framework
+    limitation: Нет global Fv redesign.
+  - feature: Diffusion with many steps
+    limitation: Высокая inference cost.
+  - feature: Hotspot-conditioned generation
+    limitation: Ошибка epitope mapping почти фатальна.
+  - feature: Integrated RF2 ranking
+    limitation: Возможна miscalibration вне training distribution.
+  - feature: No negative antigen examples as primary objective
+    limitation: Специфичность не доказана генератором.
+review_queue:
+- Bibliographic title must be verified against the PDF.

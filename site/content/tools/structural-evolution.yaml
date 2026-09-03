@@ -1,0 +1,185 @@
+identity:
+  id: structural-evolution
+  name: Structural evolution (ESM-IF1 complex)
+  slug: structural-evolution
+  aliases:
+  - structural evolution
+  - ESM-IF1 complex evolution
+  version: null
+  release_year: '2024'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/varun-shanker/structural-evolution
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Code/scripts
+  publication_status: Peer-reviewed journal; Science (Q1)
+classification:
+  task_ids:
+  - single-mutation-proposal
+  - affinity-maturation
+  - antibody-structure-aware-sequence-design
+  workflow_ids:
+  - zero-shot-mutation
+  architecture_ids:
+  - inverse-folding
+  - zero-shot-mutation-scoring
+  generator_classes:
+  - mutation-optimizer
+  output_modalities:
+  - sequence
+  supported_formats: Protein complexes and antibody–antigen complexes
+  de_novo_or_optimization: Optimizes existing complex
+  general_protein_relevance: High for structure-informed evolution
+  antibody_relevance: Direct antibody evidence
+  VHH_relevance: null
+  mutation_relevance: Very high
+  compatibility_group: zero-shot-mutation
+generation:
+  exact_generated_object: Ranked sequence mutations preserving complex structure
+  required_input: Parent complex structure/backbone
+  conditioning: Complex geometry; selected mutable positions
+  fixed_components: null
+  editable_components: null
+  generated_components: Ranked sequence mutations preserving complex structure
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: Limited/derived combinations; primary strength is ranked
+    substitutions
+  support_for_multi_objective_optimization: No explicit multi-objective loop
+  candidate_generation_mechanism: Inverse-folding likelihood on complete complex backbone
+    to rank substitutions
+architecture:
+  base_model: null
+  model_family: Inverse-folding likelihood on complete complex backbone to rank substitutions
+  model_type: 6 Mutation generator / optimization workflow
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Complex geometry; selected mutable positions
+  generation_mechanism: Inverse-folding likelihood on complete complex backbone to rank substitutions
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Ranked sequence mutations preserving complex structure
+  internal_scorer: Structure-conditioned sequence likelihood
+  structure_generation: No structure prediction; uses supplied complex backbone
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: ESM-IF1 conditional mutation proposal
+  integrated_generators: []
+  integrated_scorers:
+  - Structure-conditioned sequence likelihood
+  integrated_structure_predictor: No structure prediction; uses supplied complex backbone
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Complex-quality validation and functional assays
+  optional_external_dependencies:
+  - Mutation enumeration/ranking scripts
+  breakdown:
+  - name: ESM-IF1 conditional mutation proposal
+    role: primary_generator
+    architecture_class: Inverse-folding likelihood on complete complex backbone to rank substitutions
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Structure-conditioned sequence likelihood
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Complex-quality validation and functional assays
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 4 prospective functional validation
+  retrospective_validation: 'Multiple protein/antibody systems; exact count by system: paper-level
+    extraction required'
+  prospective_binding_validation: Improved antibody potency/resilience to viral escape reported
+  prospective_functional_validation: Improved antibody potency/resilience to viral escape
+    reported
+  developability_validation: null
+  tested_design_count: 'Multiple protein/antibody systems; exact count by system: paper-level
+    extraction required'
+  success_criterion: Improved antibody potency/resilience to viral escape reported
+  independent_validation: null
+  evidence_summary: Improved antibody potency/resilience to viral escape reported
+  prospective_flag: true
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Requires credible complex structure.
+  - likelihood targets structural compatibility, not direct affinity.
+  - epistasis/multiobjective scope limited.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited internal pilot
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - evolvepro
+  - framediff
+  - makowski-affinity-specificity
+  - rfantibody
+  - rfdiffusion
+  - rfdiffusion-aa
+  - tfold
+  paper_ids:
+  - paper-structural-evolution
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

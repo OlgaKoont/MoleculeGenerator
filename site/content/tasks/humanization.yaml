@@ -1,0 +1,42 @@
+id: humanization
+slug: humanization
+name: Humanization
+group: Антитела и antibody-like форматы
+definition: Перенос CDRs нечеловеческого antibody/VHH на human-like framework.
+objective: Сохранить specificity при повышении humanness; immunogenicity этим не доказывается.
+starting_inputs:
+- non-human VH/VL or CDR sequences
+generated_objects:
+- humanized variable-domain sequences
+generator_classes:
+- humanization
+strategies:
+- name: Classifier-guided mutations
+  generates: Framework mutations
+  representation: Sequence
+  examples:
+  - humatch
+  limitation: Нет prospective affinity retention в primary paper
+  sampling: Iterative selection
+  novel_topology: Нет
+  integrated_scoring: V-gene classifiers
+  complexity_drivers: Mutation steps
+consequences:
+- decision: Humanness score as objective
+  consequence: Не заменяет immunogenicity/PK assays.
+compute_consequences:
+- CPU-feasible для Humatch.
+evidence_summary: Не путать humanness с клинической immunogenicity.
+incomparable:
+- Не сравнивать с affinity maturation.
+selection_guidance:
+- Open code — Humatch.
+- VHH humanization — HuDiff-Nb, но preprint.
+architecture_ids:
+- sequence-diffusion
+workflow_ids:
+- humanization-framework
+paper_ids: []
+glossary_ids:
+- humanization
+downstream: false

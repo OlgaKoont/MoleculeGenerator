@@ -1,0 +1,7 @@
+id: infilling
+slug: infilling
+term: Infilling
+term_ru: Заполнение пропуска
+definition: Генерация masked span при известном левом и правом контексте.
+related_ids:
+- cdr

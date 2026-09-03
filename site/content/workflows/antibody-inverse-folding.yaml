@@ -1,0 +1,71 @@
+id: antibody-inverse-folding
+slug: antibody-inverse-folding
+name: Antibody inverse folding / masked CDR redesign
+use_case: Есть Fv/VHH structure; нужно перебрать CDR/framework sequences, сохранив backbone.
+required_input:
+- antibody structure
+- optional antigen context
+- CDR/framework masks
+stages:
+- name: Masked inverse folding
+  architecture_class: ESM-IF1 fine-tune
+  what_happens: Сэмплируются masked antibody sequences
+  generation_or_evaluation: generation
+  generator: antifold
+  intermediate_object: Fv/VHH sequences
+  alternatives:
+  - proteinmpnn
+  node_links:
+  - antifold
+  - inverse-folding
+- name: Likelihood ranking
+  architecture_class: Conditional log-likelihood
+  what_happens: Варианты ранжируются; это не affinity
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked variants
+  alternatives: []
+  node_links: []
+- name: Complex/structure check
+  architecture_class: External predictor
+  what_happens: Независимая проверка complex
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Predicted complexes
+  alternatives:
+  - alphafold3
+  node_links:
+  - alphafold3
+- name: Binding assays
+  architecture_class: null
+  what_happens: Affinity измеряется экспериментально
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Assayed clones
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: Web service + local code available. GPU/runtime NR.
+evidence_level: 2 retrospective antibody evaluation; no prospective wet-lab in primary paper.
+failure_points:
+- Predicted antibody structure как вход.
+- Интерпретация likelihood как affinity.
+- Нет epitope function test.
+decision_criteria:
+- Нужна новая CDR geometry? Этот workflow не подходит.
+- Нужен de novo paratope? Смотрите RFantibody.
+task_ids:
+- inverse-folding
+- antibody-structure-aware-sequence-design
+- cdr-sequence-generation
+tool_ids:
+- antifold
+architecture_ids:
+- inverse-folding
+- geometric-transformers
+- invariant-models
+paper_ids:
+- paper-antifold
+mermaid: "flowchart TD\n    A[Antibody structure + masks] --> B[AntiFold inverse folding]\n  \
+  \  B --> C[Sampled sequences]\n    C --> D[Likelihood ranking]\n    D --> E[External complex\
+  \ prediction]\n    E --> F[Binding assays]"

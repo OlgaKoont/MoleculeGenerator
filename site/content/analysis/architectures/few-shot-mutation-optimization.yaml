@@ -1,0 +1,618 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — постановка «surrogate на experimental labels parent-library», не checkpoint и не обязательный UCB. Прочитаны: Jiang et al. bioRxiv 10.1101/2024.07.17.604015 HTML (preprint: пять белков, antibody = REGN10987, 11 mutants/round, ELISA 63%, IC50 11.9 nM; DMS fig. S1B up to 7-fold); Jiang et al. Science 10.1126/science.adr6006 HTML Results + Methods summary (journal: шесть белков, antibodies = C143 и aCD71, не REGN10987; DMS fig. S1B up to 2.2-fold; RF T=100, Friedman MSE, top-n; Eq. 1–7). Не сливать preprint и journal. CODE mat10d/EvolvePro commit 1c77697d0c09bf6989a1562a55da99301a12e2cd: model.py top_layer, evolve.py evolve_experimental. Makowski et al. Nat. Commun. 10.1038/s41467-022-31457-3 HTML Results+Methods (journal OA; SI PDF не построчно). Tessier-Lab-UMich/Emi_Pareto_Opt_ML — pointer-only, не line-audit (extra_constraints). Не прочитаны: Science SI / table S1 / data S1 ячейки; числовой WT IC50 C143; hidden width Makowski projector beyond «single node»."
+lede: "Few-shot mutation optimization — **sequential design / labelled mutation protocol**: на малом (относительно $|\\mathcal{X}|$) наборе assay labels parent-library обучается surrogate $f_\\phi$ и предлагаются следующие mutants. Это не zero-shot $\\Delta\\ell$, не GP-UCB и не de novo backbone generator."
+inaccessible:
+  - source: "Jiang et al. Science Supporting Information (table S1, data S1, figs. S1–S11 numeric cells) и полный Materials and Methods beyond HTML Methods summary"
+    reason: "HTML отдаёт Methods summary (ESM mean-pool, RF 100 trees, Friedman MSE, top-n); SI PDF/data files не извлечены постранично"
+    workaround: "Journal body + Methods summary Eq. 1–7; grid-search победитель — Results fig. S1A prose; CODE defaults для released experimental path"
+  - source: "Численный ELISA IC50 wild-type C143"
+    reason: "Fig. 2C caption включает WT, body даёт 0.19 nM (N28K) и 60 pM (multimutant), не WT"
+    workaround: "Цитировать single/multimutant IC50 без выдуманного fold vs WT C143"
+  - source: "Makowski Nat. Commun. Supplementary Information PDF (Figs. S1–S14, Table S1 PhysChem definitions beyond Methods list)"
+    reason: "HTML даёт download; постраничный SI не close-read this pass"
+    workaround: "Methods: 8 sites, LDA SVD, 3200/800, UniRep-64 get_rep, PhysChem 26, 4000/125/41/29"
+  - source: "Tessier-Lab-UMich/Emi_Pareto_Opt_ML commit SHA + onehot_models.py line audit"
+    reason: "extra_constraints: Makowski sources_identified, не code-inspected; не выдумывать surrogate из репозитория"
+    workaround: "sklearn LinearDiscriminantAnalysis SVD и TensorFlow projector — Methods prose; hidden width первого слоя NN — NR"
+  - source: "Численная hidden dimension d ESM-2 15B в Jiang Methods"
+    reason: "Science: $E_i\\in\\mathbb{R}^{n\\times d}$, d не назван"
+    workaround: "Оставлять $d$ символом; не подставлять 5120"
+  - source: "Biswas et al. Nat. Methods 2021 Low-N full methods"
+    reason: "цитируется Science/preprint как related MLDE; не primary этого прохода"
+    workaround: "Строка «не карточка tools»; уравнения Low-N UniRep — NR"
+sources:
+  - kind: PAPER
+    citation: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv 10.1101/2024.07.17.604015"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.17.604015v1.full"
+    doi: "10.1101/2024.07.17.604015"
+    note: "Preprint: five proteins; REGN10987 11/round ×5, 63% ELISA, IC50 11.9 nM; DMS 10×16 up to 7-fold; T7 weights 20/40/40. Не сливать с Science."
+  - kind: PAPER
+    citation: "Jiang K. et al. Rapid in silico directed evolution by a protein language model with EVOLVEpro. Science (2025) 10.1126/science.adr6006"
+    url: "https://doi.org/10.1126/science.adr6006"
+    doi: "10.1126/science.adr6006"
+    note: "Journal HTML: six proteins; C143 and aCD71 (not REGN10987); DMS up to 2.2-fold; antibodies up to 40-fold (structured abstract); T7 100-fold fidelity/mRNA quality; Methods summary Eq. 1–7"
+  - kind: PAPER
+    citation: "Makowski E.K. et al. Co-optimization of therapeutic antibody affinity and specificity using machine learning models that generalize to novel mutational space. Nat. Commun. 13, 3788 (2022)"
+    url: "https://doi.org/10.1038/s41467-022-31457-3"
+    doi: "10.1038/s41467-022-31457-3"
+    note: "Journal OA: emibetuzumab; LDA on binary deep-seq; Pareto 4000; 125 scFab; 41+29 IgG; UniRep-64 frozen. Не EVOLVEpro rounds. Также architecture_id multi-objective-optimization."
+  - kind: CODE
+    citation: "mat10d/EvolvePro evolvepro/src/model.py top_layer; evolve.py evolve_experimental / directed_evolution_simulation"
+    url: "https://github.com/mat10d/EvolvePro"
+    note: "commit 1c77697d0c09bf6989a1562a55da99301a12e2cd — RF 100 friedman_mse; GP without return_std; experimental path hardcodes randomforest; strategies topn/dist/random/topn2bottomn2"
+  - kind: DOC
+    citation: "sklearn.ensemble.RandomForestRegressor; sklearn.discriminant_analysis.LinearDiscriminantAnalysis (SVD solver)"
+    url: "https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html"
+    note: "Science Methods summary совпадает с CODE RF hyperparameters для T и Friedman MSE; Makowski LDA — PAPER Methods, CODE Makowski NR"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id few-shot-mutation-optimization"
+    note: "evolvepro, makowski-affinity-specificity — only"
+repo:
+  url: "https://github.com/mat10d/EvolvePro"
+  commit: "1c77697d0c09bf6989a1562a55da99301a12e2cd"
+  ref: "main"
+  files:
+    - evolvepro/src/model.py
+    - evolvepro/src/evolve.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **labelled mutation protocol / sequential design loop** над заранее заданной mutational library $\\mathcal{X}$: (i) собрать experimental $y$ на parent-вариантах; (ii) обучить лёгкий surrogate $f_\\phi$ в feature space $x(s)$; (iii) предложить batch $B\\subset\\mathcal{X}$ (один раз или итеративно). Класс есть постановка данных и выбора, не фиксированная neural architecture и не density model токенов."
+        source: INTERPRETATION
+      - text: "Generated / selected state — ranked mutants (single- или multi-site substitutions parent'а). Scored state surrogate — скаляр или вектор phenotype $\\hat y$ / LDA-проекция $\\phi$, не coords, не SE(3) frames, не diffusion $x_t$. Вход сети vs файлы: последовательность варианта и таблица labels; embeddings или one-hot считаются с FASTA/CSV, не из PDB numbering как тензора модели."
+        source: INTERPRETATION
+      - text: "Задачи каталога, которые класс реально закрывает как mutation-optimizer: [few-shot active learning](/tasks/few-shot-active-learning.html), [ML-guided directed evolution](/tasks/ml-guided-directed-evolution.html), [affinity maturation](/tasks/affinity-maturation.html), [combinatorial mutation design](/tasks/combinatorial-mutation-design.html), [off-target optimization](/tasks/off-target-optimization.html) при наличии panel labels. Workflow: [few-shot / labelled mutation optimization](/workflows/few-shot-active-learning.html)."
+        source: MATRIX
+        locator: "architectures/few-shot-mutation-optimization.yaml applicable_task_ids; tools architecture_ids"
+      - text: "Это **не** [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html): там нет task loss на новых $y$; $\\Delta\\ell$ / ESM pMMS — не surrogate этого класса. Science: activity EVOLVEpro-вариантов **не коррелирует** с ESM-2 pMMS (C143 $-0.16$, aCD71 $0.01$ между predicted fitness и predicted activity в latent scan)."
+        source: PAPER
+        locator: "Science Fig. 2J; figs. S3C and S4E correlations −0.16 and 0.01"
+      - text: "Это **не** [active learning](/architectures/active-learning.html) как определение: AL — любой rule выбора следующего batch $A_t$. Few-shot задаёт **режим данных** (мало labels относительно пространства). EVOLVEpro реализует оба; Makowski — library-trained fit + Pareto **без** EVOLVEpro-style rounds по 10 ELISA. Не отождествлять класс с pool-based AL обязательно."
+        source: INTERPRETATION
+      - text: "Это **не** [bayesian optimization](/architectures/bayesian-optimization.html): BO требует probabilistic posterior и acquisition $a(x;p(f\\mid D))$, использующую uncertainty. Released [EVOLVEpro](/tools/evolvepro.html) — RF + top-$N$ $\\hat y$; колонка `std_predictions` — нули. Не ставить UCB/EI как train target этой страницы."
+        source: CODE
+        locator: "model.py top_layer y_std_* = np.zeros; evolve.py evolve_experimental regression_type='randomforest'"
+      - text: "Это **не** [multi-objective optimization](/architectures/multi-objective-optimization.html) как класс сравнения нескольких $y$: few-shot может быть одноцелевым. Makowski **также** несёт architecture_id MOO (Pareto на $\\phi_{\\mathrm{aff}},\\phi_{\\mathrm{NSB}}$); на этой странице он — подтип labelled mutation, не определение Pareto. Это **не** [protein language models](/architectures/protein-language-models.html) как generator: PLM здесь frozen feature extractor, не decoder."
+        source: MATRIX
+      - text: "Это **не** de novo topology / [frame diffusion](/architectures/frame-diffusion.html) / [coordinate diffusion](/architectures/coordinate-diffusion.html). Seed: not_for [de novo antibody design](/tasks/de-novo-antibody-design.html). Catalog tools с этим `architecture_id`: [EVOLVEpro](/tools/evolvepro.html), [Makowski affinity–specificity](/tools/makowski-affinity-specificity.html). Часто путают с [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html) (zero-shot) и с GP-UCB Romero (другой класс, не tool)."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Интуиция: assay на parent-семействе даёт редкие, но **прямые** числа $y$. Pretrained PLM или sequence features задают координаты, в которых близкие мутанты похожи. Лёгкая голова $f_\\phi$ учит карту «embedding → activity» на этих числах и ранжирует ещё не измеренный пул. При inference меняется не генератор fold, а **кто попал в $D$** и, следовательно, fit $\\phi$; веса PLM не обновляются под $y$ в описанных методах."
+        source: PAPER
+        locator: "Science Fig. 1A; Makowski Fig. 1 library then models"
+      - text: "Два эмпирических режима, которые нельзя слить в «~10 ELISA». EVOLVEpro: low-N итерации («as few as 10 experimental data points per round» — Science intro; DMS-симуляции 16/round). Makowski: 4000 binary deep-seq labels с sorts, затем 125 scFab и 41/29 IgG — это labelled library, не 10 точек ELISA, но всё ещё parent-library supervised mutation, не de novo."
+        source: PAPER
+        locator: "Science intro as few as 10 per round; Makowski Methods 4000 master set"
+      - text: "Главный рычаг EVOLVEpro — **informative frozen embedding** ESM-2 15B mean-pool + iterative labels, не fine-tune 15B на fitness. Science grid: random first round, RF, average embeddings, top-N (fig. S1A). Preprint/journal: PLM representations outperform one-hot/integer на DMS panel."
+        source: PAPER
+        locator: "Science Results grid search; Fig. 1B ESM-2 15B"
+      - text: "Главный рычаг Makowski — **binary sort labels → 1D LDA projection**, которая коррелирует с непрерывным yeast/IgG readout, плюс Pareto. Enrichment/frequency **не** дают той же корреляции. Для выхода за 8 library sites — frozen UniRep-64 и Blosum62 $\\ge 0$ gate, не OneHot."
+        source: PAPER
+        locator: "Makowski Fig. 3 vs conventional analysis; Fig. 5 UniRep + Blosum62"
+      - text: "Предостережение по метрикам. $\\hat y$ RF, LDA $\\phi$, classification accuracy 93%, Spearman на 125 клонах, pLDDT/AF3 post-hoc, ESM pMMS, ELISA IC50-from-curve, single-point 1 nM HGFR, EC50 на beads — **разные объекты**. Ни один internal score не есть experimental $K_d$ / BLI / SPR, пока oracle не измерен. Generator (выбор $B$) $\\neq$ evaluator (AF3, MOE homology) $\\neq$ assay."
+        source: INTERPRETATION
+      - text: "Science явно: PLM masked reconstruction не обязана совпадать с activity landscape; «in scenarios of correlations … zero-shot may work … enzyme optimization has proven more challenging». Подмена pMMS за affinity для **этого** класса опровергается их же Fig. 2J / 5H."
+        source: PAPER
+        locator: "Science Discussion PLM limitations; Fig. 2J; Fig. 5H T7 negative correlation 0.13"
+      - text: "Makowski явно: LDA projections are «continuous metrics and not actual property values». Single-point antigen 1 nM нормирован к WT/elotuzumab; EC50 только для lead EM1/EM2. Homology MOE (PDB templates 4LIQ/3W2D/4YHL/5NHW) — post-hoc interpretation EM2, не вход LDA."
+        source: PAPER
+        locator: "Makowski Fig. 3C–D prose; Methods Antibody structural modeling"
+      - text: "При inference меняется ranked shortlist. Не меняется topology антитела, не семплируется шум diffusion, нет temperature AR decode. Round 0 EVOLVEpro в победной DMS-конфигурации — **random**, не informative prior medoids (medoids были в grid, не winner)."
+        source: PAPER
+        locator: "Science Methods summary first-round random vs K-medoids; winning strategy random"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовая постановка класса (fit на $D$, затем selection из $\\mathcal{X}$). Затем подтипы с **разными** уравнениями: (A) EVOLVEpro — frozen mean-pool + RF + top-$n$ iterative, tool [EVOLVEpro](/tools/evolvepro.html); (B) Makowski — binary LDA + Pareto, tool [Makowski](/tools/makowski-affinity-specificity.html). Не одна «универсальная» $f_\\phi(E(s))\\approx y$ на оба. Seed one-liner $f_\\phi(E(s))\\approx y$ — **EVOLVEpro-like**, не Makowski LDA."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются уравнениями default-инструментов и **не** train target класса: UCB/EI/KG; Meier masked-marginal $\\Delta\\ell$; AF2 FAPE; diffusion score; AR NLL ProGen; MLM infill. Weighted $4\\times$ binding vs expression (Science antibodies) и T7 20/40/40 (preprint) — scalarization **поверх** few-shot fit, не GP-NLL. Не подставлять seed как уравнение Makowski."
+        source: INTERPRETATION
+      - text: "Negative / non-binder / contrastive affinity labels в **loss головы**: у EVOLVEpro default — **нет** contrastive head; $y$ — scalar activity (в т.ч. низкие значения как ordinary regression). У Makowski binary high/low antigen и high/low NSB **есть** как class labels LDA/NN, это не ELISA $K_d$ negatives и не docking decoys."
+        source: PAPER
+        locator: "Science RF on continuous y; Makowski Methods label assignment"
+      - text: "Не сравнивать Science C143 60 pM / aCD71 19 pM, preprint REGN 63%/11.9 nM, Makowski 37% dual-improved IgG и DMS 2.2-fold vs 7-fold как один benchmark: generated object, oracle и split разные."
+        source: INTERPRETATION
+      - text: "Science Methods summary Eq. 8 в HTML сломан (`max y_train round k ≤ max y_train round k`); не копировать как закон. Смысл prose: greedy top-n призван растянуть верхний край RF-диапазона между раундами — INTERPRETATION этой фразы, не отдельная формула."
+        source: PAPER
+        locator: "Science Methods summary Eq. (8) garbled; surrounding top-n prose"
+      - text: "CODE симуляции (`dist`, `topn2bottomn2`, `random`, `gp` regressor) **не** меняют родовое уравнение класса и **не** являются default experimental path. `evolve_experimental` всегда RF. Не выдавать MLP `hidden_layer_sizes=(5)` за journal EVOLVEpro."
+        source: CODE
+        locator: "evolve.py learning_strategy branches; evolve_experimental regression_type='randomforest'"
+    equations:
+      - latex: "\\phi^{\\star}\\in\\arg\\min_{\\phi}\\sum_{(s,y)\\in D}\\ell\\big(f_{\\phi}(x(s)),y\\big),\\qquad B=A(\\mathcal{X},f_{\\phi},D)"
+        caption: "Родовая постановка класса: fit surrogate на labelled set $D$, затем selection rule $A$ (greedy, Pareto, dist, …). $A$ **не** входит в $\\ell$. Generic. Не default UCB. Не уравнение одного tool."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "класс; конкретика $x,\\ell,A$ — подтипы PAPER/CODE"
+        symbols:
+          - {sym: s, type: "sequence", meaning: "вариант parent-library"}
+          - {sym: y, type: "label", meaning: "experimental scalar или binary class"}
+          - {sym: x(s), type: "feature", meaning: "embedding / one-hot / UniRep / PhysChem"}
+          - {sym: "f_\\phi", type: "surrogate", meaning: "RF, LDA, NN projector, …"}
+          - {sym: D, type: "set", meaning: "накопленные (s,y)"}
+          - {sym: "\\mathcal{X}", type: "library", meaning: "допустимые mutants; задаётся заранее"}
+          - {sym: A, type: "selection", meaning: "top-n, Pareto, random, dist, …"}
+          - {sym: B, type: "batch", meaning: "что идёт в следующий assay"}
+        meaning: "Оптимизируется empirical loss головы на D. Семплируется (выбирается) batch B из конечного пула, не de novo tokens."
+    sections:
+      - id: math-evolvepro
+        level: 3
+        title: "Подтип A — frozen PLM mean-pool + RF + top-n (EVOLVEpro; tool-specific)"
+        paragraphs:
+          - text: "Science Methods summary: $x_i=(a_1,\\ldots,a_n)$, ESM-2 15B last layer $E_i\\in\\mathbb{R}^{n\\times d}$, mean-pool $\\bar e_i$. RF $T=100$, criterion Friedman MSE, prediction = среднее деревьев. Top-n по $\\hat y$ на untested. Experimental CODE path **жёстко** `randomforest`. Не UCB. Не уравнение Makowski. Tool-specific [EVOLVEpro](/tools/evolvepro.html)."
+            source: PAPER
+            locator: "Science Methods summary Use of ESM2 embeddings; EVOLVEpro model; Active learning approach"
+        equations:
+          - latex: "E_i=\\mathrm{PLM}(x_i)\\in\\mathbb{R}^{n\\times d},\\quad \\bar e_i=\\frac{1}{n}\\sum_{j=1}^{n}E_{ij},\\quad \\hat y(\\bar e)=\\frac{1}{T}\\sum_{t=1}^{T}h_t(\\bar e),\\quad B=\\{s:\\hat y_s\\ge y_{(n)}\\}"
+            caption: "Science Methods summary Eq. 1–2, 5, 7. $T=100$. $d$ численно NR. PLM frozen. $y_{(n)}$ — $n$-й по величине $\\hat y$. CODE: sort `y_pred` descending (`learning_strategy=='topn'`)."
+            generic_or_specific: "EVOLVEpro [PAPER/CODE]; tool-specific"
+            source: PAPER
+            locator: "Science Methods summary Eq. (1)(2)(5)(7); CODE model.py RandomForestRegressor; evolve.py topn"
+            symbols:
+              - {sym: n, type: "int", meaning: "длина варианта"}
+              - {sym: d, type: "int", meaning: "hidden dim ESM-2 15B; число NR в HTML"}
+              - {sym: "\\bar e", type: "R^d", meaning: "mean-pooled embedding"}
+              - {sym: T, type: "int", meaning: "100 trees"}
+              - {sym: "h_t", type: "tree", meaning: "bootstrap tree; split by Friedman MSE"}
+              - {sym: "y_{(n)}", type: "threshold", meaning: "n-th highest predicted fitness"}
+            meaning: "Оптимизируется RF impurity на labelled embeddings. Семплируется top-n untested variants. Posterior σ не используется."
+          - latex: "\\min y_{\\mathrm{train}}\\le \\hat y_{\\mathrm{predict}}\\le \\max y_{\\mathrm{train}}"
+            caption: "Science Methods summary Eq. 6: RF regression predictions лежат в диапазоне train $y$. Ограничение exploitation, не физический bound affinity."
+            generic_or_specific: "EVOLVEpro [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Science Methods summary Eq. (6)"
+            symbols:
+              - {sym: "y_{train}", type: "observed activity", meaning: "уже измеренные labels раунда"}
+            meaning: "Не калибрует Kd. Объясняет, зачем итерации «растягивают» верх train range."
+      - id: math-makowski
+        level: 3
+        title: "Подтип B — binary LDA projections + Pareto (Makowski; tool-specific)"
+        paragraphs:
+          - text: "Не EVOLVEpro. Не frozen ESM-2 15B. Features: OneHot (sklearn LabelEncoder+OneHotEncoder), PhysChem-26, или UniRep-64 (`babbler64.get_rep()`, frozen). Независимые LDA на antigen vs NSB, solver SVD, 5-fold 3200/800, затем fit на полном 4000. $\\phi$ — 1D projection, не Kd. Pareto на 4000; 41 IgG near frontier; later UniRep scan novel CDR sites. Tool-specific [Makowski](/tools/makowski-affinity-specificity.html). CODE NR this pass."
+            source: PAPER
+            locator: "Makowski Methods Model development; Molecular feature embedding"
+        equations:
+          - latex: "\\phi_j(s)=\\mathrm{LDA}_j\\big(x(s)\\big)\\in\\mathbb{R},\\quad j\\in\\{\\mathrm{antigen},\\mathrm{NSB}\\}"
+            caption: "Makowski: sklearn LinearDiscriminantAnalysis SVD; 1D projection для каждой бинарной задачи. Точные scatter-матрицы Fisher в HTML не выписаны — не выдумывать $S_W^{-1}(\\mu_1-\\mu_0)$ как формулу авторов. Не RF EVOLVEpro."
+            generic_or_specific: "Makowski [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Makowski Results LDA paragraph; Methods LDA SVD"
+            symbols:
+              - {sym: "\\phi_j", type: "scalar projection", meaning: "непрерывный score класса j; не property в nM"}
+              - {sym: x(s), type: "feature vector", meaning: "OneHot VH 115 aa или UniRep-64 или PhysChem-26"}
+              - {sym: j, type: "task", meaning: "antigen binding vs polyspecificity reagent binding"}
+            meaning: "Оптимизируется LDA classification на binary deep-seq. Семплируется (выбирается) Pareto-множество по $(\\phi_{\\mathrm{aff}},\\phi_{\\mathrm{NSB}})$, не top-n одного $\\hat y$."
+          - latex: "s\\succ s'\\iff \\big(\\phi_{\\mathrm{aff}}(s)\\ge\\phi_{\\mathrm{aff}}(s')\\ \\land\\ \\phi_{\\mathrm{NSB}}^{\\downarrow}(s)\\ge\\phi_{\\mathrm{NSB}}^{\\downarrow}(s')\\big)\\ \\land\\ \\text{strict in at least one}"
+            caption: "Схема Pareto на двух проекциях (NSB «лучше» = ниже nonspecific; знак в HTML как отдельные оси Fig. 4A). Не NSGA-II. Не UCB. INTERPRETATION записи доминирования; авторы описывают фронт prose."
+            generic_or_specific: "Makowski [INTERPRETATION of PAPER Fig. 4A]; tool-specific"
+            source: INTERPRETATION
+            locator: "Makowski Fig. 4A Pareto frontier prose"
+            symbols:
+              - {sym: "\\succ", type: "dominance", meaning: "лучше по обоим осям co-optimization"}
+              - {sym: "\\phi^{\\downarrow}_{NSB}", type: "oriented score", meaning: "направление «лучше = меньше NSB»; калибровка осей — Fig. 4, не формула"}
+            meaning: "Выбираются варианты at/near frontier для IgG. Не итеративный EVOLVEpro loop."
+    tables:
+      - title: "Смежные постановки, которые нельзя смешивать"
+        source: INTERPRETATION
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["Few-shot mutation (эта страница)", "supervise $f_\\phi$ на experimental $y$ parent-library", "top-n / Pareto / dist на $\\mathcal{X}$", "[EVOLVEpro](/tools/evolvepro.html); [Makowski](/tools/makowski-affinity-specificity.html)"]
+          - ["[Active learning](/architectures/active-learning.html)", "любой surrogate; акцент на $A_t$", "любой batch rule, в т.ч. greedy", "EVOLVEpro также несёт этот id"]
+          - ["[Zero-shot scoring](/architectures/zero-shot-mutation-scoring.html)", "нет task $y$; pretrained $\\ell$", "enumerate 19×pos, rank $\\Delta\\ell$/IF", "[ESM-1v](/tools/esm-1v-efficient-evolution.html); [structural evolution](/tools/structural-evolution.html)"]
+          - ["[Bayesian optimization](/architectures/bayesian-optimization.html)", "GP/MTGP posterior + $a(\\mu,\\sigma)$", "argmax EI/UCB/NEHVI", "нет catalog tool; EVOLVEpro — контрпример"]
+          - ["[MOO](/architectures/multi-objective-optimization.html)", "вектор $y$ / filters / CNN scores", "Pareto / pass-fail / greedy", "Makowski также; BindCraft filters; Humatch"]
+          - ["[PLM](/architectures/protein-language-models.html) как generator", "MLM/AR pretrain", "decode tokens", "ProGen, IgLM, ESM3 — не this id"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы residue-graph / pair tensors / time embedding diffusion **не** входят в default forward pass класса. Нет contig RFdiffusion. Conditioner — определение $\\mathcal{X}$ и имя `measured_var` (CODE EVOLVEpro: колонка `activity`), не epitope voxel."
+        source: INTERPRETATION
+      - text: "EVOLVEpro tokens: AA sequence варианта. Сеть PLM даёт per-residue $E\\in\\mathbb{R}^{n\\times d}$, затем average pool. Вход головы — вектор $\\bar e$, не MSA. Masks: WT может исключаться из first-round random (`labels.variant != \"WT\"`). PCA 10 компонент — только ветка `diverse_medoids` first round (CODE), не победитель grid (Science: PCA 10–1000 **не** улучшил)."
+        source: CODE
+        locator: "model.py first_round; Science Results PCA did not improve; Methods embedding types PCA 10 to 1000"
+      - text: "Размерность $d$ ESM-2 15B — NR в прочитанном HTML. Не выводить из README. Длина $n$ — длина конкретного белка кампании, не фиксированный гиперпараметр класса."
+        source: NR
+        locator: "Science Methods summary d unnamed"
+      - text: "Внешние файлы EVOLVEpro: WT FASTA; CSV experimental rounds; матрица embeddings, **выровненная** по variant ID (`experimental` path печатает misalignment и выходит). Пул $\\mathcal{X}$ — пользовательские single-/multi-mutant таблицы, не выученный prior."
+        source: CODE
+        locator: "evolve.py evolve_experimental; model.py top_layer experimental alignment check"
+      - text: "Makowski tokens: VH H1–H113 Kabat, все последовательности 115 residues. OneHot после LabelEncoder. PhysChem-26: counts 20 AA + hydrophobic/amphipathic/polar/charged groups + ExPASy pI + Kyte–Doolittle mean. UniRep-64 frozen. Не frames."
+        source: PAPER
+        locator: "Makowski Methods Molecular feature embedding; 115 residues H1–H113"
+      - text: "Makowski library CSV / deep-seq: master 4000 из Supplemental emi_binding.csv (PAPER). Input vs сеть: degenerate codon library — wet construction, не тензор. Novel mutants — site-directed plasmids, features считаются той же процедурой, затем уже обученный LDA."
+        source: PAPER
+        locator: "Methods 4000 master; Data availability emi_binding.csv"
+      - text: "Аугментации, меняющие геометрию: **нет** в классе (нет crop/rotation). Sequence-level: Makowski отбрасывает gaps/unknown и discordant antigen labels; <1% sequences had mutations at non-intended sites. EVOLVEpro DMS: raw vs min-max fitness в grid; winner — raw fitness."
+        source: PAPER
+        locator: "Makowski Methods discard unlabeled/gaps; Science winning strategy raw fitness"
+      - text: "Batching: Makowski NN batch 50, 3200 train sequences; LDA не SGD-batch в смысле diffusion. EVOLVEpro RF fit на текущем $D_t$ целиком. Self-conditioning / teacher forcing — нет."
+        source: PAPER
+        locator: "Makowski NN batch 50; Science RF on current dataset"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический state $s$ — аминокислотная строка варианта (или VH 115 для Makowski). Соответствие атомам: **нет** в $f_\\phi$. Assay label $y$ — физико-химический readout выбранного oracle (ELISA, IVTT, yeast FACS, IgG bead binding), не энергия Розетты."
+        source: INTERPRETATION
+      - text: "SE(3): **не применимо**. Нет equivariant layers. Глобальный поворот PDB не входит в вход. Перестановка residues ломает PLM positional encoding и Kabat alignment Makowski, это не SE(3) test."
+        source: INTERPRETATION
+      - text: "Chain concat: EVOLVEpro эмбеддит переданную последовательность как есть (antibody campaigns: переменные домены по тексту кампании; точный FASTA concat HC/LC — NR без файлов данных). Makowski моделирует VH; VL — common kappa в IgG expression, не в OneHot library."
+        source: PAPER
+        locator: "Makowski common IgG1 kappa; Science antibody LC/HC mutations named in Results"
+      - text: "Side chains: **отсутствуют** в state модели. Packing / AF3 / MOE — post-hoc **evaluator/interpretation**, не generator. Science: AlphaFold 3 models of aCD71 and C143 (Fig. 2H–I, data S7) после эволюции. Makowski: MOE homology Amber10:EHT, dielectric 4, minimize 0.00001 RMS kcal/mol/Å²."
+        source: PAPER
+        locator: "Science Fig. 2H–I AF3; Makowski Methods Antibody structural modeling"
+      - text: "Промежуточный $\\bar e$ / LDA $\\phi$ / masked PLM token $\\neq$ физическая траектория фолдинга и $\\neq$ $\\Delta G$. RF $\\hat y$ ограничен min/max train activity (Science Eq. 6) — статистическое свойство деревьев, не термодинамический bound."
+        source: PAPER
+        locator: "Science Methods summary Eq. (6)"
+      - text: "Что ломает метод физически: смена oracle (ELISA vs SPR), смена антигена, выход из $\\mathcal{X}$ (мутация сайта, которого нет в library EVOLVEpro без multi-mutant file; Makowski OneHot не видит новые сайты без UniRep)."
+        source: PAPER
+        locator: "Makowski OneHot cannot vary novel sites; Science user-defined mutational space"
+      - text: "Экспериментальный объект EVOLVEpro antibodies: ELISA vs SP6 spike (C143) или human TfR (aCD71), IC50 **estimated from ELISA**, n=3 technical, ANOVA. Это не SPR $K_d$. Preprint REGN10987 — другой mAb, другой текст, не подставлять в journal кампанию."
+        source: PAPER
+        locator: "Science Fig. 2C,F ELISA IC50; preprint Fig. 1E REGN10987"
+      - text: "Экспериментальный объект Makowski: yeast scFab FACS; soluble IgG on Protein A beads, 1 nM HGFR or EC50 titration; OVA 0.1 mg/mL; SMP. CS-SINS и Tm — developability **после** выбора, не в LDA loss."
+        source: PAPER
+        locator: "Makowski Methods affinity measurements; Fig. 6E–F"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Класс **не** имеет energy head и не «считает $\\Delta G$». Ниже — что именно кодируется в двух catalog реализациях. Не переносить Rosetta $\\Delta\\Delta G$ соседних пайплайнов."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "первичная структура варианта vs parent"
+        encoded: "прямо: токены PLM / OneHot VH; library задаёт допустимый алфавит"
+        limitation: "EVOLVEpro видит только s∈X; Makowski OneHot — 8 CDR sites × WT+5"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "3D fold и ориентация CDR"
+        encoded: "не представлена в $f_\\phi$; AF3/MOE post-hoc"
+        limitation: "низкая уверенность комплекса C143–antigen (Science); homology ≠ crystal"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "on-target epitope geometry"
+        encoded: "косвенно: через experimental y (ELISA/HGFR sorts), не как тензор"
+        limitation: "нет epitope conditioner; смена антигена = новый D"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "интерфейс и nonspecific binding"
+        encoded: "косвенно: NSB sorts (OVA/SMP); PhysChem pI, hydropathy, charge counts; ESM/UniRep — ещё более косвенно"
+        limitation: "PhysChem-26 — sequence globals, не Poisson–Boltzmann; OVA≠in vivo off-target"
+      - feature: "Entropy / conformational ensemble"
+        interpretation: "гибкость CDR / потеря энтропии при связывании"
+        encoded: "не представлена"
+        limitation: "не выводить −TΔS из RF/LDA"
+      - feature: "Evolutionary statistics"
+        interpretation: "природные частоты / LM reconstruction"
+        encoded: "прямо как features: frozen ESM-2 / UniRep; Blosum62 gate; Science mutational likelihood vs UniProt"
+        limitation: "pMMS не коррелирует с activity в EVOLVEpro campaigns; UniRep mostly non-antibody"
+      - feature: "Experimental y"
+        interpretation: "прямой химический/биологический oracle кампании"
+        encoded: "прямо как labels D (regression или binary classes)"
+        limitation: "assay-specific; ELISA IC50 ≠ SPR Kd; deep-seq binary ≠ nM affinity"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\phi$: EVOLVEpro — sklearn RF (или другой `regression_type` в симуляции). Frozen: ESM-2 15B (и прочие PLM в DMS ablation). Не fine-tune 15B на activity в описанном методе. CODE `neuralnet`: MLPRegressor `hidden_layer_sizes=(5)` — опция симуляции, **не** journal default."
+        source: CODE
+        locator: "model.py RandomForestRegressor; MLPRegressor hidden_layer_sizes=(5)"
+      - text: "Makowski $\\phi$: LDA scalings (или NN projector + prediction layer). Frozen: UniRep-64 base weights. OneHot/PhysChem — детерминированные features, не trained encoder. Final LDA fit на всех 4000 после CV."
+        source: PAPER
+        locator: "Makowski Methods final models trained on the full datasets"
+      - text: "Loss EVOLVEpro RF: Friedman MSE impurity деревьев (Science Eq. 3–4; CODE `criterion='friedman_mse'`). Это не NLL GP и не ranking loss в явном виде. Ridge/Lasso/ElasticNet в grid — default sklearn, «largely used with default parameters» (Science Methods)."
+        source: PAPER
+        locator: "Science Methods summary Decision trees; parameter grid regression types"
+      - text: "Loss Makowski NN: SparseCategoricalCrossentropy, ADAM, batch 50, 50 epochs OneHot/PhysChem, 250 UniRep. LDA — sklearn SVD, не выписанный cross-entropy в HTML. kNN baseline: KNeighborsClassifier k=1–25, mean 5-fold accuracy."
+        source: PAPER
+        locator: "Makowski Methods neural networks; kNN 1 to 25"
+      - text: "Negative examples: Makowski **да**, как low antigen / high NSB binary classes (1516 high / 2484 low antigen; 2000/2000 specificity). EVOLVEpro **нет** отдельного non-binder contrastive; низкий continuous y просто обучает регрессию."
+        source: PAPER
+        locator: "Makowski Methods 4000 composition"
+      - text: "Fine-tune vs pretrain. EVOLVEpro Science Fig. 1C: 5 rounds ×16 эквивалентны pretrain 160; 10×16 ≡ pretrain 500 на DMS. Это **симуляция DMS**, не wet-lab antibody. PLM pretrain — эволюционные последовательности, не ELISA."
+        source: PAPER
+        locator: "Science Fig. 1C 5×16 ≡ 160; 10×16 ≡ 500"
+      - text: "Multi-objective heads: Science antibodies — один RF на scalarization binding weighted 4× expression (Fig. 2A). Preprint T7 — 20/40/40 yield/translation/immunogenicity. Makowski — **два независимых** LDA, затем Pareto, не один weighted scalar. Не путать."
+        source: PAPER
+        locator: "Science binding four times expression; preprint T7 20/40/40; Makowski two LDAs"
+      - text: "Что не учится: equivariant geometry, inverse folding $p(s\\mid x)$, diffusion score, assay hardware. AF3/MOE не в $\\phi$."
+        source: INTERPRETATION
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Порядок EVOLVEpro: определить $\\mathcal{X}$ → (offline) посчитать frozen $E(s)$ для пула → round 0 random (winner) → assay $y$ → fit RF на $\\bar e$ → rank untested по $\\hat y$ → синтез/assay → нарастить $D$. Sequence появляется на шаге FASTA; geometry — только optional AF3 после; score — RF."
+        source: PAPER
+        locator: "Science Fig. 1A; Methods summary"
+      - text: "Порядок Makowski generation-1: design 8-site library → yeast display MACS/FACS → deep-seq binary labels → OneHot LDA → Pareto plot 4000 → pick 41 IgG. Sequence с шага 1; geometry нет до MOE Fig. 7. Score = $\\phi$. Experiment = sorts + yeast + IgG."
+        source: PAPER
+        locator: "Makowski Fig. 1–4"
+      - text: "Порядок Makowski generation-2: UniRep features → LDA → propose 29 novel (15 new CDR sites, Blosum62≥0) → IgG assay. OneHot **не** используется для новых сайтов."
+        source: PAPER
+        locator: "Makowski Fig. 5; Methods novel sequences HCDR2/3, HCDR1 excluded"
+      - text: "Не прятать inverse folding / packing / AF / docking внутрь «одной сети». Их нет в $f_\\phi$. Science AF3 — интерпретация мутаций. Makowski MOE — интерпретация EM2 charge patch."
+        source: PAPER
+        locator: "Science Fig. 2H–I; Makowski Fig. 7"
+      - text: "CODE EVOLVEpro experimental: `load_experimental_embeddings` + concat round CSVs → `create_iteration_dataframes` → `top_layer(..., experimental=True)` → print `df_test.sort_values(y_pred).head(number_of_variants)` (default 12). Это печать shortlist, не обязательно $|B|$ синтеза."
+        source: CODE
+        locator: "evolve.py evolve_experimental number_of_variants=12"
+      - text: "Симуляция `directed_evolution_simulation`: после `top_layer` выбор `topn` / `dist` (max `dist_metric`) / `random` / `topn2bottomn2`. `dist` — exploration в embedding, не EI."
+        source: CODE
+        locator: "evolve.py learning_strategy branches"
+      - text: "Experiment box: ELISA, genome-editing assays, IVTT/IFN-β, yeast FACS, IgG beads, cell proliferation. Только они устанавливают measured activity/specificity."
+        source: PAPER
+      - text: "Нет beam search, нет AF recycle в loop, нет docking score как acquisition."
+        source: INTERPRETATION
+    mermaid: |
+      flowchart TD
+        PAR["Parent plus user library X"] --> FEAT["Features: ESM mean-pool or OneHot UniRep PhysChem"]
+        PLM["Frozen PLM or UniRep - not trained on y"] --> FEAT
+        FEAT --> FIT["SCORER fit f_phi on labeled D"]
+        FIT --> SEL["Selector top-N yhat or Pareto on phi"]
+        SEL --> BATCH["Proposed mutants B - mutation generator"]
+        BATCH --> EXP["EXPERIMENT ELISA yeast IgG DMS oracle"]
+        EXP --> UPD["Append labels to D"]
+        UPD --> FIT
+        AF["Post-hoc AF3 or MOE homology - evaluator not generator"] -.-> BATCH
+        subgraph genblk ["Selection over library - not de novo backbone"]
+          PAR
+          BATCH
+        end
+        subgraph scoreblk ["Surrogate scorer"]
+          FEAT
+          FIT
+        end
+        subgraph expblk ["Experiment"]
+          EXP
+        end
+    mermaid_caption: "Схема класса по Science Fig. 1A и Makowski Fig. 1 — не копипаст paper figures. Surrogate отделён от AF3/MOE evaluator и от assay. De novo generator отсутствует."
+    mermaid_source: INTERPRETATION
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого pretrain-корпуса класса нет. PLM/UniRep pretrained на эволюционных seq (ESM-2: «>200-M proteins», 15B — Science; UniRep «over twenty million» — Makowski citing Alley). Task head учится только на campaign $D$."
+        source: PAPER
+        locator: "Science ESM-2 15B and >200-M; Makowski UniRep twenty million"
+      - text: "EVOLVEpro DMS grid: 12 datasets (9 from prior zero-shot work + AsCas12f, Cov2 RBD, Zika envelope). High-fitness cutoffs from prior work or «general distribution». 16 variants/round, 3 simulations to vary first round. Winner count = datasets with highest mean fitness binary percentage. Split leakage DMS: симуляция знает полный oracle table — это **in silico designability/activity recovery**, не prospective wet-lab."
+        source: PAPER
+        locator: "Science Methods summary Benchmarking on 12 DMS; 3 simulations; 16 per round"
+      - text: "Prospective EVOLVEpro Science: six proteins (genome editing, binding, RNA). Antibodies C143 (5 rounds; multimutant round 5) и aCD71 (5 rounds). Не смешивать с preprint five proteins / REGN10987. T7: multimutants combining up to three tested mutations + known G47A; sixth-round engineering in T7 section."
+        source: PAPER
+        locator: "Science six proteins; Fig. 2 five antibody rounds; Fig. 5 T7 multimutants"
+      - text: "Makowski: theoretical diversity $1.7\\times 10^6$; intro ~$10^7$ yeast variants. MACS $10^9$ then $10^7$ cells; FACS $10^7$. Deep-seq ~20% diversity; 1,504,269 and 851,151 unique seqs two replicates. Label rules: antigen positive = in **both** antigen+ samples; NSB positive ≥3/4 PSR+ and 0 negative. 4000 stratified. 5-fold 80/20. 125 Sanger **не** в 4000 (leakage control для ρ). Germline-holdout **нет**."
+        source: PAPER
+        locator: "Makowski Methods library sorting; 125 none in 4000"
+      - text: "Симуляция vs experiment: DMS EVOLVEpro Fig. 1 — симуляция. ELISA/editing/IVTT — wet-lab. Makowski deep-seq — experiment; LDA test accuracy — in silico на тех же sorts; 125/41/29 — protein assays. Не называть DMS «wet-lab success rate класса»."
+        source: INTERPRETATION
+      - text: "Resolution/redundancy clustering PDB — **не** фильтр этого класса (нет structure train set). Makowski site selection: chemical rules, hydrophobic/positive, SASA >10%, <50% repertoire frequency — это design library, не ML split."
+        source: PAPER
+        locator: "Makowski Methods Antibody sub-library design four criteria"
+      - text: "Teacher forcing / diffusion time-sampling: нет. Batching NN Makowski 50. EVOLVEpro experimental output_dir hardcoded `/orcd/archive/...` — deployment barrier, не math."
+        source: CODE
+        locator: "evolve_experimental output_dir default cluster path"
+      - text: "Science RF vs GP vs kNN: RF best in 10/12 DMS (fig. S1E). Не делать из этого «GP-BO побеждён»: GP в grid — regressor без acquisition (CODE подтверждает отсутствие std в released path)."
+        source: PAPER
+        locator: "Science Results RF best 10 out of 12 datasets fig. S1E"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт EVOLVEpro: не шум. Нужны embeddings всего пула и хотя бы round-0 labels (random или explicit variants). Старт Makowski generation-1: отсортированная библиотека и 4000 labelled seqs. Novel-scan: enumerative single AA except Cys на HCDR2/3."
+        source: PAPER
+        locator: "Makowski Methods unseen sequences all single AA except cysteine HCDR2/3"
+      - text: "Алгоритм семплирования EVOLVEpro default: argsort $\\hat y$, взять n. Нет ODE/SDE, нет temperature, нет top-k nucleus LM. Симуляция: 16/round типично; experimental `number_of_variants` default 12 — печать. Preprint antibody: 11/round. Journal antibody per-round n — NR в body (efficient-evolution benchmark aCD71: 10 mutants acquired as comparator, не обязательно размер EVOLVEpro batch)."
+        source: PAPER
+        locator: "preprint 11 mutants each round; CODE number_of_variants=12; Science 10 mutants efficient evolution"
+      - text: "Makowski selection: визуальный/ручной pick at or near Pareto (41 IgG); UniRep predicted beyond frontier (29). Нет beam. Нет recycle."
+        source: PAPER
+        locator: "Fig. 4A 41 antibodies; Fig. 5 29 unique variants"
+      - text: "Post-hoc evaluator, не generator: AF3 (Science), MOE homology (Makowski), clash filters — NR в primary loop. Likelihood rerank pMMS — Science показывает, что он **не** совпадает с activity; не использовать как замену $f_\\phi$."
+        source: PAPER
+        locator: "Science Fig. 2J pMMS uncorrelated"
+      - text: "Чего в классе нет: classifier-free guidance, contig diffusion, AR order, assay-in-the-model. Нет гарантии, что top-n физически экспрессируется (aCD71 совместно тянул expression; C143 Pareto binding/expression «likely differs» — Science)."
+        source: PAPER
+        locator: "Science Fig. 2G contrast C143 vs aCD71"
+      - text: "Multi-mutant EVOLVEpro: модель ранжирует комбинации previously tested singles (C143/aCD71 round 5; T7 up to three + G47A). Это search по комбинаторному списку, не новый fold."
+        source: PAPER
+        locator: "Science C143/aCD71 multimutant round; T7 combining up to three"
+      - text: "Truncation sampler: взять слишком малый n относительно шума ELISA → exploitation collapse в локальном RF range (Eq. 6). Взять `learning_strategy='random'` — не few-shot exploitation."
+        source: PAPER
+        locator: "Science Eq. (6) and greedy risk prose"
+      - text: "Makowski без Blosum62 gate: affinity correlation novel set p=0.41 (не значимо). Это failure of unconstrained novel decode, не «генератор CDR»."
+        source: PAPER
+        locator: "Makowski Blosum62 ablation p=0.41 antigen"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается: parent sequence; allowed positions / combinatorial $\\mathcal{X}$; budget n per round (EVOLVEpro); Makowski — 8 HCDR sites Y33, R50, R54, R55, G56, A95, W97, Y102 и алфавит WT+5. Later Blosum62≥0 и исключение Cys в novel scan. `measured_var='activity'` в CODE."
+        source: PAPER
+        locator: "Makowski eight sites named; CODE measured_var activity"
+      - text: "Science antibodies: joint objective expression + binding, weight 4× на binding. Это conditioner scalarization, не epitope tensor. aCD71 vs C143 — разные antigens (TfR vs SP6 spike)."
+        source: PAPER
+        locator: "Science weighed binding affinity at four times the expression level"
+      - text: "Чего нет: ELISA labels внутри PLM; CATH class; hotspot residue tensor RFdiffusion; classifier-free guidance; contig strings. Не приписывать."
+        source: INTERPRETATION
+      - text: "Makowski не кондиционируется на paired VL diversity (common light chain). EVOLVEpro C143 nominates LC and HC mutations — library must contain those chains; exact encoding NR без data files."
+        source: PAPER
+        locator: "Science LC Asn28 / HC Arg39; Makowski VH-only features"
+      - text: "Masking: только first-round exclude WT в CODE random; не MLM mask как conditioner infill."
+        source: CODE
+        locator: "first_round variants_without_WT"
+      - text: "Library misspecification = wrong conditioner: если ответ вне $\\mathcal{X}$, класс не «придумает» de novo CDR loop."
+        source: INTERPRETATION
+      - text: "Function keywords ESM3 / taxonomy — не этот класс."
+        source: INTERPRETATION
+      - text: "Makowski antigen concentration 1 nM в single-point — экспериментальный протокол измерения, не learned conditioner сети."
+        source: PAPER
+        locator: "Fig. 3C antigen 1 nM HGFR"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $|\\mathcal{X}|$ in silico pool (Science: >16,000 single mutants; multimutants «more than 780 billion possible sequences» — enumeration claim, не то, что все 780B эмбеддятся); $n_{\\mathrm{round}}$ labels; $T_{\\mathrm{RF}}=100$ trees; pair $O(N^2)$ **нет**; AR steps **нет**; #rounds; **assay latency доминирует**."
+        source: PAPER
+        locator: "Science Discussion >16,000 and 780 billion"
+      - text: "PLM embed всего пула — одноразовый cost до loop (high-d vs low-n: Science обсуждает PCA и отвергает). GPU wall-clock embed 15B — **NR** в прочитанном HTML. Не писать часы."
+        source: NR
+      - text: "«Дешевле diffusion» — **не писать**: нет NFE-сравнения в primary. INTERPRETATION: нет T diffusion steps, но это не измеренный speedup vs RFdiffusion."
+        source: INTERPRETATION
+      - text: "Makowski: fit 4000 cheap (sklearn); bottleneck wet-lab (library construction, 125+41+29 IgGs, HEK expression). Deep-seq volume ~2.3M unique across replicates. GPU UniRep — NR."
+        source: PAPER
+        locator: "1,504,269 + 851,151 unique sequences"
+      - text: "kNN / beam / recycle не драйверы. $|U|$ untested EVOLVEpro — linear scan RF predict, не BO cubic $n_t$ unless кто-то включит GP (и даже тогда CODE не берёт σ)."
+        source: CODE
+        locator: "top_layer model.predict on X_test"
+      - text: "CODE throughput / VRAM — NR. Hardcoded cluster path не есть runtime metric."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: используется **реальный assay** кампании, поэтому карта $f_\\phi$ может разойтись с эволюционным LM — это цель, не баг. Следует из наличия $D$, не из маркетинга «AI evolution»."
+        source: INTERPRETATION
+      - text: "Science DMS: 5×16 AL ≈ pretrain 160; 10×16 ≈ 500. RF wins 10/12 vs GP и kNN. ESM-2 15B лучший среди опрошенных PLM «on all datasets except two». Это retrospective simulation, не antibody Kd."
+        source: PAPER
+        locator: "Science Fig. 1C; RF 10/12; Fig. 1B except two"
+      - text: "Science antibodies (journal): C143 LC N28K IC50 0.19 nM; multimutant LC N28R/Q40K + HC R39K IC50 60 pM (body; caption Fig. 2C пишет N28K в multimutant — расхождение, см. unresolved). aCD71 HC S92A 29 pM vs WT 551 pM; multimutant T70A/S92V 19 pM; EVOLVEpro nominated 35-fold vs WT vs efficient evolution 8-fold. Structured abstract: binding affinity two mAbs «up to 40-fold». Не обобщать на все antibodies и не сливать с preprint REGN."
+        source: PAPER
+        locator: "Science Fig. 2C, 2F; structured abstract 40-fold; 35-fold vs 8-fold"
+      - text: "Preprint antibody (не journal): REGN10987, 11/round ×5, 63% ELISA improvement, IC50 11.9 nM; success 9.1% → 54.5%. Другой объект. Не усреднять с C143."
+        source: PAPER
+        locator: "preprint Fig. 1E 63%; 11.9 nM; 9.1% to 54.5%"
+      - text: "Science T7: structured abstract 100-fold transcription fidelity and mRNA quality; Discussion 2- to 515-fold across properties; E643G 34× translation / ~98% less immunogenicity; multimutant T3M/G47A/E643G. Не переносить 515× на mAb."
+        source: PAPER
+        locator: "Science structured abstract T7 100-fold; Discussion 515-fold; Fig. 5C"
+      - text: "Makowski: ρ=0.87 affinity ($p=10^{-39}$) и 0.67 NSB ($p=10^{-17}$) на 125 scFabs вне 4000; 41 IgG ρ=0.72 / 0.77; 37% dual-improved; EM1 1.20× antigen / 0.51× NSB; EM2 1.28× / 0.30×; EC50 2.6±0.2 и 2.4±0.3 nM vs WT 4.4±0.8 nM. **Одна** кампания emibetuzumab."
+        source: PAPER
+        locator: "Fig. 3C–D; Fig. 4; Fig. 6"
+      - text: "Модульность: любой quantifiable assay как $y$ без fine-tune PLM (Science claim iv). Не гарантия стабильности / аффинности / экспрессии вне измеренного oracle и вне $\\mathcal{X}$."
+        source: PAPER
+        locator: "Science Discussion four capabilities (i)–(iv)"
+      - text: "Количественные числа выше — PAPER с locator; не класс-универсал. Не license писать UCB в карточку EVOLVEpro."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: RF не даёт калиброванной uncertainty; predictions clamped в [min,max] train y; greedy top-n рискует local exploitation (Science сами это пишут). LDA $\\phi$ не calibrated nM. Scalarization 4× прячет Pareto (C143 vs aCD71 frontiers differ)."
+        source: PAPER
+        locator: "Science Eq. (6); greedy risk; Fig. 2G Pareto differs"
+      - text: "Представление: нет geometry в loop; mean-pool теряет positional epitope signal (INTERPRETATION). OneHot не экстраполирует новые сайты. $|\\mathcal{X}|$ должен содержать ответ."
+        source: PAPER
+        locator: "Makowski OneHot insensitive to novel sites"
+      - text: "Физика/химия: нет растворителя, гликанов, явного интерфейса. ELISA IC50 ≠ SPR. Yeast display ≠ IgG. NSB to OVA/SMP ≠ clinical off-target panel."
+        source: INTERPRETATION
+      - text: "Данные/bias: DMS cutoffs inherited; Makowski 4000 «prioritized for positive antigen … lower abundance» — selection bias в master set. Sort gates top 50% antigen / top 25% and bottom 10% NSB — label definition, не universal affinity."
+        source: PAPER
+        locator: "Makowski Methods gates and 4000 prioritization"
+      - text: "Обобщение: Science — шесть белков, не universum. Makowski — один mAb. Pretrain 160 vs AL — DMS, не перенос на каждый assay. Journal vs preprint antibody campaigns **разные**."
+        source: PAPER
+      - text: "Deployment: EVOLVEpro experimental path hardcode RF и cluster output path. Makowski «not a packaged tool» (catalog). Science SI inaccessible для полной воспроизводимости grid."
+        source: CODE
+        locator: "evolve_experimental hardcoded regression_type and output_dir"
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - text: "Считать ESM pMMS / $\\Delta\\ell$ заменой $f_\\phi$ на той же кампании (Science: no correlation)."
+        source: PAPER
+        locator: "Fig. 2J; Fig. 5H"
+      - text: "Назвать EVOLVEpro GP-UCB, потому что в grid есть `GaussianProcessRegressor` (σ обнулён; experimental path RF)."
+        source: CODE
+        locator: "y_std zeros; evolve_experimental randomforest"
+      - text: "Слить preprint REGN10987 11.9 nM с journal C143 60 pM / aCD71 19 pM."
+        source: PAPER
+      - text: "Слить DMS 7-fold (preprint fig. S1B) с 2.2-fold (Science fig. S1B) как одну цифру класса."
+        source: PAPER
+        locator: "preprint vs Science fig. S1B"
+      - text: "Подменить ELISA IC50 / single-point 1 nM / LDA ρ за SPR $K_d$."
+        source: INTERPRETATION
+      - text: "Library misspecification: оптимизировать сайты вне $\\mathcal{X}$; ждать de novo paratope."
+        source: INTERPRETATION
+      - text: "Makowski OneHot на новых CDR sites; или UniRep без Blosum62 (affinity p=0.41)."
+        source: PAPER
+        locator: "Blosum62 ablation"
+      - text: "Утечка: подать 125 Sanger clones в train 4000 и назвать ρ=0.87 обобщением (авторы держали их out-of-train)."
+        source: PAPER
+        locator: "none of these 125 in 4000"
+      - text: "Truncation: `number_of_variants=12` принять за биологический batch; round-0 medoids принять за default (не winner)."
+        source: CODE
+      - text: "Exploitation collapse: RF не может предсказать выше max train y без новых extreme labels (Eq. 6)."
+        source: PAPER
+        locator: "Science Eq. (6)"
+      - text: "Считать AF3/MOE причиной gain-of-function. Считать 100-fold T7 свойством antibody maturation."
+        source: INTERPRETATION
+      - text: "Сравнивать Makowski 37% dual-improved с EVOLVEpro 35-fold aCD71 как один leaderboard."
+        source: INTERPRETATION
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Reverse index `architecture_id: few-shot-mutation-optimization`: ровно два catalog tools. Неравные объекты не ставить в одну колонку «успех». Foundational Low-N (Biswas 2021) — pointer, не карточка."
+        source: MATRIX
+    tables:
+      - title: "Реализации с architecture_id few-shot-mutation-optimization"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[EVOLVEpro](/tools/evolvepro.html)", "fit $f_\\phi(x(s))$ on small experimental $D$, select $B\\subset\\mathcal{X}$", "Frozen ESM-2 15B mean-pool; RF $T=100$ friedman_mse; top-n $\\hat y$; iterative rounds; CODE experimental hardcodes RF; `std_predictions` zeros", "Low-N ELISA/function loop. Journal Abs = C143/aCD71; preprint Abs = REGN10987. Не UCB. Не LDA."]
+          - ["[Makowski affinity–specificity](/tools/makowski-affinity-specificity.html)", "тот же generic fit+select на parent library", "NR code this pass. PAPER: OneHot/UniRep/PhysChem → LDA SVD (or NN projector) on 4000 binary deep-seq; Pareto; optional UniRep novel mutants + Blosum62", "Не 10 ELISA/round. Не ESM-2 15B. Также `/architectures/multi-objective-optimization.html`. Один mAb emibetuzumab."]
+          - ["Biswas et al. Low-N (Nat. Methods 2021) — не карточка tools", "labelled surrogate в LM feature space", "NR this pass (pointer via Jiang cite)", "Не catalog tool; не приравнивать уравнения к EVOLVEpro RF"]
+          - ["Romero GP-UCB P450 — не карточка tools", "не этот класс (BO)", "—", "Не ставить UCB на эту страницу как реализацию"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо, когда есть parent, определимая $\\mathcal{X}$ и возможность собрать experimental labels: [few-shot AL](/tasks/few-shot-active-learning.html), [ML-guided DE](/tasks/ml-guided-directed-evolution.html), [affinity maturation](/tasks/affinity-maturation.html) few-shot ветка, [combinatorial mutation](/tasks/combinatorial-mutation-design.html), [off-target](/tasks/off-target-optimization.html) при panel $y$."
+        source: MATRIX
+      - text: "Workflow [few-shot / labelled mutation](/workflows/few-shot-active-learning.html) включает оба tools. [specificity](/tasks/specificity-optimization.html) в каталоге вешает Makowski на MOO-id; dual labels всё равно few-shot mutation protocol — не решать specificity zero-shot $\\Delta\\ell$."
+        source: MATRIX
+      - text: "Запрет: [de novo antibody design](/tasks/de-novo-antibody-design.html) — [RFantibody](/tools/rfantibody.html) / joint sequence–structure, не этот класс. [de novo backbone](/tasks/de-novo-backbone-generation.html) — [RFdiffusion](/tools/rfdiffusion.html)."
+        source: MATRIX
+        locator: "seed not_for_task_ids de-novo-antibody-design"
+      - text: "Запрет: нет labels — [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html) ([ESM-1v](/tools/esm-1v-efficient-evolution.html), [structural evolution](/tools/structural-evolution.html)). Inverse folding при готовом backbone — [ProteinMPNN](/tools/proteinmpnn.html) / [AntiFold](/tools/antifold.html)."
+        source: MATRIX
+      - text: "Запрет: выдавать $\\hat y$/LDA за $K_d$. Запрет: humanization CNN ([Humatch](/tools/humatch.html)) как few-shot affinity. Запрет: BindCraft AF2 filters как parent-library ELISA loop."
+        source: INTERPRETATION
+      - text: "Нельзя этим решать codon optimization / CHO titer / novel topology paratope. Нельзя сравнивать Romero $T_{50}$ P450, Makowski EC50 emibetuzumab и Science aCD71 19 pM как один успех."
+        source: INTERPRETATION
+      - text: "Если нужен явный explore/exploit с $\\sigma$ — класс [BO](/architectures/bayesian-optimization.html), не released EVOLVEpro. Если нужен одновременный trade-off без итераций AL — смотреть MOO-страницу Makowski плюс эта."
+        source: INTERPRETATION
+      - text: "VHH: Makowski «Not shown»; EVOLVEpro catalog VHH_relevance null. Не утверждать кампанию VHH."
+        source: MATRIX
+        locator: "tools/*.yaml VHH_relevance"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Primary класса: Jiang bioRxiv 10.1101/2024.07.17.604015 **прочитан** HTML; Jiang Science 10.1126/science.adr6006 **прочитан** HTML Results+Methods summary. Preprint и journal **не** silent-merge. Catalog paper-evolvepro указывает Science DOI."
+        source: PAPER
+      - text: "Второй catalog primary: Makowski Nat. Commun. 10.1038/s41467-022-31457-3 **прочитан** HTML Methods+Results. SI PDF и GitHub — pointer/inaccessible line-audit. Не приравнивать к EVOLVEpro."
+        source: PAPER
+      - text: "CODE EVOLVEpro commit 1c77697 **инспектирован** (`model.py` `top_layer`, `evolve.py` `evolve_experimental`). Makowski Tessier-Lab — не инспектирован. sklearn docs — DOC для имён API, не для science claims."
+        source: CODE
+        locator: "commit 1c77697d0c09bf6989a1562a55da99301a12e2cd"
+      - text: "Pointer-only, не библиография «всего MLDE»: Biswas Low-N 2021; Alley UniRep 2019; Yang/Wu MLDE reviews; Hie efficient evolution (zero-shot comparator Science Fig. 2). Уравнения этих работ на эту страницу не переносились, кроме явных цитат Jiang/Makowski."
+        source: PAPER
+        locator: "Science cites 15 = Hie; 29–30 UniRep/Biswas"
+citations:
+  - id: 1
+    text: "Jiang et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv 10.1101/2024.07.17.604015."
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+  - id: 2
+    text: "Jiang et al. Rapid in silico directed evolution by a protein language model with EVOLVEpro. Science 10.1126/science.adr6006."
+    url: "https://doi.org/10.1126/science.adr6006"
+    doi: "10.1126/science.adr6006"
+  - id: 3
+    text: "Makowski et al. Co-optimization of therapeutic antibody affinity and specificity using machine learning models that generalize to novel mutational space. Nat. Commun. 13, 3788 (2022)."
+    url: "https://doi.org/10.1038/s41467-022-31457-3"
+    doi: "10.1038/s41467-022-31457-3"
+  - id: 4
+    text: "EvolvePro repository. commit 1c77697d0c09bf6989a1562a55da99301a12e2cd."
+    url: "https://github.com/mat10d/EvolvePro"
+  - id: 5
+    text: "Tessier-Lab-UMich/Emi_Pareto_Opt_ML (pointer; not line-audited this pass)."
+    url: "https://github.com/Tessier-Lab-UMich/Emi_Pareto_Opt_ML"
+unresolved:
+  - "Science SI table S1 / data S1 grid cells and full Materials and Methods beyond HTML Methods summary."
+  - "Numeric ELISA IC50 of wild-type C143 (Fig. 2C caption lists WT; body gives 0.19 nM and 60 pM only)."
+  - "C143 multimutant identity: body LC Asn28Arg/Gln40Lys + HC Arg39Lys vs Fig. 2C caption LC Asn28Lys/Gln40Lys + HC Arg39Lys."
+  - "ESM-2 15B hidden dimension d not stated in Methods summary."
+  - "Journal antibody mutants per EVOLVEpro round (preprint REGN was 11; Science body NR)."
+  - "Makowski SI PDF Table S1 full PhysChem definitions; NN projector hidden width except final single node."
+  - "Tessier-Lab Emi_Pareto_Opt_ML commit SHA and sklearn LDA coef_ shapes."
+  - "Why preprint DMS fig. S1B «up to 7-fold» vs Science fig. S1B «up to 2.2-fold» (scaling of activity scores — not resolved without SI)."
+  - "GPU / wall-clock for ESM-2 15B embedding of campaign libraries."
+  - "Exact FASTA concat of antibody HC/LC into EVOLVEpro embeddings (data files NR)."

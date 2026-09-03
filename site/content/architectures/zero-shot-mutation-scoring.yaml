@@ -1,0 +1,37 @@
+id: zero-shot-mutation-scoring
+slug: zero-shot-mutation-scoring
+name: Zero-shot mutation scoring
+name_ru: Zero-shot оценка мутаций
+intuition: Без новых experimental labels модель ранжирует substitutions по тому, насколько они «естественны»
+  для PLM или совместимы с backbone.
+mathematical_formulation: $\Delta \ell = \log p(s^{mut}\mid c)-\log p(s^{wt}\mid c)$. Высокий $\Delta\ell$
+  ≠ лучший Kd.
+input_representation: Parent sequence and/or complex backbone.
+generated_state: Ranked single substitutions.
+training_objective: Обычно нет task-specific training; используется pretrained LM/IF.
+inference: Enumerate 19 substitutions × positions, score, take top-k.
+conditioning: Sequence context or complex coordinates.
+complexity_drivers:
+- Positions × 19
+- ensemble members
+strengths:
+- Не нужны labels
+- Быстрый shortlist
+limitations:
+- Не epistasis
+- Не calibrated affinity
+failure_modes:
+- Over-trusting evolutionary plausibility
+applicable_task_ids:
+- single-mutation-proposal
+- affinity-maturation
+not_for_task_ids:
+- few-shot-active-learning
+paper_ids:
+- paper-esm-1v-efficient-evolution
+- paper-structural-evolution
+subtypes:
+- Masked PLM ΔLL
+- Inverse-folding ΔLL
+glossary_ids:
+- fine-tuning

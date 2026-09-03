@@ -1,0 +1,47 @@
+id: paper-progen
+slug: progen
+title: Large language models generate functional protein sequences across diverse families
+authors: null
+year: '2023'
+venue: Peer-reviewed journal; Nature Biotechnology (Q1)
+publication_status: Peer-reviewed journal; Nature Biotechnology (Q1)
+doi: 10.1038/s41587-022-01618-2
+url: https://doi.org/10.1038/s41587-022-01618-2
+preprint_url: null
+tool_ids:
+- progen
+main_task: General protein sequence generation
+claimed_novelty: null
+model_architecture: Autoregressive Transformer; control tags / family conditioning
+input_representation: null
+encoder_decoder: null
+generative_state: Amino-acid sequence
+conditioning: Tags, prefix; no native 3D constraints
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Prospective enzymatic function reported; not antibody
+  evidence
+tested_designs: 'Functional artificial sequences across several lysozyme families; exact aggregate
+  count: NR here'
+success_criterion: Prospective enzymatic function reported; not antibody evidence
+main_results: Prospective enzymatic function reported; not antibody evidence
+limitations: Sequence plausibility is not structural or functional proof; conditioning vocabulary
+  is coarse; family transfer requires care.
+demonstrates:
+- Prospective enzymatic function reported; not antibody evidence
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Large language models generate functional protein sequences across diverse families
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Biotechnology (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

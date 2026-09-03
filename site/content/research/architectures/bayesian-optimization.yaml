@@ -1,0 +1,347 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: 'Bayesian optimization (BO, BayesOpt) — это <strong>последовательная схема query-efficient поиска</strong> чёрного ящика \(f\) с двумя обязательными частями: (i) вероятностный surrogate, который выдаёт полный predictive posterior \(p(f(x)\mid D_t)\), не только точку \(\hat{y}\); (ii) acquisition function \(a(x)\), которая использует этот posterior (mean <em>и</em> uncertainty) и выбирает следующий query. Без (i)+(ii) метод не является BO, даже если surrogate «можно было бы» сделать байесовским.'
+  - type: p
+    text: 'По роли: workflow / optimizer над экспериментальным (или дорогим in silico) oracle. Generated object — следующий query \(x_{t+1}\) или batch \(B_t\) (мутант, chimera, latent code → sequence). Surrogate — evaluator. Assay / simulator — external oracle. Это не генератор backbone, не inverse folding и не docking.'
+  - type: p
+    text: 'В текущем каталоге <strong>нет инструмента</strong> с architecture id <code>bayesian-optimization</code>. <a href="/tools/evolvepro.html">EVOLVEpro</a> стоит на <a href="/architectures/active-learning.html">active learning</a> / few-shot mutation optimization: default — RandomForestRegressor + greedy \(\hat{y}\). Optional <code>regression_type=''gp''</code> — sklearn GP, но <code>std_predictions</code> всё равно обнуляется, сортировка по <code>y_pred</code>. [CODE] commit 1c77697, <code>evolvepro/src/model.py</code>.'
+  - type: p
+    text: 'Задача каталога, к которой класс относится концептуально: <a href="/tasks/few-shot-active-learning.html">few-shot active learning</a> (и ML-guided directed evolution, когда oracle — assay). Не <a href="/tasks/de-novo-backbone-generation.html">de novo backbone</a>. Не zero-shot \(\Delta\)LL. BO ⊂ AL; обратное неверно.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Oracle \(f\) дорог: минуты–дни на точку (ELISA, T50, expression). Модель держит распределение возможных ландшафтов, согласованных с уже измеренными парами \((x,y)\). Следующий эксперимент выбирается там, где ожидаемая польза высока: либо высокий predicted fitness (exploit), либо высокая неопределённость, которая может скрывать ещё лучший оптимум (explore).'
+  - type: p
+    text: 'Frazier (2018): классический непрерывный BO лучше всего работает при \(d\lesssim 20\) непрерывных координат и терпит стохастический шум измерений. Белковые последовательности — дискретные, \(20^L\) вариантов: либо пул/библиотека (pool-based discrete BO), либо непрерывный latent, который потом декодируется в sequence (LaMBO). [PAPER]'
+  - type: warn
+    text: Greedy ranking по \(\hat{y}\) без \(\sigma\) — exploitation, не BO. RF/GP, у которых std обнулён в коде, не становятся GP-UCB от того, что в review написано \(\mu+\kappa\sigma\). pLDDT / docking / predicted \(\Delta\Delta G\) не заменяют oracle \(f\), если цикл на них не замкнут экспериментально.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Ниже — class-level постановка. Tool-specific отклонения — только если код/paper их реализует.
+  - type: math
+    latex: '\begin{aligned}
+
+      f &\sim \mathrm{GP}(\mu_0,k),\qquad D_t=\{(x_i,y_i)\}_{i=1}^{n_t},\\
+
+      y_i &= f(x_i)+\varepsilon_i,\quad \varepsilon_i\sim\mathcal{N}(0,\sigma_n^2),\\
+
+      x_{t+1} &\in \arg\max_{x\in\mathcal{X}} a\bigl(x;\, p(f\mid D_t)\bigr).
+
+      \end{aligned}'
+    caption: 'Generic BO (Frazier Algorithm 1). \(\mathcal{X}\) — допустимое множество: box в \(\mathbb{R}^d\), enumerated library, chimera crossover space, или latent codes. \(a\) обязана зависеть от posterior, не только от \(\mu\).'
+    source: '[PAPER] Frazier 2018 arXiv 1807.02811; Jones et al. 1998 EGO'
+  - title: GP posterior (noise-aware)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        \mu_t(x) &= k(x,X)\bigl(K+\sigma_n^2 I\bigr)^{-1} y,\\
+
+        \sigma_t^2(x) &= k(x,x)-k(x,X)\bigl(K+\sigma_n^2 I\bigr)^{-1}k(X,x).
+
+        \end{aligned}'
+      caption: '\(K_{ij}=k(x_i,x_j)\); \(X\) — обучающие входы. Romero Eq. 1–2: то же с structure-based kernel и явным \(\sigma_n^2\). Sklearn default kernel при <code>kernel=None</code> — \(1.0\cdot\mathrm{RBF}(1.0)\) ([DOC] sklearn); это не structure kernel Romero.'
+      source: '[PAPER] Rasmussen & Williams 2006; Romero et al. PNAS 2013 Eq. 1–2'
+    - type: p
+      text: Ядро \(k\) — гипотеза гладкости, не энергия. Hamming / RBF на embeddings / Matérn на latent / contact-map kernel Romero считают разные «расстояния» между белками.
+  - title: Acquisition functions
+    level: 3
+    blocks:
+    - type: math
+      latex: a_{\mathrm{UCB}}(x)=\mu_t(x)+\kappa\sigma_t(x)
+      caption: 'GP-UCB. Romero: \(\kappa=2\) (mean + 2 SD); batch из 5 химер: после выбора точки модель обновляется, как если бы её значение равнялось текущему \(\mu\) (batch-mode UCB, Materials and Methods). [PAPER] Не EVOLVEpro.'
+      source: '[PAPER] Srinivas et al. 2010; Romero PNAS 2013'
+    - type: math
+      latex: '\begin{aligned}
+
+        \mathrm{EI}_t(x)&=\mathbb{E}_t\bigl[\max(0,f(x)-f_t^*)\bigr],\\
+
+        z&=\frac{\mu_t(x)-f_t^*}{\sigma_t(x)},\quad
+
+        \mathrm{EI}_t(x)=\sigma_t(x)\bigl(z\Phi(z)+\varphi(z)\bigr)\ \ (\sigma_t>0).
+
+        \end{aligned}'
+      caption: Expected Improvement. \(f_t^*=\max_{i\le n_t} y_i\) в noise-free постановке Jones/Frazier; при шуме нужна noisy-EI (Letham/Frazier). \(\Phi,\varphi\) — cdf/pdf стандартной нормали. Требует \(\sigma_t\), не только \(\mu_t\).
+      source: '[PAPER] Mockus 1975; Jones et al. 1998; Frazier 2018 Eq. 7–9'
+    - type: math
+      latex: a_{\mathrm{PI}}(x)=P\bigl(f(x)>f_t^*+\xi\mid D_t\bigr)
+      caption: Probability of Improvement. \(\xi\ge 0\) — минимальный зазор. Часто более exploitation-heavy, чем EI.
+      source: '[PAPER] Kushner 1964; Frazier/Shahriari reviews'
+    - type: p
+      text: 'Thompson sampling: семпл \(f^{(s)}\sim p(f\mid D_t)\), затем \(\arg\max f^{(s)}\). Knowledge gradient / entropy search — value-of-information, когда финальное решение не обязано быть уже измеренной точкой (Frazier §4.2–4.3). Multi-objective: EHVI / noisy EHVI (NEHVI; Daulton et al.); LaMBO использует NEHVI + multi-task GP. [PAPER] Stanton et al. 2022.'
+    - type: warn
+      text: 'Не переносите эти формулы на EVOLVEpro. В <code>top_layer</code> после любого regressor, включая GP: <code>y_std_train = np.zeros(...); y_std_test = np.zeros(...)</code>, затем <code>sort_values(''y_pred'')</code>. [CODE]'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Surrogate posterior
+      - Правило отбора
+      - Каталог
+      rows:
+      - - BO (эта страница)
+        - да, \(p(f\mid D)\)
+        - argmax acquisition
+        - нет tool id
+      - - <a href="/architectures/active-learning.html">Pool-based AL</a>
+        - не обязательно
+        - любой \(A_t\), включая greedy \(\hat{y}\)
+        - <a href="/tools/evolvepro.html">EVOLVEpro</a>
+      - - GP regression without acquisition
+        - да, но unused \(\sigma\)
+        - sort \(\hat{y}\)
+        - EVOLVEpro regression_type=gp
+      - - <a href="/architectures/zero-shot-mutation-scoring.html">Zero-shot scoring</a>
+        - нет task posterior
+        - \(\Delta\)LL / logits
+        - ESM-1v, structural evolution
+      - - Generative LM / diffusion
+        - \(p(x)\), не \(p(f\mid x)\)
+        - sample sequences/backbones
+        - ProGen, RFdiffusion, DiffAb
+      - - LaMBO (не в каталоге)
+        - MTGP on DAE latent
+        - grad NEHVI in \(Z\)
+        - literature exemplar
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Непрерывный BO: \(x\in\mathbb{R}^d\), \(d\lesssim 20\) (Frazier). Не аминокислоты.'
+    - 'Pool / library: discrete strings \(x\in U\subset\mathcal{A}^L\); features — one-hot, Hamming, PLM embedding \(e(x)\in\mathbb{R}^{d_e}\), PCA(\(e\)).'
+    - 'Romero: chimera как набор crossover blocks трёх P450 (CYP102A1/A2/A3, ~65% identity); kernel — structure-based distance = число отличающихся contacting residue pairs (контакт, если любой атом \(<4.5\) Å). Hamming kernel — абляция, хуже contact kernel, но лучше fragment linear model. [PAPER]'
+    - 'LaMBO: token-level latent \(Z\) non-AR DAE; sequence-level pool (без padding); MTGP = Matérn \(5/2\) на pooled features × ICM по задачам. [PAPER]'
+    - Labels \(y\in\mathbb{R}\) или \(y\in\mathbb{R}^k\) (T50, activity, brightness, SASA, ELISA). Шум \(\sigma_n\) — часть модели, не «можно игнорировать».
+    - 'EVOLVEpro GP option: те же frozen ESM mean-pool векторы, что и RF; kernel=None, alpha=1e-10, n_restarts_optimizer=0, normalize_y=False. [CODE] Это не Romero contact kernel и не LaMBO Matérn-ICM.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Состояние \(x\) — вариант последовательности / chimera / latent code, не 3D-кадры. \(y\) — экспериментальный (или симулированный) scalar: Romero \(T_{50}\) (температура, при которой за 10 мин инактивируется 50% P450, CO-difference spectroscopy, ≥трипликат, median). LaMBO in silico: folding stability \((-\Delta G)\) и SASA RFP; in vitro follow-up — brightness (log-RFU) и melting temperature. [PAPER]'
+  - type: p
+    text: Геометрической SE(3)-эквивариантности нет. Contact kernel Romero фиксирует fold family (P450 heme domain map) и считает, что близкие по контактам последовательности имеют близкий phenotype — это smoothness prior, не energy function. Перестановка residues ломает и строку, и contact map.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - GP mean \(\mu(x)\)
+      - интерполяция измеренного phenotype
+      - posterior GP
+      - не \(\Delta G\), не Kd
+    - - GP \(\sigma(x)\)
+      - epistemic uncertainty + ядро
+      - explicit
+      - калибровка ≠ assay noise, если kernel плохой
+    - - Contact kernel (Romero)
+      - сходство по residue–residue contacts 4.5 Å
+      - explicit structure map
+      - фиксированный fold; не loops antibody CDR
+    - - RBF/Matérn on embeddings
+      - гладкость в learned space
+      - assumed
+      - эпистаз и cliff-like landscapes ломают smoothness
+    - - UCB/EI
+      - explore/exploit budget assays
+      - decision rule
+      - не физика связывания
+    - - NEHVI (LaMBO)
+      - прирост гиперобъёма Pareto
+      - multi-objective acquisition
+      - нужны ≥2 oracle; не antibody catalog
+    - - H-bonds, electrostatics, solvent, glycans, epitope
+      - могут коррелировать с \(y\)
+      - absent unless in oracle
+      - BO не считает их явно
+    - - FastRelax / pLDDT / docking
+      - другие oracles
+      - not default
+      - подмена experimental \(f\) без оговорки запрещена
+    source: '[INTERPRETATION] класс; tool rows — Romero / LaMBO / EvolvePro code'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Обучается posterior surrogate, обычно максимумом marginal likelihood (или MAP/MCMC) гиперпараметров ядра \(\eta\) (lengthscales, signal variance, \(\sigma_n\)). Frazier §3: MLE / MAP / fully Bayesian marginalization по \(\eta\). Negative examples — низкий \(y\) в \(D_t\), не docking decoys.'
+  - type: p
+    text: 'Romero: GP regression/classification на experimental T50, activity, ligand affinity; structure kernel; не PLM. LaMBO: совместно DAE (denoising) + discriminative encoder + MTGP head; не требует большого unlabeled pretrain corpus. [PAPER] EVOLVEpro GP: sklearn.fit на \((e(x),y)\); гиперпараметры ядра при n_restarts_optimizer=0 — один L-BFGS-B старт; return_std не вызывается. [CODE]'
+  - type: p
+    text: 'Acquisition сама по себе обычно не имеет loss: это критерий на уже полученном posterior (кроме случаев, когда inner loop учит proposal, как DAE в LaMBO).'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - initial design (random / space-filling / informative set)
+    - oracle labels → D_t
+    - fit / update GP (or MTGP) posterior
+    - maximize a(x) over X or latent Z
+    - decode to sequence if latent
+    - assay / simulator batch
+    note: Схема класса (Frazier Algorithm 1 + protein wrappers). Не копия figure Romero/LaMBO.
+  - type: p
+    text: 'Romero informative-set алгоритм (не UCB): выбрать 29 химер, максимизирующих информацию о ландшафте, измерить activity и dopamine/serotonin binding, затем строить GP. Отдельный контур: GP-UCB на thermostability, 4+2 раунда batch-5, затем LCB-проверка, затем exploitation EXP. [PAPER] LaMBO inner loop: градиент NEHVI по \(Z\) при регуляризации proposal entropy, затем decoder → discrete sequence. [PAPER]'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'Данные — пользовательский oracle, не PDB. Online split: прошлое \(D_t\) vs ещё не измеренное. Leakage: близкие мутанты / chimeras коррелируют; CV на случайном hold-out завышает успех относительно нового batch с distribution shift.'
+  - type: p
+    text: 'Romero train set thermostability: 242 published chimeric P450 T50 (Li et al. 2007 recombination library), затем 261 sequences before UCB campaign. CV r=0.95, MAD=1.4 °C vs fragment-linear r=0.90, MAD=2.0 °C. На sequences вне fragment representation: r=0.82, MAD=2.6 °C. Сравнение по размеру train 2–60, 1000 random draws. [PAPER]'
+  - type: p
+    text: 'LaMBO in silico: start pool 512, 1024 online queries, batches of 16, 10 trials, hypervolume vs start; без extra pretrain. Задачи: bigrams; logP+QED; DRD3 docking+SA; RFP stability+SASA. [PAPER] EVOLVEpro: GP — grid option на 12 DMS, не experimental default. [PAPER]+[CODE]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Непрерывный BO: максимизация \(a(x)\) L-BFGS-B / multi-start (Frazier: EI дешёвый и дифференцируемый). Discrete pool: argmax по конечному \(U\) (полный скан или GA). Romero UCB search: Monte Carlo по parents и crossover locations; всегда accept лучший UCB, худший — с вероятностью 1%; стоп после 1000 итераций без улучшения; 100 restarts. [PAPER]'
+  - type: p
+    text: 'LaMBO: выбрать base sequences из pool → DAE proposal → gradient step on query loss (NEHVI − λ entropy) → decode tokens (в контролируемом сравнении — 1 token/round). Stopping: фиксированный query budget. Ranking: acquisition, не pLDDT. [PAPER]'
+  - type: p
+    text: 'EVOLVEpro inference даже при GP: <code>model.predict(X)</code> без std → zeros → sort y_pred. First round: random / diverse_medoids (K-medoids on PCA-10) / explicit_variants. Это не argmax EI. [CODE]'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Допустимое множество \(\mathcal{X}\): box constraints; enumerated mutational library; Romero — только single- и double-crossover chimeras из уже доступных fragments (\(\sim 10^{10}\) unique, оценка авторов). LaMBO — seed pool + decoder support; entropy penalty удерживает queries рядом с виденным. Нет antigen graph / epitope tensor как у RFantibody. Нет species/chain tokens IgLM.'
+  - type: p
+    text: 'Multi-objective conditioning: вектор \(f_{1:k}\) и reference point для гиперобъёма, не scalarization EVOLVEpro T7 (там веса 20/40/40 зашиты в метку, acquisition нет). [PAPER]+[CODE]'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: 'Точный GP: \(\mathcal{O}(n_t^3)\) на fit (Cholesky \(K+\sigma_n^2 I\)) и \(\mathcal{O}(n_t^2)\) на predict. Frazier: добавляют \(\sim 10^{-6}\) на диагональ ради стабильности. Sparse / SVGP / DKL — когда \(n_t\) тысячи (LaMBO упоминает both exact and variational). Inner-loop argmax \(a\): multi-start в \(d\) измерениях или \(|U|\) evaluations. Wall-clock oracle доминирует. Romero batch 5 параллельных конструкций/раунд — стоимость wet lab, не GPU.'
+  - type: p
+    text: 'Параметр count GP ≪ PLM. Это не аргумент, что BO «всегда лучше» RF на том же embedding: EVOLVEpro grid выбрал RF для DMS, а GP-ветка не использует \(\sigma\). [PAPER]+[CODE]'
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Явный explore/exploit при малом \(n_t\), если \(\sigma\) калиброван (Romero: informative 29-set; GP-UCB → EXPc5 \(T_{50}=69.7\) °C, >5 °C выше предыдущих optimized chimeras и 14 °C выше самого стабильного parent). [PAPER]'
+    - 'Closed-form posterior у GP: EI/UCB без ансамбля из 100 сетей.'
+    - Batch и multi-objective расширения (NEHVI) формально определены; LaMBO показывает in silico hypervolume > NSGA-2 и GA+MTGP+NEHVI, in vitro non-dominated RFP для 3/5 ancestors (строго dominant mScarlet и DsRed.M1). [PAPER]
+    - Не требует de novo geometry generator.
+  - type: p
+    text: Это не гарантия глобального оптимума antibody Kd и не license писать UCB в карточку EVOLVEpro.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: smoothness kernel; cliff epistasis; cubic \(n_t\); EI предполагает, что финальный ответ — уже измеренная точка (шумовая EI/KG — отдельные формулы).'
+    - 'Представление: \(d\lesssim 20\) для vanilla continuous BO; сырые AA-строки без kernel/latent не являются стандартным GP-входом.'
+    - 'Физика/химия: нет растворителя, протонирования, гликанов, явного интерфейса.'
+    - 'Данные: качество = oracle; batch effects входят в \(y\).'
+    - 'Обобщение: Romero — P450 chimeras одного fold; LaMBO — fluorescent proteins / small molecules, не mAb affinity.'
+    - 'Deployment: в каталоге нет released BO loop; LaMBO repo не аудирован здесь; EVOLVEpro default не BO.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Считать greedy \(\hat{y}\) (EVOLVEpro topn, std zeros) реализацией UCB/EI. [CODE]
+    - 'Kernel misspecification: RBF на ESM-векторе не моделирует резкий loss-of-function.'
+    - 'Over-exploration на шумной ELISA: максимизируется \(\sigma\), а не сигнал.'
+    - 'Over-exploitation: \(\kappa\to 0\) или EI с крошечным \(\sigma\) на уже посещённых точках (noise-free EI\(=0\) в измеренных \(x\)).'
+    - 'Latent BO: decoder collapse / invalid sequences, если не штрафовать entropy (LaMBO).'
+    - 'Подмена oracle: оптимизация pLDDT/docking как будто это \(f\), без экспериментальной петли.'
+    - Перенос Romero T50 P450 или LaMBO RFP brightness на antibody developability. [INTERPRETATION]
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool / method
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - Romero et al. 2013 (не в каталоге)
+      - GP-UCB on chimera space
+      - contact kernel; \(\kappa=2\); batch 5; EXPc5 \(T_{50}=69.7\) °C
+      - P450 thermostability, не antibody
+    - - LaMBO Stanton et al. 2022 (не в каталоге)
+      - latent multi-objective BO
+      - DAE + MTGP Matérn5/2+ICM + NEHVI; batch 16
+      - ICML; in vitro RFP 3/5 ancestors; repo не аудирован
+    - - Khan et al. 2022 (NR this pass)
+      - discrete BO, substring kernels
+      - 'LaMBO related work: CDR-restricted antibody design'
+      - не карточка каталога; methods не перечитаны
+    - - <a href="/tools/evolvepro.html">EVOLVEpro</a> default
+      - не этот класс
+      - ESM-2 15B + RF 100 trees; top-\(k\) \(\hat{y}\)
+      - 'architecture_ids: AL / PLM / few-shot, не BO'
+    - - EVOLVEpro regression_type=gp
+      - GP regressor without acquisition
+      - sklearn GPR kernel=None; std zeros; sort y_pred
+      - не GP-UCB, не published experimental helper
+    - - <a href="/tools/makowski-affinity-specificity.html">Makowski</a>
+      - experimental multi-objective loop
+      - нет released package
+      - не отождествлять с NEHVI
+    - - <a href="/tools/esm-1v-efficient-evolution.html">ESM-1v</a>
+      - zero-shot \(\Delta\)LL
+      - нет posterior \(p(f\mid D)\)
+      - нет labels, нет BO
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо, когда есть дорогой oracle, ограниченный бюджет queries и surrogate с честным \(\sigma\): few-shot мутагенез, chimera libraries, latent sequence design. См. <a href="/architectures/active-learning.html">active learning</a> (надкласс) и <a href="/tasks/few-shot-active-learning.html">задачу</a>. Практический released loop каталога — EVOLVEpro greedy RF, не этот класс.'
+  - type: p
+    text: 'Не применимо как замена <a href="/tools/rfantibody.html">RFantibody</a> epitope-conditioned backbone, <a href="/tools/iglm.html">IgLM</a> sequence LM, или diffusion. Не сравнивать Romero \(T_{50}\) P450 с REGN10987 ELISA EVOLVEpro (~63%, не 100×): разные \(f\), разные spaces, разный decision rule.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Frazier, A Tutorial on Bayesian Optimization, arXiv 1807.02811 (GP + EI/KG/ES; Algorithm 1).
+      url: https://arxiv.org/abs/1807.02811
+    - text: Jones, Schonlau, Welch, Efficient Global Optimization (EGO / EI), J. Global Optim. 1998.
+      url: https://doi.org/10.1023/A:1008306431147
+    - text: Srinivas et al., Gaussian Process Optimization in the Bandit Setting (GP-UCB), arXiv 0912.3995.
+      url: https://arxiv.org/abs/0912.3995
+    - text: 'Shahriari et al., Taking the Human Out of the Loop: A Review of Bayesian Optimization, Proc. IEEE 2016.'
+      url: https://doi.org/10.1109/JPROC.2015.2494218
+    - text: Rasmussen & Williams, Gaussian Processes for Machine Learning, 2006.
+      url: https://gaussianprocess.org/gpml/
+    - text: Romero, Krause, Arnold, Navigating the protein fitness landscape with Gaussian processes, PNAS 2013, 10.1073/pnas.1215251110 (contact kernel; GP-UCB P450; EXPc5 T50 69.7 °C).
+      url: https://doi.org/10.1073/pnas.1215251110
+    - text: Stanton et al., Accelerating Bayesian Optimization for Biological Sequence Design with Denoising Autoencoders (LaMBO), ICML 2022 / arXiv 2203.12742.
+      url: https://arxiv.org/abs/2203.12742
+    - text: Daulton et al., Parallel Bayesian Optimization of Multiple Noisy Objectives (NEHVI), 2021.
+      url: https://arxiv.org/abs/2105.08195
+    - text: Yang, Wu, Arnold, Machine-learning-guided directed evolution, Nat. Methods 2019 (library MLDE; LaMBO explicitly excludes it from discrete BayesOpt).
+      url: https://doi.org/10.1038/s41592-019-0496-6
+    - text: Official EvolvePro repo, inspected commit 1c77697 (negative control).
+      url: https://github.com/mat10d/EvolvePro
+    - text: Architecture active learning (superclass)
+      url: /architectures/active-learning.html
+    - text: Tool EVOLVEpro (not BO by default)
+      url: /tools/evolvepro.html
+commit: 'EvolvePro 1c77697d0c09bf6989a1562a55da99301a12e2cd (negative control: GP option without acquisition; architecture class is generic)'
+inaccessible:
+- 'Shahriari et al. 2016 IEEE review PDF (paywall): определения и ссылки сверены с Frazier tutorial arXiv 1807.02811 HTML и с Romero PNAS HTML.'
+- Srinivas et al. 2010 arXiv 0912.3995 HTML в этом проходе не сконвертировался; формула GP-UCB и κ-гарантии цитируются через Romero Methods (mean+2 SD) и стандартную ссылку, не по повторному разбору теорем Srinivas.
+- LaMBO github.com/samuelstanton/lambo не разбирался по commit; архитектура DAE+MTGP+NEHVI, batch 16, in vitro RFP — из arXiv 2203.12742 / ICML 2022 HTML.
+- 'Khan et al. 2022 (antibody CDR + substring kernels) не перечитывался: только related-work mention в LaMBO.'
+- В каталоге нет tool с architecture_ids содержащим bayesian-optimization.

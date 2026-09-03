@@ -1,0 +1,181 @@
+identity:
+  id: evodiff
+  name: EvoDiff
+  slug: evodiff
+  aliases:
+  - EvoDiff
+  version: null
+  release_year: 2023/2024
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/microsoft/evodiff
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Code + weights
+  publication_status: Preprint (Frontier/Watchlist)
+classification:
+  task_ids:
+  - general-protein-sequence-generation
+  - motif-scaffolding
+  workflow_ids:
+  - sequence-first-de-novo
+  architecture_ids:
+  - sequence-diffusion
+  - masked-token-infilling
+  generator_classes:
+  - sequence-generator
+  output_modalities:
+  - sequence
+  supported_formats: Protein sequences, including IDRs
+  de_novo_or_optimization: De novo or masked local redesign
+  general_protein_relevance: High research relevance for sequence-first exploration
+  antibody_relevance: Transferable only
+  VHH_relevance: Transferable only
+  mutation_relevance: Local masked generation possible; not antibody-calibrated
+  compatibility_group: sequence-only
+generation:
+  exact_generated_object: Amino-acid sequence
+  required_input: None, partial sequence/motif, or MSA
+  conditioning: Sequence motif masks; MSA context; supports disordered regions
+  fixed_components: null
+  editable_components: null
+  generated_components: Amino-acid sequence
+  support_for_single_mutations: Yes via masks
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No explicit objective optimizer
+  candidate_generation_mechanism: Discrete diffusion over amino-acid tokens; OA-DM / D3PM
+    variants
+architecture:
+  base_model: null
+  model_family: Discrete diffusion over amino-acid tokens; OA-DM / D3PM variants
+  model_type: 1 Sequence generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Sequence motif masks; MSA context; supports disordered regions
+  generation_mechanism: Discrete diffusion over amino-acid tokens; OA-DM / D3PM variants
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Amino-acid sequence
+  internal_scorer: No task-specific internal ranker
+  structure_generation: 'No'
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: Discrete sequence diffusion
+  integrated_generators: []
+  integrated_scorers:
+  - No task-specific internal ranker
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Structure prediction and assay-specific validation
+  optional_external_dependencies:
+  - No docking/MD/developability module
+  breakdown:
+  - name: Discrete sequence diffusion
+    role: primary_generator
+    architecture_class: Discrete diffusion over amino-acid tokens; OA-DM / D3PM variants
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: No task-specific internal ranker
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Structure prediction and assay-specific validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 1–2 in silico / retrospective
+  retrospective_validation: No prospective wet-lab validation in primary work
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary work
+  success_criterion: Computational sequence, structural-plausibility and motif-scaffolding
+    evaluation
+  independent_validation: null
+  evidence_summary: Computational sequence, structural-plausibility and motif-scaffolding
+    evaluation
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: true
+limitations:
+  scientific_limitations:
+  - Sequence-only generator.
+  - motif presence does not establish correct 3D placement or function.
+  - prospective evidence absent.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Research-only
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - antifold
+  - esm-if1
+  - framediff
+  - ligandmpnn
+  - proteinmpnn
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-evodiff
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

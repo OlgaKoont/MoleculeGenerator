@@ -1,0 +1,42 @@
+id: specificity-optimization
+slug: specificity-optimization
+name: Оптимизация specificity
+group: Оптимизация существующих белков
+definition: Снижение нежелательного binding при сохранении on-target activity.
+objective: Двигаться по Pareto-фронту affinity vs nonspecific binding.
+starting_inputs:
+- parent
+- on-target and off-target/nonspecific assays
+generated_objects:
+- mutants with predicted trade-off
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Multi-objective supervised models
+  generates: Combinatorial mutations
+  representation: Display labels
+  examples:
+  - makowski-affinity-specificity
+  limitation: Нужны оба readout
+  sampling: Pareto proposal
+  novel_topology: Нет
+  integrated_scoring: Two supervised heads
+  complexity_drivers: Labelled library
+consequences:
+- decision: Single-task affinity model
+  consequence: Не решает specificity.
+compute_consequences:
+- Assay design важнее модели.
+evidence_summary: Прямой multi-objective example — Makowski et al.
+incomparable:
+- Humanness optimization ≠ specificity optimization.
+selection_guidance:
+- Нужны dual labels.
+architecture_ids:
+- multi-objective-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- multi-objective
+downstream: false

@@ -1,0 +1,49 @@
+id: paper-structural-evolution
+slug: structural-evolution
+title: Unsupervised evolution of protein and antibody complexes with a structure-informed
+  language model
+authors: null
+year: '2024'
+venue: Peer-reviewed journal; Science (Q1)
+publication_status: Peer-reviewed journal; Science (Q1)
+doi: 10.1126/science.adk8946
+url: https://doi.org/10.1126/science.adk8946
+preprint_url: null
+tool_ids:
+- structural-evolution
+main_task: Structure-informed zero-shot evolution of protein and antibody complexes
+claimed_novelty: null
+model_architecture: Inverse-folding likelihood on complete complex backbone to rank substitutions
+input_representation: null
+encoder_decoder: null
+generative_state: Ranked sequence mutations preserving complex structure
+conditioning: Complex geometry; selected mutable positions
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Improved antibody potency/resilience to viral escape
+  reported
+tested_designs: 'Multiple protein/antibody systems; exact count by system: paper-level extraction
+  required'
+success_criterion: Improved antibody potency/resilience to viral escape reported
+main_results: Improved antibody potency/resilience to viral escape reported
+limitations: Requires credible complex structure; likelihood targets structural compatibility,
+  not direct affinity; epistasis/multiobjective scope limited.
+demonstrates:
+- Improved antibody potency/resilience to viral escape reported
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Unsupervised evolution of protein and antibody complexes with a structure-informed
+    language model
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Science (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

@@ -1,0 +1,181 @@
+identity:
+  id: huabdiffusion
+  name: HuAbDiffusion
+  slug: huabdiffusion
+  aliases:
+  - HuAbDiffusion
+  - YabXnization
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-13'
+  official_repository: null
+  official_documentation: null
+  official_service: https://www.genscript.com/yabXnization-heterogenization-tool.html
+  license: Commercial web service terms; source code NR
+  commercial_use_status: Service/access request; no verified open implementation
+  publication_status: Peer-reviewed journal; Briefings in Bioinformatics; Q1 status NR
+classification:
+  task_ids:
+  - humanization
+  - framework-redesign
+  workflow_ids:
+  - humanization-framework
+  architecture_ids:
+  - sequence-diffusion
+  generator_classes:
+  - humanization
+  output_modalities:
+  - sequence
+  supported_formats: Monoclonal antibody variable domains
+  de_novo_or_optimization: Framework generation/humanization
+  general_protein_relevance: Antibody-only
+  antibody_relevance: Direct evidence
+  VHH_relevance: 'No'
+  mutation_relevance: Framework redesign
+  compatibility_group: humanization
+generation:
+  exact_generated_object: Whole humanized V-region sequences
+  required_input: Three CDR sequences
+  conditioning: CDRs retained; human sequence prior
+  fixed_components: null
+  editable_components: null
+  generated_components: Whole humanized V-region sequences
+  support_for_single_mutations: Implicit
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No explicit multi-objective optimizer
+  candidate_generation_mechanism: Discrete language diffusion
+architecture:
+  base_model: null
+  model_family: Discrete language diffusion
+  model_type: 7 Humanization/framework redesign generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: CDRs retained; human sequence prior
+  generation_mechanism: Discrete language diffusion
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Whole humanized V-region sequences
+  internal_scorer: Pretrained language-model narrowing/ranking
+  structure_generation: No public integrated structure predictor
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: HuAbDiffusion
+  integrated_generators: []
+  integrated_scorers:
+  - Pretrained language-model narrowing/ranking
+  integrated_structure_predictor: No public integrated structure predictor
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Binding retention, structure, developability/immunogenicity assessment
+  optional_external_dependencies:
+  - Available through YabXnization service
+  breakdown:
+  - name: HuAbDiffusion
+    role: primary_generator
+    architecture_class: Discrete language diffusion
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Pretrained language-model narrowing/ranking
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Binding retention, structure, developability/immunogenicity assessment
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 2–3 retrospective + prospective binding claim
+  retrospective_validation: 'Evaluated on 22 mAbs; exact prospective subset and per-variant
+    count: NR here'
+  prospective_binding_validation: Paper reports retained or increased affinity for selected
+    humanized antibodies
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: 'Evaluated on 22 mAbs; exact prospective subset and per-variant count:
+    NR here'
+  success_criterion: Paper reports retained or increased affinity for selected humanized antibodies
+  independent_validation: null
+  evidence_summary: Paper reports retained or increased affinity for selected humanized antibodies
+  prospective_flag: true
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Service opacity and no verified source.
+  - humanization metrics do not equal immunogenicity.
+  - experimental subset details need extraction.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Service evaluation only
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - alphaproteo
+  - bindcraft
+  - boltzgen
+  - framediff
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-huabdiffusion
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue:
+- Bibliographic title must be verified against the PDF.

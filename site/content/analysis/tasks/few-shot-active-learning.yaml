@@ -1,0 +1,18 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+lede: "Few-shot active learning на этом сайте — задача **выбора следующих mutants при малом числе labels**. Это не zero-shot ESM-1v и не de novo RFantibody. Основной разобранный инструмент: [EVOLVEpro](../tools/evolvepro.html)."
+sections:
+  - id: distinguish
+    title: "Чем задача отличается от соседних"
+    paragraphs:
+      - text: "Vs [zero-shot mutation](../architectures/zero-shot-mutation-scoring.html): нужны experimental $y$. Vs [Bayesian optimization](../architectures/bayesian-optimization.html): BO — один из алгоритмов; EVOLVEpro released **не** UCB. Vs [de novo antibody](../tasks/de-novo-antibody-design.html): другой generated object (mutations vs CDR frames)."
+        source: INTERPRETATION
+  - id: evidence
+    title: "Evidence boundary"
+    paragraphs:
+      - text: "Prospective EVOLVEpro campaigns не переносятся автоматически на новый mAb/антиген без нового цикла labels. Подробности — [paper](../papers/evolvepro.html)."
+        source: PAPER
+citations:
+  - id: 1
+    text: "Jiang et al. bioRxiv 10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"

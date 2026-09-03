@@ -1,0 +1,7 @@
+id: active-learning
+slug: active-learning
+term: Active learning
+term_ru: Активное обучение
+definition: Итеративный выбор следующих экспериментов моделью.
+related_ids:
+- few-shot

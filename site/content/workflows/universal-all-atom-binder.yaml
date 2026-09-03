@@ -1,0 +1,59 @@
+id: universal-all-atom-binder
+slug: universal-all-atom-binder
+name: All-atom universal binder generation (BoltzGen)
+use_case: Frontier all-atom binder design across proteins, peptides, nanobodies. Preprint.
+required_input:
+- target biomolecule
+- design specification
+stages:
+- name: All-atom generation
+  architecture_class: All-atom diffusion unified with folding
+  what_happens: Генерируется binder sequence–structure
+  generation_or_evaluation: generation
+  generator: boltzgen
+  intermediate_object: Binder complexes
+  alternatives:
+  - bindcraft
+  - rfantibody
+  node_links:
+  - boltzgen
+  - joint-sequence-structure-diffusion
+- name: Integrated ranking
+  architecture_class: Unified folding/ranking
+  what_happens: In-model ranking
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked designs
+  alternatives: []
+  node_links: []
+- name: Independent prediction + assays
+  architecture_class: External
+  what_happens: Обязательная независимая проверка
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Hits
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: NR. MIT code + weights, but preprint.
+evidence_level: 3–4 prospective claimed in preprint; evidence differs by modality. Not full IgG
+  evidence.
+failure_points:
+- Treat preprint as peer-reviewed.
+- Assume IgG evidence from nanobody examples.
+- Unified scores as independent validation.
+decision_criteria:
+- Accept preprint risk?
+- Need nanobody vs miniprotein vs peptide?
+task_ids:
+- target-conditioned-binder-generation
+- de-novo-vhh-nanobody-design
+tool_ids:
+- boltzgen
+architecture_ids:
+- joint-sequence-structure-diffusion
+paper_ids:
+- paper-boltzgen
+mermaid: "flowchart TD\n    A[Target + design spec] --> B[BoltzGen all-atom diffusion]\n    B\
+  \ --> C[Integrated folding/ranking]\n    C --> D[Independent validation]\n    D --> E[Experimental\
+  \ assays]"

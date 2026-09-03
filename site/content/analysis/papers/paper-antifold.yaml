@@ -1,0 +1,73 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "arXiv HTML 2405.03370 + Supplementary Methods прочитаны. Journal HTML OUP недоступен (Cloudflare). Training code не найден в listing antifold/."
+lede: "Вопрос: улучшает ли antibody fine-tune ESM-IF1 recovery CDR и zero-shot ранжирование affinity-related DMS относительно ProteinMPNN/AbMPNN/ESM-IF1."
+inaccessible:
+  - source: "OUP HTML 10.1093/bioadv/vbae202"
+    reason: "Cloudflare"
+    workaround: "arXiv 2405.03370"
+sections:
+  - id: citation
+    title: "Полная библиография"
+    paragraphs:
+      - text: "Høie M.H., Hummer A.M., Olsen T.H., Aguilar-Sanjuan B., Nielsen M., Deane C.M. AntiFold: Improved antibody structure-based design using inverse folding. Bioinformatics Advances (2025). DOI 10.1093/bioadv/vbae202. Preprint arXiv:2405.03370. Tool [AntiFold](../tools/antifold.html)."
+        source: PAPER
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Fixed-backbone antibody sequence design и можно ли IF likelihood использовать как zero-shot proxy для binding-related mutation effects."
+        source: PAPER
+  - id: architecture
+    title: "Модель"
+    paragraphs:
+      - text: "ESM-IF1 GVP+Transformer, H/L concat with 10-gap, CDR-weighted masking, OAS ABB2 structures. $p(Y\\mid X)$ AR. Не structure generator."
+        source: SI
+  - id: training-obj
+    title: "Training, split, inference"
+    paragraphs:
+      - text: "CE on masked residues. Split 90% concatenated CDR ID with AbMPNN set. Inference temperature 0.20; AAR; ABB2 RMSD; Spearman on Warszawski DMS; rank on Hie 2023 variants."
+        source: PAPER
+  - id: baselines
+    title: "Baselines и ablations"
+    paragraphs:
+      - text: "ProteinMPNN, ESM-IF1, AbMPNN, ESM-2. Ablations SI S1–S4 on validation CDRH3 AAR (masking, LR decay, OAS, from-scratch)."
+        source: SI
+  - id: prospective
+    title: "Prospective evidence"
+    paragraphs:
+      - text: "Нет wet-lab designed antibodies в primary paper. Retrospective only."
+        source: PAPER
+  - id: claims-ok
+    title: "Утверждения и поддержка"
+    paragraphs:
+      - text: "SOTA-like CDR AAR на их test; лучший Spearman на одном Ab DMS; лучшее отделение improved Hie variants. Ablation поддерживает ценность pretrain и OAS для **AAR**, не для Kd."
+        source: PAPER
+  - id: claims-not
+    title: "Что не поддержано"
+    items:
+      - "Prospective affinity improvement"
+      - "Likelihood = experimental affinity"
+      - "Developability"
+      - "De novo CDR backbone"
+  - id: author-lim
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "Performance driven primarily by de-selection of LoF; structure-mediated properties. IgMPNN не сравнивали (weights unavailable)."
+        source: PAPER
+  - id: extra-lim
+    title: "Дополнительная интерпретация"
+    paragraphs:
+      - text: "ABB2 refold RMSD смешивает IF quality и predictor error (native ABB2 RMSD 0.63). Independent Li 2025 / Clifford 2025 не читались."
+        source: INTERPRETATION
+  - id: si-repo
+    title: "SI и repo"
+    paragraphs:
+      - text: "SI: masking, LR decay, AAR/perplexity/temperature equations, DMS protocol. Repo oxpig/AntiFold commit 789d4678; antifold/main.py."
+        source: SI
+citations:
+  - id: 1
+    text: "arXiv:2405.03370 / DOI 10.1093/bioadv/vbae202"
+    doi: "10.1093/bioadv/vbae202"
+    url: "https://arxiv.org/abs/2405.03370"
+unresolved:
+  - "Journal copy-editing diffs vs arXiv"

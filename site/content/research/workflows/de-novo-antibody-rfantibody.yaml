@@ -1,0 +1,8 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Разделение стадий
+  level: 2
+  blocks:
+  - type: p
+    text: Стадии должны быть раскрашены как generation (RFdiffusion, MPNN), evaluation (RF2/AF3, Rosetta), experiment (display/SPR). Не называть RF2 генератором. [PAPER]

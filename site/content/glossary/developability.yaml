@@ -1,0 +1,8 @@
+id: developability
+slug: developability
+term: Developability
+term_ru: Развиваемость/технологичность
+definition: Совокупность свойств, важных для разработки (solubility, aggregation, viscosity, nonspecific
+  binding). Score ≠ клинический успех.
+related_ids:
+- humanization

@@ -1,0 +1,623 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — схема выбора по нескольким y (Pareto / scalarization / conjunctive filters / multi-score greedy), не архитектура сети. Прочитаны journal HTML: Makowski et al. Nat. Commun. 13, 3788 (2022) Results+Methods (emibetuzumab LDA/Pareto; SI PDF не построчно); Pacesa et al. Nature 2025 BindCraft Methods (AF2 loss + filter list; SI Table 1 per-target NR); Chinery/Jeliazkov/Deane mAbs 16, 2434121 (2024) Results+Methods (CNN-H/L/P, humanization loop; SI Sections 1–17 не close-read). EVOLVEpro T7 20/40/40 — bioRxiv 10.1101/2024.07.17.604015, tool НЕ в architecture_ids этого класса. CODE BindCraft/Humatch/Tessier-Lab не аудировался (commit NR). Не journal-sync EVOLVEpro Science."
+lede: "Multi-objective optimization в каталоге — **workflow principle / схема выбора** по вектору свойств $y\\in\\mathbb{R}^k$: Pareto-фронт, линейная scalarization, conjunctive filter cascade или greedy по нескольким scores. Это не generator backbone, не NSGA-сеть и не affinity head. Filter cascade ≠ learned Pareto; humanness CNN ≠ affinity–specificity MOO."
+inaccessible:
+  - source: "Makowski Nat. Commun. Supplementary Information PDF (Figs. S1–S14, Tables)"
+    reason: "HTML даёт download, постраничный SI не извлечён"
+    workaround: "Основной HTML Methods: library 8 sites, LDA 5-fold, UniRep-64, PhysChem 26, 4000/125/41/29 counts"
+  - source: "Tessier-Lab-UMich/Emi_Pareto_Opt_ML commit SHA + onehot_models.py line audit"
+    reason: "extra_constraints: Makowski code NR this pass"
+    workaround: "sklearn LDA / TensorFlow architecture — Methods prose; не выдумывать hidden width projector"
+  - source: "BindCraft Nature Supplementary Table 1 (per-target PDB, hotspots, binder length)"
+    reason: "HTML не отдаёт численные ячейки таблицы"
+    workaround: "Протокол JSON + filter list — Nature Methods; tool-specific траектории — NR"
+  - source: "martinpacesa/BindCraft default JSON vs paper filters, commit SHA"
+    reason: "репозиторий не close-read this pass"
+    workaround: "Пороги pLDDT/i_pTM/i_pAE/SC/H-bonds — Nature Methods enumerated list, не workshop cheat-sheet"
+  - source: "Humatch mAbs SI Sections 1–17 (ADA breakdown, allele split, mixed-gene)"
+    reason: "SI PDF не close-read"
+    workaround: "Table 1 PR AUC, Table 2 overlap, Methods CNN dims/epochs, Fig. 2 loop — основной HTML"
+  - source: "oxpig/Humatch commit SHA + config defaults in code"
+    reason: "extra_constraints: Humatch code not close-read this pass"
+    workaround: "Defaults GL 0.40 / CNN 0.95 / max edit 60 — mAbs Methods; CLI flags — NR"
+  - source: "Deb NSGA-II original paper equations"
+    reason: "не нужен как default-инструмент каталога; ни один catalog tool не реализует NSGA как слой"
+    workaround: "Родовое доминирование без номера NSGA; не приписывать NSGA BindCraft/Humatch/EVOLVEpro"
+sources:
+  - kind: PAPER
+    citation: "Makowski E.K. et al. Co-optimization of therapeutic antibody affinity and specificity using machine learning models that generalize to novel mutational space. Nat. Commun. 13, 3788 (2022)"
+    url: "https://doi.org/10.1038/s41467-022-31457-3"
+    doi: "10.1038/s41467-022-31457-3"
+    note: "Journal OA: LDA projections from binary deep-seq; Pareto on 4000 seq; 41 IgG; UniRep novel mutants; emibetuzumab/HGFR"
+  - kind: PAPER
+    citation: "Pacesa M. et al. One-shot design of functional protein binders with BindCraft. Nature (2025)"
+    url: "https://doi.org/10.1038/s41586-025-09429-6"
+    doi: "10.1038/s41586-025-09429-6"
+    note: "Journal: AF2 hallucination generator + MPNN + conjunctive AF2/Rosetta filters; i_pTM rank ≠ affinity"
+  - kind: PAPER
+    citation: "Chinery L., Jeliazkov J.R., Deane C.M. Humatch — fast, gene-specific joint humanisation of antibody heavy and light chains. mAbs 16, 2434121 (2024)"
+    url: "https://doi.org/10.1080/19420862.2024.2434121"
+    doi: "10.1080/19420862.2024.2434121"
+    note: "Journal OA: CNN-H/L/P; greedy multi-score humanization; no prospective affinity assay"
+  - kind: PAPER
+    citation: "Chinery et al. bioRxiv 10.1101/2024.09.16.613210"
+    url: "https://doi.org/10.1101/2024.09.16.613210"
+    doi: "10.1101/2024.09.16.613210"
+    note: "Preprint Humatch; не сливать pagination с mAbs"
+  - kind: PAPER
+    citation: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv 10.1101/2024.07.17.604015"
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+    note: "T7 RNAP scalarization 20/40/40 yield/translation/immunogenicity; EVOLVEpro НЕ catalog tool этого architecture_id"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id multi-objective-optimization"
+    note: "bindcraft, humatch, makowski-affinity-specificity"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **схема выбора / workflow principle** на векторе целей, не фиксированная neural architecture. Подтипы: (A) Pareto на предсказанных или измеренных $y$; (B) scalarization $w^\\top y$; (C) conjunctive filters $g_i\\le\\tau_i$; (D) greedy по нескольким scores до порогов. Generator, surrogate и assay задаются отдельно."
+        source: INTERPRETATION
+      - text: "Scored / selected state — варианты $s$ (мутанты CDR, humanized VH/VL, hallucinated binder sequences) плюс вектор свойств $\\hat y(s)$ или constraint scores. Generated tokens/coords **не** определяются этим классом: их даёт library, AF2 hallucination, iterative mutation."
+        source: INTERPRETATION
+      - text: "Задачи каталога: [multi-objective optimization](/tasks/multi-objective-optimization.html), [specificity](/tasks/specificity-optimization.html) и [polyspecificity](/tasks/polyspecificity-optimization.html) ([Makowski](/tools/makowski-affinity-specificity.html)); [de novo non-antibody binder](/tasks/de-novo-non-antibody-binder-design.html) через filter stage ([BindCraft](/tools/bindcraft.html), [miniprotein BindCraft](/workflows/miniprotein-binder-bindcraft.html)); [humanization](/tasks/humanization.html) / [framework redesign](/tasks/framework-redesign.html) ([Humatch](/tools/humatch.html), [humanization-framework](/workflows/humanization-framework.html)). Workflow [few-shot active learning](/workflows/few-shot-active-learning.html) использует класс, когда proposal Pareto, не когда single $y$."
+        source: MATRIX
+      - text: "Это **не** [few-shot mutation optimization](/architectures/few-shot-mutation-optimization.html) как постановка «мало labels»: few-shot может быть одноцелевым. Это **не** [active learning](/architectures/active-learning.html): AL выбирает, *какие* $x$ измерить; MOO задаёт, *как* сравнивать несколько $y$. Цикл может содержать оба."
+        source: INTERPRETATION
+      - text: "Это **не** [bayesian optimization](/architectures/bayesian-optimization.html): BO — sequential design с posterior и acquisition (UCB/EI). Weighted $y$ внутри RF **не** делает метод NSGA и не делает его GP-UCB. Не ставить UCB на эту страницу как train target."
+        source: INTERPRETATION
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html): MPNN в BindCraft переписывает core/surface при зажатом интерфейсе — **другой** модуль. Filter cascade после AF2 monomer — единственная причина, почему BindCraft имеет этот `architecture_id`."
+        source: PAPER
+        locator: "BindCraft Fig. 1a MPNN then filters; Nature Methods filter list"
+      - text: "Catalog tools с `architecture_id: multi-objective-optimization`: [BindCraft](/tools/bindcraft.html), [Humatch](/tools/humatch.html), [Makowski affinity–specificity](/tools/makowski-affinity-specificity.html). Часто путают с [EVOLVEpro](/tools/evolvepro.html) (T7 scalarization, **нет** этого id), NSGA-II литературой, и с «много метрик AF2» как с Pareto-оптимизатором."
+        source: MATRIX
+      - text: "Пакетного pretrained «MOO generator» нет. Кампания Makowski — один mAb (emibetuzumab). BindCraft — miniprotein binders, не antibody format. Humatch — humanness/pairing, не on-target $K_d$."
+        source: PAPER
+        locator: "Makowski one antibody case; BindCraft 12 targets non-Ab; Humatch no prospective binding"
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Несколько свойств конфликтуют: лучший on-target binder может хуже по nonspecific binding, humanness или in silico filters. При inference меняется **множество принятых кандидатов** (фронт, scalar rank, pass/fail, greedy edits), не физика фолдинга."
+        source: INTERPRETATION
+      - text: "Подтип A (Makowski): бинарные sort-labels → 1D LDA-проекции как proxy непрерывных свойств → scatter affinity vs nonspecific → визуальный Pareto. Inference: выбрать клоны на/около фронта, затем (опционально) предложить *новые* мутации UniRep за пределами library."
+        source: PAPER
+        locator: "Makowski Fig. 3–4; Results Pareto frontier 4000 sequences"
+      - text: "Подтип B (scalarization): пользователь задаёт $w$; surrogate учится на $w^\\top y_{\\mathrm{assay}}$. T7 EVOLVEpro: 20% yield / 40% translation / 40% immunogenicity — PAPER preprint, **не** карточка этого id и **не** NSGA."
+        source: PAPER
+        locator: "Jiang T7 RNAP paragraph 20%, 40%, and 40%"
+      - text: "Подтип C (BindCraft): generator — AF2 backprop; MOO-слой — **жёсткие пороги** на AF2 и Rosetta, затем rank i_pTM. Кандидат либо проходит все фильтры, либо нет. Это conjunctive constraints, не фронт компромиссов affinity vs developability."
+        source: PAPER
+        locator: "Nature Methods Designs are finally filtered using a set of predefined filters"
+      - text: "Подтип D (Humatch): три CNN + germline-likeness; greedy single-point, пока все CNN $\\ge 0.95$ (default). CDRs ignored by default. Это simultaneous thresholds на humanness/pairing, не Pareto affinity–specificity."
+        source: PAPER
+        locator: "mAbs Fig. 2; Methods until all three CNN target thresholds of 0.95"
+      - text: "Главный рычаг **Makowski**: какие sort gates задают binary $y$ (antigen top 50%; PSR top 25% / bottom 10%) и какой feature set (OneHot vs UniRep vs PhysChem). PAPER. Рычаг **BindCraft**: hotspot/length JSON и filter thresholds; rank metric i_pTM. PAPER. Рычаг **Humatch**: target V-genes, GL 0.40, CNN 0.95, max edit 60, CDR freeze. PAPER."
+        source: PAPER
+        locator: "Makowski FACS gates Methods; BindCraft JSON+filters; Humatch defaults Methods"
+      - text: "Предостережение по метрикам **этого класса**. LDA-проекция, OneHot accuracy 93%, Spearman ρ, AF2 pLDDT / i_pTM / i_pAE, Rosetta shape complementarity / interface H-bonds / dG, Humatch CNN-H/L/P, OASis-like humanness, ESM pMMS **не** experimental affinity / $K_d$ / ELISA / BLI / ADA в клинике. BindCraft явно: i_pTM binary predictor of binding activity, **does not correlate with interaction affinity** (Supplementary Fig. 6)."
+        source: PAPER
+        locator: "Makowski Fig. 3 ρ vs yeast/IgG; BindCraft Discussion i_pTM vs affinity; Humatch no wet-lab Kd"
+      - text: "Rosetta interface scores после FastRelax — **evaluator** physics proxy, не измеренный $\\Delta G$ и не SPR. Humatch min(CNN) vs ADA на 211 therapeutics — retrospective association, не immunogenicity assay дизайнов Humatch."
+        source: PAPER
+        locator: "BindCraft InterfaceAnalyzer; Humatch Fig. 1 Marks ADA set"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовое векторное $y(s)\\in\\mathbb{R}^k$ и доминирование. Затем подтипы с **разными** уравнениями: LDA-Pareto (Makowski); $w^\\top y$ (scalarization, T7); conjunctive $g(s)\\le\\tau$ (BindCraft); greedy multi-score (Humatch). Не одна формула NSGA-II на все три catalog tools. Не подставлять seed one-liner как уравнение инструмента."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются уравнениями default-инструмента этого класса: UCB/EI; AF2 FAPE как MOO-loss; Meier $\\Delta\\ell$; AR NLL; diffusion score; NSGA crowding distance; BindCraft hallucination loss как «Pareto layer» (это train/design target **генератора**, не класса выбора)."
+        source: INTERPRETATION
+      - text: "Не сравнивать Makowski 37% dual-improved IgGs, BindCraft 10–100% SPR hit-rate и Humatch mutation overlap 0.77/0.82 как один benchmark: generated object, oracle и split разные."
+        source: INTERPRETATION
+      - text: "EVOLVEpro T7 — **пример scalarization в литературе каталога**, не строка reverse index этого id. Не приписывать NSGA released EVOLVEpro (см. [active learning](/architectures/active-learning.html))."
+        source: PAPER
+        locator: "Jiang weighted objective; extra_constraints"
+    equations:
+      - latex: "y(s)=(y_1(s),\\ldots,y_k(s))\\in\\mathbb{R}^k"
+        caption: "Родовой вектор целей. Компоненты — assay labels, surrogate heads или constraint scores; физический смысл задаётся вне класса. Generic: не checkpoint Makowski/BindCraft/Humatch."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: s, type: "candidate", meaning: "sequence / mutant / design"}
+          - {sym: "y_j", type: "objective j", meaning: "j-е свойство; знак max/min фиксирует постановка"}
+          - {sym: k, type: "int", meaning: "число целей"}
+        meaning: "Класс не оптимизирует один scalar, пока не выбран подтип B. Семплируется/отбирается множество компромиссов, не одна «лучшая» точка без $w$ или порогов."
+      - latex: "s\\succ s'\\iff \\forall j\\ y_j(s)\\ge y_j(s')\\ \\text{and}\\ \\exists j:\\ y_j(s)>y_j(s')"
+        caption: "Родовое Pareto-доминирование при максимизации всех координат (для minimize nonspecific binding берут $-y_{\\mathrm{nsb}}$). Generic. Не алгоритм NSGA."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "Makowski prose: maximum affinities at each level of specificity"
+        symbols:
+          - {sym: "\\succ", type: "relation", meaning: "строгое доминирование"}
+        meaning: "Парето-множество: никакой допустимый $s'$ не доминирует $s$. Отбор, не генерация fold."
+    sections:
+      - id: math-pareto-lda
+        level: 3
+        title: "Подтип A — LDA-проекции и Pareto на library (Makowski; tool-specific)"
+        paragraphs:
+          - text: "Бинарные deep-seq labels → LDA 1D projection per property. Проекция коррелирует с непрерывным yeast/IgG readout, это **не** $K_d$. OneHot не обобщает на новые сайты; UniRep-64 — для novel CDR mutations (Blosum62 $\\ge 0$). Tool-specific [Makowski](/tools/makowski-affinity-specificity.html)."
+            source: PAPER
+            locator: "Methods Model development LDA; Fig. 3C–D Spearman 0.87 and 0.67"
+        equations:
+          - latex: "\\phi_j(s)=\\mathrm{LDA}_j\\bigl(x(s)\\bigr),\\quad j\\in\\{\\mathrm{aff},\\mathrm{nsb}\\}"
+            caption: "Непрерывная LDA-проекция sklearn SVD solver; $x$ = OneHot / UniRep-64 / PhysChem-26. Не BERT-MLM. Не уравнение BindCraft/Humatch."
+            generic_or_specific: "Makowski [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods LinearDiscriminantAnalysis SVD; three feature sets"
+            symbols:
+              - {sym: "\\phi_j", type: "1D score", meaning: "proxy непрерывного свойства j; cutoff классификации близок к 0, но не точно 0"}
+              - {sym: "x(s)", type: "features", meaning: "OneHot VH / 64 UniRep / 26 PhysChem"}
+            meaning: "Train: binary CE/LDA на 4000 seq. Select: неDominated в плоскости $(\\phi_{\\mathrm{aff}},\\phi_{\\mathrm{nsb}})$. $\\phi\\neq K_d$."
+      - id: math-scalar
+        level: 3
+        title: "Подтип B — линейная scalarization (родовой; T7 не catalog id)"
+        paragraphs:
+          - text: "Пользовательские веса сводят вектор к одному train target. T7: yield / translation / immunogenicity = 20/40/40 на **experimental** labels. Не learned Pareto layer. Не Humatch CNN mix (там пороги, не $w$ на ELISA)."
+            source: PAPER
+            locator: "Jiang T7 weighted 20%, 40%, and 40%"
+        equations:
+          - latex: "\\tilde y(s)=w^\\top y(s),\\qquad \\sum_j w_j=1,\\ w\\ge 0"
+            caption: "Scalarization. Generic подтип. Численные $w=(0.2,0.4,0.4)$ — **только** T7 EVOLVEpro preprint, не BindCraft и не Makowski."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Jiang T7 objective weights; generic MOO"
+            symbols:
+              - {sym: w, type: "weights", meaning: "предпочтение пользователя, не физика"}
+              - {sym: "\\tilde y", type: "scalar", meaning: "единственный столбец для RF/AL"}
+            meaning: "Оптимизируется один weighted assay. Компромисс спрятан в $w$; фронт не строится."
+      - id: math-filters
+        level: 3
+        title: "Подтип C — conjunctive filters (BindCraft; не Pareto-сеть)"
+        paragraphs:
+          - text: "После AF2-multimer hallucination и MPNNsol (interface 4 Å frozen) — AF2 monomer repredict + Rosetta FastRelax 200 iter + InterfaceAnalyzer. Accept iff все пороги. Rank прошедших: i_pTM. ≤2 MPNN seq на траекторию. Рекомендация: $\\ge 100$ pass, ~300–3000 trajectories, 10 из top-20 i_pTM в assay. Tool-specific [BindCraft](/tools/bindcraft.html). Hallucination loss — **не** уравнение этого подтипа (generator)."
+            source: PAPER
+            locator: "Nature Methods filter enumeration; 100 designs; 300–3000 trajectories"
+        equations:
+          - latex: "s\\in\\mathcal{A}\\iff \\bigwedge_{i=1}^{m} \\mathbf{1}\\bigl[g_i(s)\\,\\mathrm{rel}_i\\,\\tau_i\\bigr]"
+            caption: "Conjunctive acceptance. Nature list (не workshop): pLDDT $>0.8$; i_pTM $>0.5$; i_pAE $<0.35$; shape complementarity $>0.60$; interface H-bonds $>3$; unsat H-bonds $<4$; surface hydrophobicity $<35\\%$; bound/unbound RMSD $<3.5$ Å; $<3$ Lys and Met at interface. Не $\\max w^\\top g$."
+            generic_or_specific: "BindCraft [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Nature Methods Designs are finally filtered (1)–(9)"
+            symbols:
+              - {sym: "g_i", type: "AF2/Rosetta scalar", meaning: "evaluator/predictor score, не SPR"}
+              - {sym: "\\tau_i", type: "threshold", meaning: "predefined filter; refined during the work"}
+              - {sym: "\\mathcal{A}", type: "accepted set", meaning: "кандидаты на wet-lab"}
+            meaning: "Не оптимизируется Pareto affinity–developability. Семплирует generator; этот слой отсекает. i_pTM $\\neq K_d$."
+      - id: math-humatch
+        level: 3
+        title: "Подтип D — greedy multi-score до порогов (Humatch; не affinity MOO)"
+        paragraphs:
+          - text: "GL-matching до 0.40, затем все single-point (CDRs default frozen), scaled net CNN-H/L/P, pick novel top, repeat until все $\\ge 0.95$ или edit 60. Не Pareto трёх CNN. Не Makowski LDA. Tool-specific [Humatch](/tools/humatch.html)."
+            source: PAPER
+            locator: "mAbs Methods Humatch humanisation logic; Fig. 2"
+        equations:
+          - latex: "s_{t+1}\\in\\arg\\max_{s'\\in\\mathcal{N}(s_t)} \\mathrm{score}_{\\mathrm{H,L,P,GL}}(s')\\quad\\text{until }\\min(\\mathrm{CNN}_H,\\mathrm{CNN}_L,\\mathrm{CNN}_P)\\ge\\tau"
+            caption: "Схематический greedy (точный scaling: net predictions × germline frequencies, затем gap-to-target; Methods). $\\tau=0.95$ default. Не ELISA. Results vs Methods: softmax vs sigmoid на последнем слое — unresolved."
+            generic_or_specific: "Humatch [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods net predictions scaled; targets 0.95"
+            symbols:
+              - {sym: "\\mathcal{N}", type: "neighbors", meaning: "single-point variants; CDR excluded default"}
+              - {sym: "\\tau", type: "threshold", meaning: "default 0.95 each CNN"}
+            meaning: "Оптимизируются humanness/pairing classifiers. Семплируется путь мутаций. Humanness $\\neq$ immunogenicity $\\neq$ affinity."
+    tables:
+      - headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        source: INTERPRETATION
+        rows:
+          - ["MOO (эта страница)", "зависит от подтипа: LDA/CE, $w^\\top y$, нет (filters), CNN-CE", "Pareto pick / top-$\\tilde y$ / pass-fail / greedy edits", "Makowski; BindCraft filters; Humatch"]
+          - ["[Active learning](/architectures/active-learning.html)", "surrogate на накопленном $D_t$", "batch acquisition", "EVOLVEpro; не NSGA"]
+          - ["[Few-shot mutation optimization](/architectures/few-shot-mutation-optimization.html)", "fit $f_\\phi(E(s))$ на малом $n$", "rank library", "EVOLVEpro; может быть 1 objective"]
+          - ["[Bayesian optimization](/architectures/bayesian-optimization.html)", "GP/posterior NLL", "UCB/EI", "не default EVOLVEpro; не этот id"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "CE $p(s\\mid x)$", "AR/T decode", "MPNN внутри BindCraft, не MOO-уравнение"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Класс не фиксирует граф. Узлы/рёбра появляются только во **вложенных** генераторах (AF2 pair repr) или CNN (Humatch conv along IMGT). MOO-слой видит векторы scores или sequence features."
+        source: INTERPRETATION
+      - text: "Makowski: VH 115 aa, Kabat H1–H113. OneHot через sklearn LabelEncoder+OneHotEncoder. PhysChem: 20 AA counts + hydrophobic/amphipathic/polar/charged + ExPASy pI + Kyte–Doolittle mean = 26. UniRep-64 `get_rep()`. Hidden width LDA — sklearn default, NR кроме «1D projection»."
+        source: PAPER
+        locator: "Methods Molecular feature embedding; 115 residues"
+      - text: "Makowski masks: нет diffusion $t$. Labels — presence/absence in FACS bins, не contig file. Внешние файлы: deep-seq FASTQ, emi_binding.csv (Supplemental). PDB numbering library design — chemical rules Zhang et al., не вход LDA."
+        source: PAPER
+        locator: "Methods deep sequencing processed; Data availability csv"
+      - text: "BindCraft сеть (hallucination) принимает target PDB + binder length + optional hotspot residues/chains JSON. Filter tensors: AF2 confidence maps → scalars pLDDT, i_pTM, i_pAE; Rosetta interface features. Точные JSON key names кода — NR."
+        source: PAPER
+        locator: "Methods input PDB, min/max length, hotspot; filter list"
+      - text: "Humatch: pad к 200 частым IMGT (KASearch); paired concat + 10 pad → length 410. AA → 10-D Kidera; pad = zero vector. 40 conv filters, kernel 10, stride 1, ReLU, dropout 0.2, max-pool 2, flatten, dense 300 → C classes. Time embedding нет."
+        source: PAPER
+        locator: "Methods CNN architecture; 200 vs 410; Kidera"
+      - text: "Humatch train counts (Table 3): 8.26M human heavy, 12.73M human light, 3.77M / 1.41M non-human; CNN-P: 1,673,734 true pairs + 5,009,443 artificial bad pairs. Split 80-10-10 stratified. Не ELISA split."
+        source: PAPER
+        locator: "Methods Table 3; 80-10-10; CNN-P pair counts"
+      - text: "Аугментации: Makowski leave-one-residue-out для теста обобщения, не geometry. BindCraft: random AF2-multimer model swap each iteration; sequence stages logits→softmax→STE→discrete. Humatch: artificial bad pairs (different B-cell class and study). 3D rotation неприменима к Makowski/Humatch tokens."
+        source: PAPER
+        locator: "Makowski leave-one-out; BindCraft four stages; Humatch badly paired"
+      - text: "Размерности BindCraft $L\\times 20$ error gradient — PAPER Methods. Humatch lr $7.5\\times 10^{-5}$, batch 1024, max 15 epochs; CNN-H/L stopped after 3 epochs, CNN-P after 15. Makowski NN batch 50, 50 vs 250 epochs (OneHot/PhysChem vs UniRep)."
+        source: PAPER
+        locator: "BindCraft L×20 gradient; Humatch Adam 0.000075; Makowski epochs"
+      - text: "AntiFold/MPNN logits и ESM-1v $\\Delta\\ell$ — не data-repr этого класса."
+        source: INTERPRETATION
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Makowski $s$ ↔ VH CDR mutant emibetuzumab (scFab на дрожжах, затем IgG1). $y_{\\mathrm{aff}}$ ↔ HGFR binding (1 nM single-point или EC50); $y_{\\mathrm{nsb}}$ ↔ ovalbumin / SMP polyspecificity. Не crystal complex в state."
+        source: PAPER
+        locator: "emibetuzumab HGFR; OVA 0.1 mg/mL; SMP"
+      - text: "SE(3): **не применимо** к Makowski/Humatch (нет coords в MOO state). BindCraft hallucination — AF2 geometric generator (другой класс); filter scalars SE(3)-invariant summaries. Global rotation не меняет i_pTM одного предсказания; другой AF2 run может."
+        source: INTERPRETATION
+      - text: "Перестановка CDR residues ломает биологический объект. Concat VH||VL: Makowski unpaired VH library, общий kappa. Humatch **требует** paired complete VH/VL; chain concat с 10 pad — представление CNN-P."
+        source: PAPER
+        locator: "Makowski scFab VH mutagenesis; Humatch complete sequences only"
+      - text: "Side chains: отсутствуют в Makowski LDA state. BindCraft: AF2 all-atom prediction; Rosetta relax двигает SC/BB (InterfaceAnalyzer side-chain and backbone movement enabled). Humatch: sequence-only."
+        source: PAPER
+        locator: "BindCraft FastRelax InterfaceAnalyzer"
+      - text: "Промежуточный $\\phi$, mask, AF2 $x_t$ hallucination ≠ траектория фолдинга и ≠ энергия. LDA projection ≠ $\\Delta G$. i_pTM ≠ $K_d$."
+        source: PAPER
+        locator: "BindCraft Discussion i_pTM vs affinity"
+      - text: "Antigen coords: Makowski — экспериментальный HGFR-Fc, не tensor в LDA. BindCraft — target PDB template + optional hotspot mask в contact loss генератора. Humatch — нет antigen."
+        source: PAPER
+        locator: "Makowski HGFR-Fc; BindCraft hotspot optional"
+      - text: "Assay label не координата сети Humatch. ADA Fig. 1 — внешняя таблица Marks, не train $y$ humanization loop."
+        source: PAPER
+        locator: "Humatch 211 therapeutics Marks et al."
+      - text: "Homology models MOE Fig. 7 Makowski — post-hoc **interpretation**, не generated state."
+        source: PAPER
+        locator: "Methods Antibody structural modeling MOE"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет общего energy head класса. Запрещено писать, что MOO-слой «считает $\\Delta G$». Rosetta dG у BindCraft — evaluator после relax, не SPR."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "первичная структура варианта"
+        encoded: "прямо: OneHot/Kidera/sequence design; BindCraft discrete stage"
+        limitation: "Makowski library 8 sites × ~6 AA; не полный Fv combinatorics"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "3D fold / complex"
+        encoded: "Makowski/Humatch — не представлена; BindCraft — AF2 generator, не MOO-слой"
+        limitation: "pLDDT/i_pTM ≠ crystal; homology MOE ≠ design"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "эпитоп / on-target"
+        encoded: "Makowski — косвенно через sort vs HGFR; BindCraft — PDB+hotspot в generator; Humatch — не представлена"
+        limitation: "LDA не видит структуру антигена"
+      - feature: "H-bonds / electrostatics / solvation / hydrophobicity"
+        interpretation: "интерфейс и nonspecific binding"
+        encoded: "Makowski — косвенно (NSB sorts, PhysChem pI/hydropathy); BindCraft — прямо Rosetta H-bonds, unsat, hydrophobicity <35%; Humatch — не явно"
+        limitation: "Rosetta ≠ measured ΔG; NSB to OVA/SMP ≠ in vivo off-target"
+      - feature: "Entropy / developability (viscosity, Tm)"
+        interpretation: "formulation / stability"
+        encoded: "Makowski post-hoc CS-SINS и DSF на EM1/EM2, не в LDA loss; BindCraft Tm CD на binder — experiment; Humatch CNN-P vs Jain Tm retrospective"
+        limitation: "не head класса; не переносить EM2 Tm>75 °C на BindCraft"
+      - feature: "Evolutionary statistics"
+        interpretation: "UniRep / OAS / Blosum62 / germline frequencies"
+        encoded: "UniRep frozen next-AA LM; Humatch OAS+GL tables; Makowski Blosum62≥0 gate"
+        limitation: "UniRep mostly non-antibody; OAS humanness ≠ ADA"
+      - feature: "Experimental y"
+        interpretation: "binding / NSB / SPR / ELISA / ADA"
+        encoded: "Makowski — да (sorts + IgG assays); BindCraft filters — нет, SPR после; Humatch loop — нет; T7 — да, другой tool"
+        limitation: "не смешивать oracles"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Класс как таковой не задаёт единый $\\theta$. Обучаются: (A) LDA/NN heads Makowski; (D) CNN-H/L/P Humatch; (C) **ничего** на BindCraft filters (пороги заданы, AF2/MPNN frozen pretrained). Scalarization (B) учит surrogate на $\\tilde y$."
+        source: INTERPRETATION
+      - text: "Makowski: independent LDA per property; NN projector + classification layer, SparseCategoricalCrossentropy, ADAM, 5-fold 3200/800 затем full 4000. UniRep weights **frozen** (babbler64). Negative / low-affinity / high-NSB классы **есть** как binary labels. Contrastive affinity **нет**. ELISA $K_d$ в loss **нет**."
+        source: PAPER
+        locator: "Methods Model development; SparseCategoricalCrossentropy"
+      - text: "Humatch: Adam, binary cross-entropy (Methods), lr $7.5\\times 10^{-5}$, batch 1024. Early stop 3 / 15 epochs. Labels: V-gene / non-human / true vs fake pair. Affinity labels **нет**. Artificial negatives для pairing — да (noisy)."
+        source: PAPER
+        locator: "Methods Training Adam BCE; CNN-P artificial pairs"
+      - text: "BindCraft MOO-слой: trained modules **нет**. AF2/MPNNsol — frozen. Hallucination оптимизирует sequence logits; это generator, не multi-head $y$."
+        source: PAPER
+        locator: "backprop through AF2 weights; filters predefined"
+      - text: "Fine-tune vs pretrain: Makowski UniRep pretrain 20M proteins, LDA на одной кампании emibetuzumab. Humatch OAS pretrain classifiers, humanization — inference. BindCraft не finetune AF2 на target."
+        source: PAPER
+        locator: "Alley UniRep; OAS; AF2 frozen"
+      - text: "EVOLVEpro T7: RF на weighted experimental columns — [tool EVOLVEpro](/tools/evolvepro.html), не этот id. Не копировать как default MOO-сеть каталога."
+        source: PAPER
+        locator: "Jiang T7; extra_constraints"
+      - text: "Teacher forcing / self-conditioning / time-sampling — не принадлежат классу (NR как MOO-механизм)."
+        source: NR
+      - text: "Makowski k-NN baselines 83%/89% affinity/specificity vs LDA 93%/93% — classification лёгкая; ценность — непрерывные проекции."
+        source: PAPER
+        locator: "Fig. 3; Supplementary Fig. 4 k-NN"
+      - text: "Humatch Results: class predictions softmaxed; Methods: sigmoid last layer summing to one — противоречие источников, не «исправлять» формулой."
+        source: PAPER
+        locator: "Results softmaxed; Methods sigmoid"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Makowski: library → yeast MACS/FACS → deep-seq labels → features → LDA/NN **scorer** → Pareto pick → (optional) UniRep scan novel mutants → IgG **experiment**. Geometry появляется только в post-hoc MOE. AF не в сети."
+        source: PAPER
+        locator: "Fig. 1 overview"
+      - text: "BindCraft: target PDB → AF2-multimer hallucination **generator** → MPNNsol **IF generator** (interface 4 Å clamp) → AF2 monomer **predictor** → Rosetta relax **evaluator** → filters **MOO-C** → SPR/BLI **experiment**. Не прятать MPNN/AF2 внутрь «одной MOO-сети»."
+        source: PAPER
+        locator: "Fig. 1a; Methods stages"
+      - text: "Humatch: paired VH/VL → GL mutations → loop CNN scores → sequence **generator** (edits) → CNN **evaluator**. Binding retention / immunogenicity — обязательный внешний experiment, в primary нет prospective."
+        source: PAPER
+        locator: "Fig. 2; Discussion lack experimental validation of designs"
+      - text: "Sequence vs geometry vs score: Makowski sequence→$\\phi$; BindCraft geometry+sequence в AF2, score после; Humatch sequence→CNN. Affinity assay всегда снаружи MOO-формулы Humatch/filters."
+        source: INTERPRETATION
+      - text: "Likelihood rerank ESM / ProteinMPNN scPerplexity не канон Makowski. Clash filter BindCraft: trajectories with backbone clashes rejected до MPNN (pLDDT<0.7 or <7 contacts)."
+        source: PAPER
+        locator: "BindCraft end of hallucination stage rejects"
+      - text: "Не включать AlphaFold3 server как default filter: авторы пробовали, large false positive (Extended Data Fig. 7c)."
+        source: PAPER
+        locator: "Discussion AF3 filtering false positives"
+      - text: "Makowski enrichment ratio / frequency — **не** forward pass модели; Results: не предсказывают co-optimal (ρ affinity vs frequency 0.23 n.s.)."
+        source: PAPER
+        locator: "Results Conventional analysis Spearman"
+      - text: "CODE forward BindCraft/Humatch — NR this pass."
+        source: NR
+    mermaid: |
+      flowchart TD
+        CAND["Candidates: library or hallucinated seq or parent VH/VL"] --> SUB["MOO subtype"]
+        SUB --> LDA["A Makowski: features to LDA phi — scorer"]
+        SUB --> FIL["C BindCraft: AF2/Rosetta thresholds — evaluator"]
+        SUB --> HUM["D Humatch: CNN-H/L/P greedy — generator+scorer"]
+        LDA --> PAR["Pareto pick on phi — selector"]
+        FIL --> ACC["Accepted set A then i_pTM rank — selector"]
+        HUM --> SEQ["Humanized VH/VL — generator output"]
+        PAR --> IGG["IgG / yeast binding — experiment"]
+        ACC --> SPR["SPR / BLI / function — experiment"]
+        SEQ --> RET["Binding retention still required — experiment"]
+        GENX["BindCraft AF2+MPNN / Makowski library"] -.-> CAND
+        subgraph gen ["Generator (not the MOO layer)"]
+          GENX
+          HUM
+        end
+        subgraph ev ["Evaluator / scorer / filters"]
+          LDA
+          FIL
+          ACC
+        end
+        subgraph ex ["Experiment"]
+          IGG
+          SPR
+          RET
+        end
+    mermaid_caption: "Схема класса по Makowski Fig. 1, BindCraft Fig. 1a, Humatch Fig. 2 — не копипаст paper figures. Generator (library/AF2/MPNN/greedy edits) отделён от LDA/filters/CNN и от assay."
+    mermaid_source: "Makowski Fig. 1; BindCraft Fig. 1a; Humatch Fig. 2"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого корпуса класса нет. Не выводить BindCraft «split» из README. Не смешивать OAS Humatch с emibetuzumab 4000."
+        source: INTERPRETATION
+      - text: "Makowski library: 8 HCDR sites (Y33, R50, R54, R55, G56, A95, W97, Y102), WT+5 mut, theoretical diversity $1.7\\times 10^6$; intro ~$10^7$ variants. MACS then FACS. Deep-seq ~20% diversity; 1,504,269 and 851,151 unique seqs two replicates. Master set 4000: 2000 high / 2000 low specificity; 1516 high / 2484 low antigen. 5-fold 80/20. Leakage: 125 Sanger clones **не** в 4000. Germline-holdout **нет**."
+        source: PAPER
+        locator: "Methods library sites; 4000 composition; 125 not in 4000"
+      - text: "Симуляция vs wet-lab Makowski: deep-seq labels — experiment; LDA test accuracy — in silico на тех же sorts; 125 scFab и 41+29 IgG — prospective protein assays; cell proliferation / CS-SINS / Tm — experiment на EM1/EM2. Не DMS-симуляция EVOLVEpro."
+        source: PAPER
+        locator: "Fig. 4 41 IgGs; Fig. 5 29 novel; Fig. 6 EM1/EM2"
+      - text: "Humatch: OAS redundancy filter, Cys 23 and 104, complete termini. 80-10-10. CNN-P без non-human. Не prospective humanization wet-lab в primary."
+        source: PAPER
+        locator: "Methods data preparation; Discussion no experimental validation of designs"
+      - text: "BindCraft: **не** учит MOO. In silico success 16.8–62.7% trajectories satisfactory; 0.6–65.9% MPNN designs pass final filters (Supplementary Fig. 1e). Это симуляция фильтров, не SPR. Wet-lab: 12 targets, success 10–100%, mean 46.3% — PAPER Discussion, не переносить на antibodies."
+        source: PAPER
+        locator: "Supplementary Fig. 1e; Discussion average 46.3%"
+      - text: "Batching: Makowski NN batch 50; Humatch 1024; BindCraft SGD on logits — generator. Time-sampling нет."
+        source: PAPER
+        locator: "Makowski batch 50; Humatch 1024"
+      - text: "EVOLVEpro T7 six rounds — AL training, не этот architecture_id. Не описывать как NSGA."
+        source: PAPER
+        locator: "Jiang Fig. 5 six rounds"
+      - text: "Makowski two sequencing replicates; unlabeled if discordant antigen sorts discarded. PSR label: ≥3/4 positive and 0 negative vs ≥3/4 negative and 0 positive."
+        source: PAPER
+        locator: "Methods label assignment"
+      - text: "CODE trainers — NR."
+        source: NR
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт Makowski in-library: 4000 seq → $\\phi$ → Pareto. Novel: all single AA except Cys on HCDR2/3 (HCDR1 excluded: only one mutated site in train); Blosum62 $\\ge 0$; 29 variants (20 on EM1). Старт BindCraft: random binder sequence + target template. Старт Humatch: complete paired precursor."
+        source: PAPER
+        locator: "Makowski novel mutation scan Methods; BindCraft random init; Humatch complete VH/VL"
+      - text: "Sampler Makowski: нет temperature categorical; отбор фронта + ручной диапазон $\\phi$. BindCraft: 4-stage sequence opt (50+25 logits, 45 softmax T-anneal, 5 STE, 15 discrete 0.05L mutations); model swap 1–5. Humatch: greedy, skip previously chosen to avoid local minima; max edit 60."
+        source: PAPER
+        locator: "BindCraft four stages; Humatch Fig. 2 step 8"
+      - text: "Post-hoc **evaluator/predictor**: Makowski yeast/IgG assays; MOE models. BindCraft AF2 monomer, Rosetta, then SPR/BLI. Humatch CNN scores; Jain Tm correlation retrospective. Pack/relax: BindCraft FastRelax 200 — evaluator, не generator hallucination."
+        source: PAPER
+        locator: "FastRelax 200 iterations"
+      - text: "Чего нет в классе как канон: beam search; AF recycle как MOO; ELISA-in-the-loop Humatch; NSGA crowding. BindCraft recycles 1 default, 3 if beta-sheet trajectory — **generator** AF2, не секция MOO."
+        source: PAPER
+        locator: "BindCraft recycles 1 vs 3 beta"
+      - text: "BindCraft pick 10 of top 20 i_pTM after ≥100 accepted. Не argmax affinity. Humatch 1000 OAS non-human pairs: 12 failed max-edit; mean edits 11.6 / 13.9; ~36 s on 16-CPU desktop."
+        source: PAPER
+        locator: "100 designs 10 of top 20; Humatch 1000 pairs paragraph"
+      - text: "Makowski 41 IgGs near frontier; 37% improve both vs WT on Fig. 4D plot; 87% high-affinity still high NSB. Не гарантия dual win."
+        source: PAPER
+        locator: "Fig. 4D 37%; 87% tradeoff"
+      - text: "Temperature BindCraft MPNN 0.1, backbone noise 0.0, 20 sequences, keep 2 passing — IF module. Не MOO temperature."
+        source: PAPER
+        locator: "MPNNsol T=0.1 20 seq two pass"
+      - text: "CLI BindCraft/Humatch — CODE NR."
+        source: NR
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается: Makowski — 8 CDR positions и алфавит library; later Blosum62. BindCraft — target PDB, binder length range, optional hotspot residues/chains (else site from combined design loss), Cys excluded. Humatch — target V-genes, CDRs frozen default, optional fixed IMGT, max edit."
+        source: PAPER
+        locator: "Makowski eight sites; BindCraft hotspot optional; Humatch CDR ignore default"
+      - text: "Чего нет: ELISA tensor в Humatch/BindCraft filters; measured_var EVOLVEpro; CATH label; epitope tensor PALM. Не приписывать."
+        source: INTERPRETATION
+      - text: "Classifier-free guidance: нет в трёх primary. BindCraft contact loss masks non-hotspot target if hotspots given — generator, не CFG class."
+        source: PAPER
+        locator: "residue contact loss hotspot mask"
+      - text: "Contig RFdiffusion **нет** у Makowski/Humatch. BindCraft не contig-string RFD; length min/max JSON."
+        source: INTERPRETATION
+      - text: "Makowski не кондиционируется на paired VL diversity. Humatch требует pairing. BindCraft antibody CDRs не цель."
+        source: PAPER
+        locator: "common IgG1 kappa; Humatch paired; BindCraft miniprotein"
+      - text: "Library $\\mathcal{X}$ Makowski задан заранее (combinatorial). Novel scan расширяет $\\mathcal{X}$ beyond sampled library — PAPER claim, ограничен Blosum62."
+        source: PAPER
+        locator: "generalize to novel mutational space"
+      - text: "Humatch noise 0.01 on scaling — PAPER default; не UCB $\\kappa$."
+        source: PAPER
+        locator: "Methods low noise 0.01"
+      - text: "Function keywords ESM3 / taxonomy — не этот класс."
+        source: INTERPRETATION
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $k$ целей; $|\\mathcal{X}|$ library; deep-seq volume; BindCraft $T_{\\mathrm{AF2}}$ iterations × $L$ × 5 models + 20 MPNN + 2 AF2 monomer + FastRelax; Humatch $|\\mathcal{N}|$ per round × rounds until $\\tau$; assay latency **доминирует** Makowski IgG panel."
+        source: INTERPRETATION
+      - text: "Humatch Table 2: mean 33 s vs Hu-mAb 1093 s, AbNatiV 218 s, Sapiens 3 s — **humanization runtime**, не affinity. 16 CPUs desktop для 1000-seq test."
+        source: PAPER
+        locator: "Table 2 Time (s); 36s 1000 pairs"
+      - text: "BindCraft: backprop through AF2 **GPU-intensive** (Discussion). Wall-clock per target — NR в прочитанном HTML кроме qualitative vs RFdiffusion generation time (Extended Data Fig. 1c). Не писать «дешевле RFdiffusion» без NFE таблицы в prose."
+        source: PAPER
+        locator: "Discussion GPU-intensive; Extended Data Fig. 1c similar success vs time"
+      - text: "Makowski: 4000 fit cheap (sklearn); bottleneck wet-lab (125+41+29 IgGs). GPU UniRep — NR."
+        source: INTERPRETATION
+      - text: "Рекомендация BindCraft 300–3000 trajectories до 100 accepted — PAPER. Не wall-clock GPU-hours."
+        source: PAPER
+        locator: "generally 300–3000 trajectories"
+      - text: "CODE throughput — NR."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: явный trade-off, если $y$ соизмеримы. Scalarization прячет компромисс; Pareto (подтип A) его показывает. Filters (C) отсекают физически неправдоподобные комплексы до дорогого SPR."
+        source: INTERPRETATION
+      - text: "Makowski: LDA $\\phi$ с binary labels коррелирует с непрерывным affinity ρ=0.87 ($p=10^{-39}$) и NSB ρ=0.67 на 125 scFabs **вне** 4000. На 41 IgG ρ=0.72 и 0.77. Enrichment не даёт того же. **Одна** кампания emibetuzumab, не класс универсальный."
+        source: PAPER
+        locator: "Fig. 3C–D; Fig. 4B–C"
+      - text: "Makowski EM2: antigen 1.28× WT, NSB 0.30×; EC50 2.4±0.3 nM vs WT 4.4±0.8 nM; CS-SINS <0.35; Tm >75 °C; proliferation assay. Не переносить на другие mAb и не на BindCraft Kd."
+        source: PAPER
+        locator: "Fig. 6 EM2 numbers"
+      - text: "Makowski 29 novel: UniRep LDA ρ=0.46 affinity, 0.43 specificity ($p=0.01$, $0.02$); PhysChem не значим для affinity. Blosum62 gate необходим (без него affinity $p=0.41$)."
+        source: PAPER
+        locator: "Fig. 5; Blosum62 ablation p=0.41"
+      - text: "BindCraft: nanomolar SPR examples; 10–100% experimental success, mean 46.3% на 12 targets; i_pTM отличает on- vs off-target Ig-like (Extended Data Fig. 2h). **Не** antibody. i_pTM $\\neq$ affinity correlation."
+        source: PAPER
+        locator: "Discussion 46.3%; Supplementary Fig. 6 no affinity correlation"
+      - text: "Humatch: overlap 0.77 H / 0.82 L vs experimental humanizations на 25 precursors; ~33 s; joint pairing. Retrospective, не ADA/affinity retention."
+        source: PAPER
+        locator: "Table 2"
+      - text: "Явно: MOO-схема не гарантия стабильности / аффинности / экспрессии / низкой ADA. Makowski authors: WT не на фронте, но dual improvement только у части клонов (37% Fig. 4D)."
+        source: PAPER
+        locator: "Fig. 4D 37%"
+      - text: "T7 34× luciferase / ~98% less immunogenicity E643G — EVOLVEpro preprint, **не** свойство catalog tools этого id."
+        source: PAPER
+        locator: "Jiang E643G 34x and ~98%"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: incommensurable units; $w$ произвольны; conjunctive filters не показывают фронт (отсекают, не торгуют); greedy Humatch не Pareto CNN-H vs CNN-P; LDA projection ≠ calibrated property в физических единицах."
+        source: INTERPRETATION
+      - text: "Представление: Makowski 8 sites, unpaired VH; Humatch complete IMGT pad, CDRs frozen ⇒ binding not modeled; BindCraft miniprotein 60–240 aa, not IgG."
+        source: PAPER
+        locator: "BindCraft 60–240 Discussion; Makowski eight sites"
+      - text: "Физика/химия: нет electrostatics PDE. Rosetta mitigates AF2 mutation-insensitivity (Discussion) но dG ≠ Kd. Positive-charge CDR patch — post-hoc Fig. 7, не loss."
+        source: PAPER
+        locator: "BindCraft AF2 insensitive to point mutations; Makowski Fig. 7 R54G"
+      - text: "Данные/bias: emibetuzumab-specific sorts; OAS species mix; artificial bad pairs noise; AF2 complex bias (monomer repredict to reduce). Conserved WT enrichment affinity **and** NSB (Fig. 2)."
+        source: PAPER
+        locator: "Fig. 2 similar enrichment affinity and NSB"
+      - text: "Обобщение: Makowski UniRep novel mutations слабо (ρ~0.45), one mAb. BindCraft not antibody-specific. Humatch designs untested in wet-lab. Не universal co-optimizer."
+        source: PAPER
+        locator: "Makowski Discussion next step other antibodies; Humatch Discussion"
+      - text: "Deployment: Makowski workflow/paper, не packaged tool (MATRIX). BindCraft MIT + PyRosetta terms. Humatch BSD-3 + Zenodo weights. Не therapeutic generator proven."
+        source: MATRIX
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Ниже — конкретные ошибки пользователя и модели, не «может не сработать»."
+        source: INTERPRETATION
+    items:
+      - "Считать BindCraft filters learned Pareto / NSGA."
+      - "Считать i_pTM / pLDDT / Rosetta dG измеренным Kd (PAPER: i_pTM не коррелирует с affinity)."
+      - "Переносить Humatch CNN≥0.95 на affinity retention или clinical ADA."
+      - "Путать Humatch humanization с Makowski affinity–specificity MOO."
+      - "Приписывать EVOLVEpro NSGA; T7 = weighted labels, и tool без этого architecture_id."
+      - "Использовать enrichment/frequency вместо LDA (Makowski: affinity vs frequency ρ=0.23 n.s.)."
+      - "OneHot-модель для мутаций на нетронутых CDR sites (авторы: невозможно; нужен UniRep/PhysChem)."
+      - "Novel mutations без Blosum62≥0 (affinity correlation ломается)."
+      - "Humatch на неполных VH/VL (trained on complete sequences only)."
+      - "Независимая humanization VH и VL без CNN-P — ровно то, что авторы критикуют у Hu-mAb/Sapiens."
+      - "BindCraft без hotspot на «невидимом» сайте: site выбран loss генератора, не epitope ELISA."
+      - "Сравнивать 46.3% BindCraft SPR с 37% dual IgG Makowski как один score."
+      - "AF3 как drop-in filter (false positives Extended Data Fig. 7c)."
+      - "Library misspecification: 8 sites не покрывают VL/Fc developability."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Полный reverse index. Неравные oracles не в одной колонке «успех». CODE SHA всех трёх — NR."
+        source: MATRIX
+    tables:
+      - headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        source: INTERPRETATION
+        rows:
+          - ["[Makowski affinity–specificity](/tools/makowski-affinity-specificity.html)", "Pareto on multi-property $\\hat y$", "LDA/NN on binary deep-seq; OneHot/UniRep-64/PhysChem-26; 4000+125+41+29; emibetuzumab; Tessier GitHub **commit NR**", "Единственный catalog tool с experimental affinity–NSB Pareto; не пакет; один mAb"]
+          - ["[BindCraft](/tools/bindcraft.html)", "conjunctive filters on many scores", "AF2 halluc. + MPNNsol + AF2 monomer + Rosetta; Nature filter list; rank i_pTM; CODE **NR**", "Не learned Pareto; generator = AF2; miniprotein; i_pTM≠Kd"]
+          - ["[Humatch](/tools/humatch.html)", "greedy multi-score thresholds", "CNN-H/L/P Kidera; GL 0.40; τ=0.95; OAS; 33 s Table 2; no prospective binding; CODE **NR**", "Humanness/pairing ≠ affinity MOO Makowski"]
+      - headers: ["Метод вне карточек tools / не этот id", "Зачем указан", "Не делать"]
+        source: PAPER
+        rows:
+          - ["EVOLVEpro T7 20/40/40", "пример scalarization на experimental y", "не ставить architecture_id; не NSGA"]
+          - ["NSGA-II / Deb MOEA", "классический Pareto sampler", "нет catalog implementation"]
+          - ["ProteinMPNN / AF2", "модули BindCraft", "не уравнение MOO-страницы"]
+          - ["Hu-mAb / Sapiens / AbNatiV", "baselines Humatch Table 2", "не этот id"]
+          - ["UniRep Alley 2019", "frozen features Makowski", "не affinity head"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо, когда есть **несколько измеримых или явно различных scores** и нужно не прятать компромисс: [multi-objective-optimization](/tasks/multi-objective-optimization.html), [specificity-optimization](/tasks/specificity-optimization.html) ([Makowski](/tools/makowski-affinity-specificity.html), [few-shot-active-learning](/workflows/few-shot-active-learning.html)); filter-gate de novo binders ([BindCraft](/tools/bindcraft.html), [miniprotein-binder-bindcraft](/workflows/miniprotein-binder-bindcraft.html)); joint humanness+pairing ([Humatch](/tools/humatch.html), [humanization-framework](/workflows/humanization-framework.html))."
+        source: MATRIX
+      - text: "Этим **нельзя** заменять: de novo antibody CDR co-design 3D ([joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html)); single-task few-shot без второго $y$ ([few-shot mutation](/architectures/few-shot-mutation-optimization.html) + [EVOLVEpro](/tools/evolvepro.html)); zero-shot 19-mutant ([ESM-1v](/tools/esm-1v-efficient-evolution.html)); IF при готовом backbone как единственный шаг ([ProteinMPNN](/tools/proteinmpnn.html))."
+        source: INTERPRETATION
+      - text: "Не использовать Humatch likelihood/CNN как specificity к антигену. Нужен binding assay. Не использовать BindCraft i_pTM как Kd."
+        source: MATRIX
+      - text: "Makowski evidence не делает метод transferable pretrained generator. BindCraft не antibody therapeutic pipeline. Scalarization EVOLVEpro не отменяет необходимость отдельных assays на каждую компоненту $y$ до взвешивания."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational intuition: vector Pareto (Deb et al. — pointer-only). Catalog: [paper-makowski-affinity-specificity](/papers/makowski-affinity-specificity.html), [paper-bindcraft](/papers/bindcraft.html), [paper-humatch](/papers/humatch.html). T7: [paper-evolvepro](/papers/evolvepro.html) как scalarization example, не reverse-index tool этого id."
+        source: PAPER
+      - text: "Прочитано: Makowski Nat. Commun. HTML Methods+Results; BindCraft Nature HTML Methods+Discussion; Humatch mAbs HTML Methods+Results; Jiang bioRxiv T7 paragraph. Pointer-only: Makowski SI PDF; BindCraft Supp. Table 1 cells; Humatch SI 1–17; все GitHub commits; NSGA-II PDF; EVOLVEpro Science."
+        source: INTERPRETATION
+      - text: "Не библиография всего MOO: Salvat deimmunization Pareto, Choi humanization+stability — цитируются Makowski Discussion как low-throughput contrast, не карточки tools."
+        source: PAPER
+        locator: "Makowski Discussion refs 55–59"
+citations:
+  - id: 1
+    text: "Makowski E.K. et al. Co-optimization of therapeutic antibody affinity and specificity using machine learning models that generalize to novel mutational space. Nat. Commun. 13, 3788 (2022)."
+    url: "https://doi.org/10.1038/s41467-022-31457-3"
+    doi: "10.1038/s41467-022-31457-3"
+  - id: 2
+    text: "Pacesa M. et al. One-shot design of functional protein binders with BindCraft. Nature (2025)."
+    url: "https://doi.org/10.1038/s41586-025-09429-6"
+    doi: "10.1038/s41586-025-09429-6"
+  - id: 3
+    text: "Chinery L., Jeliazkov J.R., Deane C.M. Humatch — fast, gene-specific joint humanisation of antibody heavy and light chains. mAbs 16, 2434121 (2024)."
+    url: "https://doi.org/10.1080/19420862.2024.2434121"
+    doi: "10.1080/19420862.2024.2434121"
+  - id: 4
+    text: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv 10.1101/2024.07.17.604015. (T7 20/40/40; не architecture_id этого класса.)"
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+  - id: 5
+    text: "Alley E.C. et al. Unified rational protein engineering with sequence-based deep representation learning. Nat. Methods 16, 1315–1323 (2019). (UniRep-64 frozen features Makowski.)"
+    doi: "10.1038/s41592-019-0598-1"
+  - id: 6
+    text: "Tessier lab GitHub Emi_Pareto_Opt_ML — pointer; commit не аудирован в этом проходе."
+    url: "https://github.com/Tessier-Lab-UMich/Emi_Pareto_Opt_ML"
+  - id: 7
+    text: "martinpacesa/BindCraft — pointer; commit не аудирован."
+    url: "https://github.com/martinpacesa/BindCraft"
+  - id: 8
+    text: "oxpig/Humatch — pointer; commit не аудирован."
+    url: "https://github.com/oxpig/Humatch"
+unresolved:
+  - "Makowski SI PDF Figs. S1–S14 numeric cells; theoretical 1.7e6 vs intro ~1e7 library size wording"
+  - "Tessier-Lab commit SHA; onehot_models.py projector hidden size"
+  - "BindCraft Supplementary Table 1 per-target hotspots/PDB; default JSON vs Methods list in code"
+  - "martinpacesa/BindCraft commit; wall-clock GPU-hours"
+  - "Humatch SI Sections 1–17; Results softmax vs Methods sigmoid last layer"
+  - "oxpig/Humatch commit and config YAML keys"
+  - "NSGA-II equation numbers (не реализован в catalog tools)"
+  - "EVOLVEpro Science 10.1126/science.adr6006 vs bioRxiv T7 pagination"
+  - "Independent replication Makowski/BindCraft/Humatch — NR this pass"

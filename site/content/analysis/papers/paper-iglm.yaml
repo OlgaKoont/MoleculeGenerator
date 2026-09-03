@@ -1,0 +1,38 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Cell Systems + preprint HTML прочитаны. STAR S-tables не полные. Wet-lab binding отсутствует."
+lede: "IgLM — infilling LM на unpaired OAS. Evidence: perplexity, controllability, in silico developability. Авторы явно оставляют experimental screening на будущее."
+sections:
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Можно ли GPT-2 infilling на OAS генерировать controllable antibody sequences и CDR-H3 libraries с лучшими in silico профилями, чем left-to-right LMs?"
+        source: PAPER
+  - id: architecture
+    title: "Архитектура"
+    paragraphs:
+      - text: "ILM span permutation; 12.9M GPT-2; species/chain tags. См. /tools/iglm.html."
+        source: PAPER
+  - id: claims-support
+    title: "Утверждения и evidence"
+    paragraphs:
+      - text: "Infilling PPL, ANARCI control, OASis/aggregation in silico на 49 therapeutics. Нет SPR/ELISA IgLM clones."
+        source: PAPER
+  - id: unsupported
+    title: "Что evidence не поддерживает"
+    items:
+      - "Experimental affinity or function of IgLM sequences"
+      - "Paired-chain co-design"
+      - "Antigen-conditioned generation"
+  - id: author-limits
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "OAS N-terminal truncation, human-heavy skew, unpaired chains, rat tag failure, in silico-only developability."
+        source: PAPER
+citations:
+  - id: "1"
+    text: "Shuai, Ruffolo, Gray. Cell Systems 14, 979–989 (2023)."
+    doi: "10.1016/j.cels.2023.10.001"
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+unresolved:
+  - "Table S2 prompts"

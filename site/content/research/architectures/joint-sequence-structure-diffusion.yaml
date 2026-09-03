@@ -1,0 +1,43 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: 'Joint sequence–structure diffusion одновременно зашумляет <strong>дискретную идентичность residue и непрерывную геометрию</strong> (Cα + ориентация, иногда more atoms). Это генератор joint state, не отдельный IF после diffusion и не affinity predictor. Пример: <a href="/tools/diffab.html">DiffAb</a>.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'На CDR residual positions тип аминокислоты, координата и ориентация портятся согласованным forward process. Контекст (antigen + framework) не генерируется (маскирован generate_flag). Reverse процесс восстанавливает согласованную петлю: sequence сразу «под» геометрию.'
+- title: 3. Формальная постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: q(s_t,x_t,R_t\mid s_0,x_0,R_0)=q(s_t\mid s_0)\,q(x_t\mid x_0)\,q(R_t\mid R_0)
+    caption: Факторизованный forward process (generic / DiffAb). \(s\) — AA type; \(x\) — Cα; \(R\) — local frame.
+    source: '[PAPER] Luo et al. NeurIPS 2022; [CODE] FullDPM add_noise separately for rot/pos/seq'
+  - type: p
+    text: 'Denoiser предсказывает: ε позиции, обновлённую ориентацию, categorical distribution over 20 AA. DiffAb code loss: MSE on position noise, cosine loss on rotation matrices, KL on sequence posterior. [CODE dpm_full.py]'
+- title: 4–6. Представления
+  level: 2
+  blocks:
+  - type: p
+    text: 'Тензоры DiffAb [CODE]: res_feat (N,L,d_res), pair_feat (N,L,L,d_pair), R (N,L,3,3), p (N,L,3), s (N,L). Физика: CDR backbone + types; framework/antigen — context. Equivariance: EpsilonNet applies rotation to coordinate updates (apply_rotation_to_vector). H-bonds/ΔG не считаются; Rosetta/OpenMM — post hoc.'
+- title: 7–12. Training / inference
+  level: 2
+  blocks:
+  - type: p
+    text: 'Train on SAbDab-like complexes with generate_flag on CDR. Inference: T reverse steps from random SO(3), Gaussian coords, random AA on masked residues; context clamped. Complexity: \(T \times (L_{\mathrm{Ab+Ag}})^2\) pair encoder. Conditioning: CDR mask, antigen coords, framework sequence/structure.'
+- title: 13–18
+  level: 2
+  blocks:
+  - type: p
+    text: 'Преимущество: согласованность sequence–geometry на CDR. Ограничение: нужен bound complex (или docked model); нет wet-lab в primary DiffAb. Failure: energy metrics принятые за affinity; HDOCK errors propagate. Tools: DiffAb, AbDiffuser (repo NR), частично BoltzGen как более поздний joint family — не смешивать без проверки.'
+  - type: refs
+    items:
+    - text: Luo et al., DiffAb, NeurIPS 2022
+      url: https://proceedings.neurips.cc/paper_files/paper/2022/hash/3fa7d76a0dc1179f1e98d1bc62403756-Abstract-Conference.html
+    - text: DiffAb code FullDPM
+      url: https://github.com/luost26/diffab

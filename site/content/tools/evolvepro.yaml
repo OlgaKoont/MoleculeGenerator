@@ -1,0 +1,194 @@
+identity:
+  id: evolvepro
+  name: EVOLVEpro
+  slug: evolvepro
+  aliases:
+  - EVOLVEpro
+  - EvolvePro
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-27'
+  official_repository: https://github.com/mat10d/EvolvePro
+  official_documentation: null
+  official_service: null
+  license: Repository license file present; exact SPDX NR in this pass
+  commercial_use_status: Open code
+  publication_status: Peer-reviewed journal; Science (Q1)
+classification:
+  task_ids:
+  - few-shot-active-learning
+  - ml-guided-directed-evolution
+  - affinity-maturation
+  workflow_ids:
+  - few-shot-active-learning
+  architecture_ids:
+  - protein-language-models
+  - active-learning
+  - few-shot-mutation-optimization
+  generator_classes:
+  - mutation-optimizer
+  output_modalities:
+  - sequence
+  supported_formats: General proteins and antibody examples
+  de_novo_or_optimization: Optimizes existing protein
+  general_protein_relevance: Very high for data-enabled optimization
+  antibody_relevance: Direct REGN10987 ELISA campaign in the bioRxiv preprint (not C143;
+    Science PDF not collated this pass)
+  VHH_relevance: null
+  mutation_relevance: Very high
+  compatibility_group: few-shot-mutation
+generation:
+  exact_generated_object: Ranked single or multi-mutant variants for next round
+  required_input: Parent sequence, defined mutational library and ≥~10 experimental labels
+    per round
+  conditioning: User-defined mutational space; single/multi-mutant workflows
+  fixed_components: null
+  editable_components: null
+  generated_components: Ranked single or multi-mutant variants for next round
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: Yes in iterative workflow
+  support_for_multi_objective_optimization: Yes—repository describes multiple properties;
+    evidence depends on campaign
+  candidate_generation_mechanism: Protein-LM embeddings + lightweight regression/random forest
+    + iterative acquisition
+architecture:
+  base_model: null
+  model_family: Protein-LM embeddings + lightweight regression/random forest + iterative acquisition
+  model_type: 6 Mutation generator / optimization workflow
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: User-defined mutational space; single/multi-mutant workflows
+  generation_mechanism: Protein-LM embeddings + lightweight regression/random forest + iterative
+    acquisition
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Ranked single or multi-mutant variants for next round
+  internal_scorer: Supervised regression on PLM embeddings
+  structure_generation: 'No'
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: Active-learning acquisition proposes variants
+  integrated_generators: []
+  integrated_scorers:
+  - Supervised regression on PLM embeddings
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Assay is mandatory; structure/developability optional by objective
+  optional_external_dependencies:
+  - Experimental round-data ingestion and proposal scripts
+  breakdown:
+  - name: Active-learning acquisition proposes variants
+    role: primary_generator
+    architecture_class: Protein-LM embeddings + lightweight regression/random forest + iterative
+      acquisition
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Supervised regression on PLM embeddings
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Assay is mandatory; structure/developability optional by objective
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 4 prospective functional validation
+  retrospective_validation: Six proteins across reported applications; minimal rounds can
+    use ~10 labels, but campaign sizes vary
+  prospective_binding_validation: Up to 100× property improvement across tasks; cannot generalize
+    this number to antibodies
+  prospective_functional_validation: Up to 100× property improvement across tasks; cannot
+    generalize this number to antibodies
+  developability_validation: null
+  tested_design_count: Six proteins across reported applications; minimal rounds can use ~10
+    labels, but campaign sizes vary
+  success_criterion: Up to 100× property improvement across tasks; cannot generalize this
+    number to antibodies
+  independent_validation: null
+  evidence_summary: Up to 100× property improvement across tasks; cannot generalize this number
+    to antibodies
+  prospective_flag: true
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Not zero-shot.
+  - performance depends on assay noise/library definition.
+  - active-learning rounds and experimental turnaround dominate.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited pilot when assay data exist
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - esm-1v-efficient-evolution
+  - framediff
+  - rfdiffusion
+  - rfdiffusion-aa
+  - structural-evolution
+  paper_ids:
+  - paper-evolvepro
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids:
+  - active-learning
+  - few-shot
+detailed_architecture: {}
+review_queue:
+- Bibliographic title must be verified against the PDF.

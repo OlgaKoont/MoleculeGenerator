@@ -1,0 +1,315 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Science HTML (PMC-derived) прочитан для Results/architecture/Table 1 и experimental sections. Полный Methods/SI PDF не извлечён постранично. Реализация `protein_mpnn_utils.py` / `protein_mpnn_run.py` проверена на commit `8907e667`."
+lede: "ProteinMPNN — **inverse-folding generator** последовательности при фиксированном backbone. Это не structure predictor и не affinity model. Likelihood $p(s\\mid x)$ и AF2 self-consistency $\\neq$ экспериментальный binding."
+inaccessible:
+  - source: "Science Supporting Information PDF / Data S tables"
+    reason: "SI не скачан постранично в этом выпуске"
+    workaround: "Table 1 и экспериментальные N приведены в основном HTML; training README репозитория"
+  - source: "Точный CATH split script из Methods"
+    reason: "Methods HTML в извлечённом Science-сниппете обрезан после Table 1"
+    workaround: "Авторские цифры 19.7k single-chain / 25361 assembly clusters из основного текста"
+sources:
+  - kind: PAPER
+    citation: "Dauparas et al., Science 2022, 10.1126/science.add2187"
+    url: "https://doi.org/10.1126/science.add2187"
+    doi: "10.1126/science.add2187"
+  - kind: PAPER
+    citation: "Ingraham et al., NeurIPS 2019 — baseline MPNN, на котором авторы строят ProteinMPNN"
+    url: "https://papers.neurips.cc/paper_files/paper/2019/hash/f3a4ff4839c56e99b0d5aa36c728a27aa57d76f4-Abstract.html"
+    note: "Контекст архитектуры, не ProteinMPNN weights"
+  - kind: CODE
+    citation: "dauparas/ProteinMPNN"
+    url: "https://github.com/dauparas/ProteinMPNN"
+    note: "commit 8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+  - kind: DOC
+    citation: "training/README.md — released checkpoints v_48_00{2,10,20,30}"
+    url: "https://github.com/dauparas/ProteinMPNN/blob/main/training/README.md"
+repo:
+  url: "https://github.com/dauparas/ProteinMPNN"
+  commit: "8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+  ref: "main"
+  license: "MIT"
+  files:
+    - protein_mpnn_utils.py
+    - protein_mpnn_run.py
+    - training/README.md
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** координаты backbone (N, Cα, C, O; virtual Cβ строится из backbone). Опция `--ca_only` — только Cα и отдельные weights."
+        source: CODE
+        locator: "parse_PDB / ProteinFeatures; --ca_only"
+      - text: "**Выход:** одна или много аминокислотных последовательностей, совместимых с заданным остовом. Backbone **не** обновляется."
+        source: PAPER
+      - text: "**Фиксируется:** геометрия остова и позиции с design mask = false (в т.ч. target chain при binder design). **Изменяется:** токены аминокислот на design-позициях."
+        source: PAPER
+        locator: "Fig. 1B fixed context decoded first"
+      - text: "Parent-based **sequence design on a given backbone**, не de novo topology. Можно применять к hallucinated / RFdiffusion backbone — это всё равно inverse folding, не генерация fold."
+        source: INTERPRETATION
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "Encoder: 3 слоя MPNN по sparse kNN-графу residues (released $k=48$), с обновлением **и узлов, и рёбер**. Decoder: 3 AR слоя с **случайным порядком** (order-agnostic). Hidden 128, vocab 21, $\\approx 1.68$M параметров (Table 1 exp. 4). Рёбра кодируют расстояния между N/Cα/C/O/virtual Cβ, same-chain binary и relative index, capped $\\pm 32$. Tied positions: усреднение logits симметричных узлов, затем softmax."
+        source: PAPER
+        locator: "Science Fig. 1, Table 1 experiment 4; CODE ProteinMPNN.__init__"
+  - id: math-model
+    title: "4. Математическая модель"
+    paragraphs:
+      - text: "Условная факторизация **tool-specific** (order-agnostic AR, не N→C):"
+        source: PAPER
+    equations:
+      - latex: "p(s\\mid x)=\\prod_{t=1}^{L} p\\bigl(s_{\\pi_t}\\mid s_{\\pi_{<t}}, x\\bigr),\\qquad \\pi\\sim\\mathrm{Unif}(S_L)"
+        caption: "Случайная перестановка decode order. $x$ — backbone coords; $s$ — AA tokens. При inference $\\pi$ можно выбрать так, чтобы фиксированный контекст шёл первым."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+        symbols:
+          - {sym: "s", type: "discrete sequence", meaning: "аминокислотные токены (20 AA + X)"}
+          - {sym: "x", type: "coordinates", meaning: "backbone atom xyz"}
+          - {sym: "\\pi", type: "permutation", meaning: "порядок декодирования"}
+          - {sym: "L", type: "integer", meaning: "число residues (все цепи concatenated)"}
+      - latex: "\\mathcal{L}=-\\sum_i \\log p(s_i^\\star\\mid s_{\\pi_{<i}}^\\star, x)"
+        caption: "Per-residue NLL / categorical CE на native sequence. Label smoothing упоминается в ссылках Science (Szegedy); коэффициент в Methods SI в этом проходе NR."
+        generic_or_specific: "tool-specific schema"
+        source: PAPER
+      - latex: "\\mathrm{logits}_{\\mathrm{tied}}=\\frac{1}{|T|}\\sum_{i\\in T}\\mathrm{logits}_i\\quad\\text{затем softmax}"
+        caption: "Tied / symmetry decoding. Science: averaging logits лучше averaging probabilities для homomers (55% vs 53% vs 52% unconstrained)."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+        locator: "Fig. 1C; Fig. S1C"
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Узлы — residues. Рёбра — k ближайших Cα. Координаты — атомы остова, не side chains. Virtual Cβ — геометрическая конструкция из N/Cα/C, не экспериментальный атом. Sequence token — химическая идентичность аминокислоты, не rotamer. Интерфейс multi-chain задаётся рёбрами между цепями и binary same-chain feature, не docking pose generator."
+        source: PAPER
+  - id: physchem
+    title: "6. Физико-химическая интерпретация"
+    paragraphs:
+      - text: "Расстояния N/Cα/C/O/Cβ дают **геометрический** inductive bias для packing. Это **не** энергия Розета и не электростатика. H-bonds, solvation, энтропия, протонирование **не** считаются. Side-chain packing отсутствует в генераторе (в отличие от Rosetta PackRotamers). AF2/RF later self-consistency — внешний predictor, не часть MPNN."
+        source: INTERPRETATION
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "Ранние ablation (Table 1): 19.7k high-resolution **single-chain** PDB, split по CATH 80/10/10. Финальный ProteinMPNN: assemblies PDB на 2021-08-02, X-ray/cryo-EM $\\le 3.5$ Å, $<10{,}000$ residues; кластеризация mmseqs2 30% identity → **25,361** clusters."
+        source: PAPER
+      - text: "Gaussian backbone noise при обучении: Table 1 сравнивает 0.00 vs 0.02 Å. Released checkpoints: `v_48_002/010/020/030` соответствуют noise 0.02/0.10/0.20/0.30 Å и $k=48$ ([DOC] training/README). Default inference weights: `v_48_020`."
+        source: CODE
+        locator: "protein_mpnn_run.py --model_name default v_48_020"
+      - text: "Negative examples как non-binders **не** используются. Loss — native sequence recovery, не $\\Delta\\Delta G$."
+        source: PAPER
+      - text: "Hardware/time обучения в основном тексте: NR (SI). Inference: 1.2 s vs Rosetta 4.3 min на 100 residues (Science)."
+        source: PAPER
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "Подготовка: PDB → jsonl (`parse_PDB`). Sampling temperature default **0.1** (строка, можно несколько значений). `num_seq_per_target` default 1. Tied positions, omit AA, PSSM blend, per-residue bias — JSONL. Decode: `sample` или `tied_sample`."
+        source: CODE
+        locator: "protein_mpnn_run.py argparse"
+      - text: "Нет diffusion steps, recycles, MSA. Runtime boundary: не включает AF2/Rosetta/эксперимент. `score_only` / `conditional_probs_only` считают log p, не генерируют."
+        source: CODE
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Proposed mechanism.** Residue identity определяется в основном local geometric neighborhood, поэтому sparse GNN достаточен (в отличие от structure prediction). Distance features лучше dihedrals; edge updates помогают; random decode даёт arbitrary masks и tying. Noise при train делает модель устойчивой к неидеальным (predicted) backbone."
+        source: PAPER
+      - text: "**Author claim.** Outstanding in silico **and experimental** performance; rescues failed Rosetta/AF sequence designs for monomers, oligomers, nanoparticles, and a peptide-scaffolded binder."
+        source: PAPER
+      - text: "**Evidence.** (i) Retrospective native recovery 52.4% vs Rosetta 32.9% (402 monomers). (ii) Ablation Table 1. (iii) Prospective: E. coli expression, SEC, X-ray/cryo-EM/nsEM, BLI for Grb2 SH3 binder rescue. AF2 single-sequence confidence is used as **in silico filter**, не как affinity."
+        source: PAPER
+      - text: "**Causal support.** Distance features vs dihedrals — **ablation** (41.2% → 49.0%). Experimental rescue — **prospective functional/structural**, но не изолирует один архитектурный фактор на каждой кампании."
+        source: INTERPRETATION
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "Table 1 (CATH held-out, ~1.4–1.7M params): baseline Ingraham-like 41.2%; +N/Cα/C/O/Cβ distances 49.0%; +encoder edge updates 43.1% alone / 50.5% combined; +random decoding 50.8% (unnoised train). $k$ saturates 32–48 (Fig. S1A; SI figure not re-plotted here). Homomer tying: logits > probabilities > unconstrained."
+        source: PAPER
+      - text: "Это retrospective native recovery, не wet-lab ablation. Train noise trade-off: больше шума → ниже PDB recovery, выше AF success на predicted backbones (Fig. 2C)."
+        source: PAPER
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Явный растворитель, ионная сила, протонирование"
+      - "Side-chain rotamers и packing energy (Rosetta-style)"
+      - "Glycosylation, metals, nucleic acids, small molecules (см. LigandMPNN)"
+      - "Конформационная энтропия / MD"
+      - "Экспрессия, растворимость, иммуногенность как learned heads (экспериментальный rescue экспрессии — следствие последовательности, не отдельная модель)"
+      - "Истинная $\\Delta G$ / $K_d$; log p ≠ affinity"
+      - "Генерация нового backbone"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Prospective successes — **sequence redesign of already proposed backbones** (AF hallucination, Rosetta nanoparticles, SH3 peptide scaffold). Это не доказательство, что MPNN изобретает fold или epitope. Native recovery чувствителен к crystallographic resolution (авторы, Fig. S3). Antibody CDR не являются заявленным бенчмарком этой статьи."
+        source: PAPER
+      - text: "RFantibody использует **vanilla** ProteinMPNN только на CDR, не antibody-finetuned MPNN ([PAPER] Bennett 2025, см. страницу RFantibody)."
+        source: PAPER
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "MIT license, weights в репозитории. Default checkpoint `v_48_020`. Class `__init__` default `k_neighbors=64`, но run-скрипт берёт `k` из checkpoint (`num_edges`). Inference `backbone_noise` default 0.00 — шум train-time, не обязателен при семплировании."
+        source: CODE
+        locator: "protein_mpnn_run.py model = ProteinMPNN(... k_neighbors=checkpoint['num_edges'])"
+physchem_table:
+  - feature: "N/Cα/C/O/virtual Cβ distances"
+    interpretation: "локальная геометрия остова / стерический контекст"
+    encoded: "прямо как edge RBF"
+    limitation: "не энергия взаимодействия"
+  - feature: "AA token"
+    interpretation: "химическая идентичность residue"
+    encoded: "прямо, categorical"
+    limitation: "нет протомеров / PTM"
+  - feature: "tied logits"
+    interpretation: "симметрия олигомера / repeat"
+    encoded: "правило decode, не физика"
+    limitation: "пользователь задаёт tying; ошибка tying → гетерогенная последовательность"
+  - feature: "Gaussian train noise"
+    interpretation: "устойчивость к неточности coords"
+    encoded: "augmentation"
+    limitation: "стирает тонкие кристаллографические memory of native AA"
+modules:
+  - module: "ProteinFeatures / kNN graph"
+    model_class: "geometric featurizer"
+    input: "backbone xyz"
+    output: "node/edge embeddings"
+    trained_or_frozen: "обучается вместе с сетью"
+    generator_or_evaluator: "часть generator"
+  - module: "Encoder MPNN (3× EncLayer)"
+    model_class: "unmasked message passing"
+    input: "graph from backbone only"
+    output: "h_V, h_E"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "generator encoder"
+  - module: "Decoder MPNN (3× DecLayer)"
+    model_class: "AR MPNN"
+    input: "encoder state + partial sequence"
+    output: "per-position logits"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "generator"
+  - module: "log p ranking"
+    model_class: "same network, score_only"
+    input: "backbone + sequence"
+    output: "mean NLL"
+    trained_or_frozen: "frozen at inference"
+    generator_or_evaluator: "evaluator (optional)"
+  - module: "AlphaFold / crystal / assay"
+    model_class: "external"
+    input: "designed sequence"
+    output: "structure or function"
+    trained_or_frozen: "n/a"
+    generator_or_evaluator: "external validation"
+gen_vs_eval:
+  - component: "ProteinMPNN decoder"
+    role: "primary_generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "sequence log-probability"
+    role: "integrated_scorer"
+    integrated_or_external: "integrated"
+    required_or_optional: "optional"
+    influences: "post_hoc ranking of samples (same model)"
+  - component: "AlphaFold2 single-sequence"
+    role: "external structure predictor"
+    integrated_or_external: "external"
+    required_or_optional: "optional filter in paper"
+    influences: "post_hoc; не входит в sample()"
+  - component: "X-ray / cryo-EM / BLI / SEC"
+    role: "experimental_validation"
+    integrated_or_external: "external"
+    required_or_optional: "required to claim fold/function"
+    influences: "post_hoc"
+claim_evidence:
+  - claim: "Native sequence recovery выше Rosetta на PDB monomers"
+    mechanism: "local distance GNN + random AR decode"
+    evidence_type: "retrospective benchmark"
+    dataset: "402 monomer backbones"
+    comparator: "Rosetta PackRotamersMover beta_nov16, one round"
+    metric: "52.4% vs 32.9% recovery; 1.2 s vs 4.3 min / 100 res"
+    source: PAPER
+    locator: "Science Fig. 2A"
+    caveat: "Recovery ≠ folding success; зависит от resolution"
+  - claim: "Distance features лучше dihedrals/frames как input"
+    mechanism: "N/Cα/C/O/Cβ distances"
+    evidence_type: "ablation evidence"
+    dataset: "CATH single-chain split, Table 1"
+    comparator: "baseline Ingraham-style MPNN"
+    metric: "41.2% → 49.0% recovery"
+    source: PAPER
+    locator: "Table 1 experiment 1"
+    caveat: "Только in silico recovery"
+  - claim: "Random decoding + edge updates улучшают recovery"
+    mechanism: "order-agnostic AR; encoder edge updates"
+    evidence_type: "ablation evidence"
+    dataset: "Table 1 exp. 2–4"
+    comparator: "N→C baseline; no edge update"
+    metric: "combined 50.8% unnoised"
+    source: PAPER
+    locator: "Table 1"
+    caveat: "Не wet-lab"
+  - claim: "MPNN rescues failed AF-hallucinated sequences (solubility/oligomer)"
+    mechanism: "sequence redesign on fixed hallucinated backbone"
+    evidence_type: "prospective functional validation"
+    dataset: "150 AF sequences poorly soluble; 96 MPNN redesigns"
+    comparator: "original AF-decoded sequences"
+    metric: "median soluble yield 9 → 247 mg/L; 50/96 correct oligomeric state by SEC"
+    source: PAPER
+    locator: "Fig. 3A"
+    caveat: "Успех — sequence на уже заданном fold; не de novo binder campaign как RFantibody"
+  - claim: "Atomic accuracy of designed monomer"
+    mechanism: "same"
+    evidence_type: "prospective functional validation"
+    dataset: "one crystallized MPNN monomer (8CYK)"
+    comparator: "design backbone"
+    metric: "2.35 Å RMSD / 130 residues"
+    source: PAPER
+    locator: "Fig. 3D"
+    caveat: "N=1 crystal in this figure; oligomer structures in Wicky et al. companion"
+  - claim: "Rescues Grb2 SH3 peptide-scaffold binder where Rosetta sequence failed"
+    mechanism: "IF on Rosetta-built backbone"
+    evidence_type: "prospective binding validation"
+    dataset: "BLI vs Grb2 C-SH3"
+    comparator: "Rosetta design; peptide alone; Asn→Asp knockout"
+    metric: "stronger BLI signal than Rosetta sequence; knockout abolishes"
+    source: PAPER
+    locator: "Fig. 4"
+    caveat: "Kd в HTML не приведена численно; не antibody; backbone всё ещё Rosetta"
+paper_vs_code:
+  - paper_version: "Science 2022 HTML"
+    repo_commit: "8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+    model_version: "v_48_020 default"
+    file: "protein_mpnn_run.py"
+    difference: "Статья обсуждает train noise 0.02–0.30 Å; default released weights — 0.20 Å noise, k=48. `__init__` default k=64 не используется, если загружен checkpoint."
+    consequence: "Пользователь без флагов получает noised 0.20 Å model, не unnoised Table 1 left column."
+  - paper_version: "Science Table 1 ~1.68M params"
+    repo_commit: "8907e667"
+    model_version: "hidden_dim=128, 3+3 layers"
+    file: "protein_mpnn_utils.py ProteinMPNN"
+    difference: "Согласуется. ca_only — отдельная ветка, в основном тексте как опция кода, не Table 1."
+    consequence: "Не смешивать CA-only weights с full-backbone моделью."
+diagrams:
+  - code: |
+      flowchart TD
+        X["Backbone xyz N/CA/C/O"] --> F["kNN graph k=48 + distances"]
+        F --> E["Encoder 3 MPNN layers"]
+        E --> D["Decoder 3 AR layers random order"]
+        Mask["Design mask / tied positions"] --> D
+        D --> S["Sampled AA sequence"]
+        S -.->|"optional"| P["log p scorer same net"]
+        S --> AF["External AF2 / experiment"]
+    caption: "Generator — decoder. AF2 и assay не входят в sample()."
+    source_note: "Science Fig. 1 + protein_mpnn_utils.py; схема оригинальная"
+citations:
+  - id: "1"
+    text: "Dauparas J. et al. Robust deep learning-based protein sequence design using ProteinMPNN. Science 378, 49–56 (2022)."
+    doi: "10.1126/science.add2187"
+    url: "https://doi.org/10.1126/science.add2187"
+  - id: "2"
+    text: "Ingraham J. et al. Generative models for graph-based protein design. NeurIPS 32 (2019)."
+    url: "https://papers.neurips.cc/paper_files/paper/2019/hash/f3a4ff4839c56e99b0d5aa36c728a27aa57d76f4-Abstract.html"
+  - id: "3"
+    text: "dauparas/ProteinMPNN commit 8907e667."
+    url: "https://github.com/dauparas/ProteinMPNN"
+unresolved:
+  - "Точный коэффициент label smoothing и optimizer из Methods SI"
+  - "Полный список 76 nanoparticle designs / 27 backbones — только summary в HTML"
+  - "Численный Kd Grb2 BLI — NR в извлечённом HTML"

@@ -1,0 +1,9 @@
+id: sampling
+slug: sampling
+term: Sampling
+term_ru: Сэмплирование
+definition: 'Процедура получения кандидатов: AR decoding, masked unmasking, diffusion steps, flow
+  ODE, mutation enumeration.'
+related_ids:
+- inference
+- diffusion

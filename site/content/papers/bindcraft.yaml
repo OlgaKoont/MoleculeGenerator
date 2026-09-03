@@ -1,0 +1,46 @@
+id: paper-bindcraft
+slug: bindcraft
+title: 'BindCraft: one-shot design of functional protein binders'
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Nature (Q1)
+publication_status: Peer-reviewed journal; Nature (Q1)
+doi: 10.1038/s41586-025-09429-6
+url: https://doi.org/10.1038/s41586-025-09429-6
+preprint_url: null
+tool_ids:
+- bindcraft
+main_task: Target-conditioned de novo non-antibody protein binder design
+claimed_novelty: null
+model_architecture: AlphaFold2 backpropagation/hallucination + MPNN redesign + PyRosetta filtering
+input_representation: null
+encoder_decoder: null
+generative_state: Binder sequence and designed target–binder complex
+conditioning: Target chain, hotspot/interface residues, binder length and filter thresholds
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Nanomolar binders and functional examples; general binders
+tested_designs: Multiple targets; reported 10–100% task-dependent experimental success rates
+success_criterion: Nanomolar binders and functional examples; general binders
+main_results: Nanomolar binders and functional examples; general binders
+limitations: Not antibody-specific; target structure/hotspot selection and AF2 optimization
+  bias matter; integrated confidence is not experimental affinity.
+demonstrates:
+- Nanomolar binders and functional examples; general binders
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'BindCraft: one-shot design of functional protein binders'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

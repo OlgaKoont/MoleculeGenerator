@@ -1,0 +1,28 @@
+id: developability-assessment
+slug: developability-assessment
+name: Developability assessment
+group: Downstream engineering (не генерация)
+definition: Оценка solubility, aggregation, viscosity, nonspecific binding и связанных рисков.
+objective: Отфильтровать candidates, а не сгенерировать новый binder.
+starting_inputs:
+- sequence and/or structure
+generated_objects:
+- scores, not new molecules
+generator_classes: []
+strategies: []
+consequences:
+- decision: Treat score as design
+  consequence: 'Это ошибка категории: predictor ≠ generator.'
+compute_consequences:
+- Обычно дешевле generation.
+evidence_summary: В каталоге это внешние модули (CamSol, SAP-like, experimental panel).
+incomparable:
+- Не сравнивать с generative tools.
+selection_guidance:
+- Использовать после generation, не вместо неё.
+architecture_ids: []
+workflow_ids: []
+paper_ids: []
+glossary_ids:
+- developability
+downstream: true

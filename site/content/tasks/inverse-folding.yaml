@@ -1,0 +1,66 @@
+id: inverse-folding
+slug: inverse-folding
+name: Fixed-backbone inverse folding
+group: Общий белковый дизайн
+definition: Подбор sequence, совместимой с заданным backbone.
+objective: Сохранить fold/interface geometry и получить designable sequences.
+starting_inputs:
+- backbone coordinates
+- design masks
+- optional ligand/antigen context
+generated_objects:
+- sequence для фиксированного backbone
+generator_classes:
+- inverse-folding
+strategies:
+- name: Graph MPNN on backbone
+  generates: Sequence
+  representation: Residue graph + coordinates
+  examples:
+  - proteinmpnn
+  - ligandmpnn
+  limitation: Не создаёт новую topology
+  sampling: Autoregressive over residues
+  novel_topology: Нет
+  integrated_scoring: Sequence log-probability
+  complexity_drivers: Число residues и chains
+- name: Geometric encoder + autoregressive decoder
+  generates: Sequence / likelihood
+  representation: Orientation frames + coordinates
+  examples:
+  - esm-if1
+  - antifold
+  limitation: Качество определяется входным backbone
+  sampling: Temperature-based categorical sampling
+  novel_topology: Нет
+  integrated_scoring: Conditional log-likelihood
+  complexity_drivers: Длина и наличие complex context
+consequences:
+- decision: Fixed-backbone conditioning
+  consequence: Быстрее de novo generation, но topology заморожена.
+- decision: Likelihood as ranker
+  consequence: Оценивает fold compatibility, не affinity.
+compute_consequences:
+- Обычно GPU-optional для коротких цепей.
+- Не заменяет structure prediction входного комплекса.
+evidence_summary: ProteinMPNN и LigandMPNN имеют prospective structural/functional evidence для
+  общих белков; AntiFold — retrospective antibody evaluation.
+incomparable:
+- Не сравнивать с de novo backbone generation.
+selection_guidance:
+- Общий белок — ProteinMPNN/LigandMPNN.
+- Antibody Fv/VHH — AntiFold.
+- Есть ligand/metal — LigandMPNN.
+architecture_ids:
+- inverse-folding
+- graph-neural-networks
+- se3-equivariant-models
+- invariant-models
+workflow_ids:
+- fixed-backbone-inverse-folding
+- antibody-inverse-folding
+paper_ids: []
+glossary_ids:
+- inverse-folding
+- backbone
+downstream: false

@@ -1,0 +1,191 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс inverse folding описан по Hsu et al. (ESM-IF1, ICML 2022 формулировка в AntiFold SI) и Dauparas et al. ProteinMPNN (Science). Полный PMLR Hsu HTML в этом проходе не удерживался; AntiFold arXiv HTML включая Supplementary Methods прочитан. ProteinMPNN PDF в этом выпуске не перечитывался целиком — tool-specific детали ProteinMPNN остаются на его странице со статусом ниже."
+lede: "Inverse folding — **условная модель последовательности при фиксированной геометрии остова**. Это generator amino-acid tokens, не generator новой топологии и не predictor affinity."
+inaccessible:
+  - source: "Hsu et al. ICML 2022 / arXiv 2206.12094 полный PDF в этом проходе"
+    reason: "Не удерживался как полный текст (риск неверной HTML-копии)"
+    workaround: "Формула p(Y|X) и состав GVP+Transformer процитированы в AntiFold Supplementary Methods, которые прочитаны"
+  - source: "ProteinMPNN Science full methods"
+    reason: "Не перечитаны целиком в выпуске 9"
+    workaround: "Классовое описание; details — страница ProteinMPNN"
+sources:
+  - kind: PAPER
+    citation: "Høie, Hummer et al. AntiFold, arXiv 2405.03370 / Bioinformatics Advances 10.1093/bioadv/vbae202"
+    url: "https://arxiv.org/abs/2405.03370"
+    doi: "10.1093/bioadv/vbae202"
+  - kind: PAPER
+    citation: "Hsu et al. Learning inverse folding from millions of predicted structures. ICML 2022 / ESM-IF1"
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2206.12094"
+  - kind: PAPER
+    citation: "Dauparas et al. ProteinMPNN. Science 10.1126/science.add2187"
+    url: "https://doi.org/10.1126/science.add2187"
+    doi: "10.1126/science.add2187"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Inverse folding — класс **условных генераторов sequence given structure** (часто только backbone N, Cα, C). Это не active learning, не diffusion по координатам, не structure predictor. Задачи: [inverse folding](../tasks/inverse-folding.html), [antibody structure-aware sequence design](../tasks/antibody-structure-aware-sequence-design.html), stage после backbone generation."
+        source: INTERPRETATION
+      - text: "Объекты: 3D backbone (или frames) + маски позиций; выход — дискретная последовательность. Fixed-backbone design **не** исследует новую CDR topology."
+        source: PAPER
+        locator: "AntiFold Introduction; Hsu formulation quoted in AntiFold SI"
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Прямая задача: sequence → structure. Обратная: какие sequences совместимы с данным fold. Модель учит статистику packing и локальной геометрии по структурным данным. Likelihood высокой «совместимости с остовом» **не** есть измеренный Kd."
+        source: INTERPRETATION
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Родовая авторегрессионная факторизация (ESM-IF1 / формулировка в AntiFold SI Eq. 1):"
+        source: SI
+        locator: "AntiFold Supplementary Methods, Equation (1), citing Hsu et al."
+    equations:
+      - latex: "p(Y\\mid X)=\\prod_{i=1}^{n}p(y_i\\mid y_{i-1},\\ldots,y_1;X)"
+        caption: "Условная вероятность sequence $Y$ при структуре $X$. Generic IF + ESM-IF1; AntiFold наследует её."
+        generic_or_specific: generic
+        source: SI
+        symbols:
+          - {sym: Y, type: sequence, meaning: "аминокислоты $(y_1,\\ldots,y_n)$"}
+          - {sym: X, type: coordinates, meaning: "backbone N, Cα, C на каждый residue (в формулировке Hsu/AntiFold SI)"}
+          - {sym: n, type: integer, meaning: "длина цепи (или конкатенации цепей)"}
+        meaning: "Обучение — максимизация $\\log p(Y\\mid X)$, обычно cross-entropy по токенам."
+      - latex: "\\mathrm{AAR}=\\frac{1}{N}\\sum_{i=1}^{N}\\mathbf{1}[\\arg\\max_a p_i(a)=y_i^{\\mathrm{obs}}]"
+        caption: "Amino-acid recovery — метрика **ретроспективного** sequence recovery, не affinity. AntiFold SI Eq. (3)."
+        generic_or_specific: "metric [SI]"
+        source: SI
+    paragraphs:
+      - text: "ProteinMPNN использует message-passing по kNN графу residues и авторегрессию/decoding по случайному порядку — это **другая** архитектура того же класса. Не подставлять GVP-Transformer уравнения на страницу ProteinMPNN без сверки Dauparas et al."
+        source: INTERPRETATION
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы: residues. Признаки: локальные ориентации/расстояния (GVP) или расстояния/dihedrals (MPNN). Pair/edge: геометрические сообщения между соседями. Маски: какие позиции предсказывать. Антиген: опциональные дополнительные координаты (AntiFold custom_chain). Тензорные размерности ESM-IF1 hidden size в этом файле не выдумываются (NR, если не из paper/code)."
+        source: PAPER
+        locator: "AntiFold SI: 4 GVP-GNN + 8 Transformer encoder + 8 decoder; rotation/translation invariant encoder"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Физически $X$ — атомы остова (и иногда Cβ/O в других IF-моделях). $Y$ — идентичность side-chain residue, не координаты side chain (packing может быть отдельным модулем, не обязателен). SE(3): encoder ESM-IF1 **инвариантен** к глобальным rotation/translation (AntiFold SI). Перестановка residues недопустима. Chain permutation: для антител H и L конкатенируют с gap padding (AntiFold), это **конвенция представления**, не физическая симметрия."
+        source: SI
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    physchem:
+      - feature: "Backbone coordinates"
+        interpretation: "геометрия полипептидного остова"
+        encoded: "прямо"
+        limitation: "не энергия; нет гарантии стабильности нового sequence"
+      - feature: "Amino-acid tokens"
+        interpretation: "химическая идентичность residual"
+        encoded: "прямо как discrete labels"
+        limitation: "без явных частичных зарядов"
+      - feature: "GVP geometric features"
+        interpretation: "локальные ориентации и инвариантные скаляры"
+        encoded: "geometric inductive bias"
+        limitation: "equivariance/invariance ≠ физически верный комплекс"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "могут коррелировать со структурной статистикой"
+        encoded: "неявно, если вообще"
+        limitation: "нет явного force field на этапе IF"
+      - feature: "Antigen coordinates (optional)"
+        interpretation: "steric/context интерфейса как геометрический контекст"
+        encoded: "прямо как extra atoms/residues, не как ΔG"
+        limitation: "не docking score и не affinity"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Целевая: sequence recovery / teacher-forced CE. Negative non-binders обычно **не** входят как contrastive affinity loss. Fine-tune (AntiFold) адаптирует ESM-IF1 к antibody structures. Pretraining ESM-IF1 — миллионы predicted structures (Hsu); детали корпуса — на странице ESM-IF1."
+        source: PAPER
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    mermaid: |
+      flowchart TD
+        X["Backbone X: N, CA, C"] --> G["Geometric encoder GVP / MPNN"]
+        G --> H["Residue / pair features"]
+        H --> D["AR decoder p(y_i | y_<i, X)"]
+        M["Mask / temperature"] --> D
+        D --> S["Sequence Y / logits"]
+        S --> L["Likelihood ranker — evaluator"]
+    mermaid_caption: "Оригинальная схема класса IF. Likelihood — post-hoc score, не эксперимент."
+    mermaid_source: "AntiFold SI architecture description; generic IF"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Данные: experimental PDB и/или predicted structures. Фильтры resolution/redundancy — tool-specific. Masking при fine-tune AntiFold: span + shotgun, CDR-weighted 3:1 — см. tool page. Augmentation: Gaussian noise 0.1 Å на predicted backbone в AntiFold SI (как ESM-IF1)."
+        source: SI
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт: PDB/CIF. Decoding: temperature scaling logits (AntiFold SI Eq. 7, как ProteinMPNN): $\\mathrm{logits}/t$. $t\\to 0$ ≈ argmax. Отдельно: preprocessing numbering (IMGT для AntiFold sampling regions), **не** часть нейросети. Structure prediction после дизайна (ABodyBuilder2 в AntiFold evaluation) — **evaluator**, не generator."
+        source: SI
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Главный conditioner — координаты $X$. Дополнительно: residue masks, fixed identities, optional antigen chain, ligand atoms (LigandMPNN — другой инструмент). Нет experimental affinity labels в IF loss."
+        source: INTERPRETATION
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    items:
+      - "Длина $n$ (Fv ~128 IMGT позиций на цепь у AntiFold)"
+      - "kNN / pair features $O(n^2)$ если dense pairs; MPNN чаще kNN"
+      - "AR decoding $O(n)$ steps"
+      - "Число samples × temperatures"
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Фиксация backbone позволяет менять sequence, не меняя заранее выбранную геометрию интерфейса/fold — **если** входная структура верна. Инвариантность к глобальной позе снижает необходимость учить один и тот же паттерн во всех ориентациях. Это **не** гарантия правильной физики."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    items:
+      - "Математика: AR factorization зависит от порядка; masked vs AR — разные модели"
+      - "Представление: нет новой topology"
+      - "Физика: нет растворителя/энтропии"
+      - "Данные: bias solved/predicted structures, antibody vs general proteins"
+      - "Deployment: мусор на входе (неверный CDR) → правдоподобный мусор на выходе"
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Дизайн вокруг неверного interface / truncated antigen"
+      - "Высокий AAR на framework при слабом CDRH3"
+      - "Likelihood как ложный affinity"
+      - "Перенос общего ProteinMPNN на antibody loops без fine-tune"
+      - "IMGT insertions / chain reorder (отмечено AntiFold vs ProteinMPNN) [PAPER]"
+  - id: tools
+    title: "16. Реализации в инструментах"
+    tables:
+      - headers: ["Tool", "Generic IF", "Tool-specific", "Отличие"]
+        rows:
+          - ["[AntiFold](../tools/antifold.html)", "ESM-IF1 GVP-Transformer p(Y|X)", "Fine-tune на SAbDab+OAS ABB2; H/L concat+gap; IMGT regions", "Antibody-specific; likelihood ≠ Kd"]
+          - ["[ESM-IF1](../tools/esm-if1.html)", "тот же класс", "General proteins, millions predicted structures", "Не antibody-fine-tuned"]
+          - ["[ProteinMPNN](../tools/proteinmpnn.html)", "kNN MPNN inverse folding", "Другой encoder", "Не путать уравнения с ESM-IF1"]
+          - ["[LigandMPNN](../tools/ligandmpnn.html)", "IF с ligand atoms", "Ligand context", "Не разобран глубоко в этом выпуске"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Нужен: [inverse folding](../tasks/inverse-folding.html), [antibody inverse folding workflow](../workflows/antibody-inverse-folding.html). Не замена [de novo backbone](../tasks/de-novo-backbone-generation.html) или [RFantibody diffusion](../tools/rfantibody.html)."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Ingraham et al. 2019 (graph protein design), Jing GVP, Hsu ESM-IF1, Dauparas ProteinMPNN, Dreyer AbMPNN, AntiFold. Independent CDR IF benchmark: Li et al. PLOS ONE 2025 — в этом выпуске не читался целиком, только DOI с README AntiFold."
+        source: DOC
+citations:
+  - id: 1
+    text: "Hsu C. et al. Learning inverse folding from millions of predicted structures. ICML 2022."
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+  - id: 2
+    text: "Dauparas J. et al. Robust deep learning–based protein sequence design using ProteinMPNN. Science (2022)."
+    doi: "10.1126/science.add2187"
+  - id: 3
+    text: "Høie M.H., Hummer A. et al. AntiFold. Bioinformatics Advances (2025); arXiv:2405.03370."
+    doi: "10.1093/bioadv/vbae202"
+    url: "https://arxiv.org/abs/2405.03370"
+  - id: 4
+    text: "Jing B. et al. Learning from protein structure with geometric vector perceptrons."
+    url: "https://arxiv.org/abs/2009.01411"
+unresolved:
+  - "Полный Hsu et al. methods (CATH splits, noise schedule) не перечитаны в этом выпуске"
+  - "ProteinMPNN decoder order details — на странице инструмента, статус не verified здесь"

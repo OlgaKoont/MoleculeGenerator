@@ -1,0 +1,69 @@
+id: epitope-mab-tfold
+slug: epitope-mab-tfold
+name: Epitope-specific mAb CDR generation (tFold)
+use_case: Есть antigen sequence и epitope; нужен paired mAb на human framework с virtual screening.
+required_input:
+- antigen sequence
+- specified epitope
+- human framework
+stages:
+- name: CDR sequence generation
+  architecture_class: Sequence generator
+  what_happens: Генерируются CDR sequences
+  generation_or_evaluation: generation
+  generator: tfold
+  intermediate_object: CDR libraries
+  alternatives:
+  - palm-h3
+  node_links:
+  - tfold
+  - protein-language-models
+- name: Antibody/complex modeling
+  architecture_class: tFold-Ab / tFold-Ag
+  what_happens: Предсказываются structures/complexes
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Predicted complexes
+  alternatives: []
+  node_links:
+  - tfold-predictors
+- name: Virtual screening filters
+  architecture_class: Structure-aware filters
+  what_happens: Новизна/binding/developability filters
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Shortlist
+  alternatives: []
+  node_links: []
+- name: Phage display / SPR
+  architecture_class: null
+  what_happens: Experimental selection
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Characterized mAbs
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: NR. Commercial partnership requested for license.
+evidence_level: 3–5 prospective, но generation, ranking и display intertwined.
+failure_points:
+- Приписать Kd одному generator.
+- Custom license.
+- Framework space constrained.
+decision_criteria:
+- Допустима ли custom license?
+- Есть ли display campaign?
+task_ids:
+- antigen-conditioned-antibody-design
+- de-novo-antibody-design
+- cdr-sequence-generation
+tool_ids:
+- tfold
+architecture_ids:
+- protein-language-models
+- geometric-transformers
+paper_ids:
+- paper-tfold
+mermaid: "flowchart TD\n    A[Antigen sequence + epitope] --> B[CDR sequence generator]\n    B\
+  \ --> C[tFold-Ab/Ag complex models]\n    C --> D[Virtual screening]\n    D --> E[Display / SPR]\n\
+  \    E --> F[Characterized antibodies]"

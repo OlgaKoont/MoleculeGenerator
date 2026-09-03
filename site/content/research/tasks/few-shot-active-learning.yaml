@@ -1,0 +1,10 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Не смешивать с zero-shot и de novo
+  level: 2
+  blocks:
+  - type: p
+    text: Few-shot AL требует labels каждый раунд. Zero-shot \(\Delta\\ell\) scoring не обновляет модель по вашему assay. De novo diffusion не стартует из enumerated mutant pool. Сравнивать success rate с <a href="/tools/rfantibody.html">RFantibody</a> недопустимо.
+  - type: p
+    text: Для EVOLVEpro sampling = greedy ranking, не Bayesian acquisition, если не выбран другой learning_strategy в симуляторе. [CODE]

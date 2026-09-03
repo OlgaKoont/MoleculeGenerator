@@ -1,0 +1,9 @@
+id: diffusion
+slug: diffusion
+term: Diffusion model
+term_ru: Диффузионная модель
+definition: Генерация через постепенное зашумливание данных и обучение denoiser восстанавливать чистое
+  состояние.
+related_ids:
+- flow-matching
+- sampling

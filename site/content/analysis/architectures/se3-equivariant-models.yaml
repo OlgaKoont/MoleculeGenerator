@@ -1,0 +1,537 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс inductive bias SE(3)/E(3) описан по Jing et al. GVP (arXiv HTML 2009.01411 / ICLR 2021), Thomas et al. TFN (arXiv 1802.08219), Satorras et al. EGNN (arXiv 2102.09844), Hsu et al. ESM-IF1 (bioRxiv 10.1101/2022.04.10.487779 v2 HTML, Appendix A.3), Yim et al. FrameDiff (arXiv 2302.02277 HTML), Luo et al. DiffAb (NeurIPS 2022 PDF, Proposition 1), Kong et al. dyMEAN (arXiv 2302.00203 HTML, AME Eqs. 8–13). Код: luost26/diffab commit c3e2966601bf8025025ab87717b31b08fdd4834e, `EpsilonNet.forward`. Nature RFdiffusion / Science RFdiffusion-AA / AbDiffuser methods в этом проходе не close-read. Fuchs SE(3)-Transformer и Puny frame averaging — pointer-only."
+lede: "SE(3)-equivariant сети — это **geometric inductive bias** на функции от 3D точек и frames: векторные выходы вращаются вместе с входом. Это не generator без головы (diffusion / IF / refine), не predictor affinity и не гарантия термодинамической устойчивости."
+inaccessible:
+  - source: "Watson et al. RFdiffusion Nature 10.1038/s41586-023-06415-8 full Methods"
+    reason: "Nature HTML timed out в этом проходе; не постраничный close-read"
+    workaround: "Yim et al. FrameDiff §1/§6 описывает RFdiffusion как pretrained structure module + heuristic denoising; канон geometry — страница frame-diffusion"
+  - source: "Krishna et al. / RFdiffusion All-Atom Science 10.1126/science.adl2528 Methods"
+    reason: "Не читался"
+    workaround: "Строка в таблице tools: NR; не копировать FrameDiff IPA как RFAA"
+  - source: "AbDiffuser arXiv 2308.05027 architecture + official repo"
+    reason: "catalog official_repository null; paper не close-read"
+    workaround: "NR в tool-specific"
+  - source: "Fuchs et al. SE(3)-Transformer (ICML 2020) full text"
+    reason: "Pointer-only; не транскрибировали attention на irreps"
+    workaround: "Подтип TFN/SE(3)-Transformer описан через Thomas TFN filters; Fuchs — citation"
+  - source: "Jumper et al. AlphaFold2 SI Algorithm 22 (полный IPA)"
+    reason: "Коэффициенты IPA не переписывались из AF2 SI в этом выпуске"
+    workaround: "Качественно: FrameDiff §4.1 — IPA SE(3)-invariant; DiffAb §3.3 называет IPA orientation-aware roto-translation invariant"
+  - source: "facebookresearch/esm inverse_folding/*.py line audit"
+    reason: "Commit зафиксирован ранее; GVP-код IF1 не построчно"
+    workaround: "Hsu §GVP-Transformer + Appendix A.3"
+sources:
+  - kind: PAPER
+    citation: "Jing B. et al. Learning from Protein Structure with Geometric Vector Perceptrons. ICLR 2021; arXiv:2009.01411"
+    url: "https://arxiv.org/abs/2009.01411"
+    doi: "10.48550/arXiv.2009.01411"
+    note: "HTML arXiv прочитан: Algorithm 1, Eq. 1–5, protein graph k=30"
+  - kind: PAPER
+    citation: "Thomas N. et al. Tensor field networks: Rotation- and translation-equivariant neural networks for 3D point clouds. arXiv:1802.08219"
+    url: "https://arxiv.org/abs/1802.08219"
+    note: "HTML arXiv: spherical-harmonic filters, Clebsch–Gordan, l=0/1"
+  - kind: PAPER
+    citation: "Satorras V.G., Hoogeboom E., Welling M. E(n) Equivariant Graph Neural Networks. ICML 2021; arXiv:2102.09844"
+    url: "https://arxiv.org/abs/2102.09844"
+    note: "EGCL Eqs. 3–6; E(n) includes reflections"
+  - kind: PAPER
+    citation: "Hsu C. et al. Learning inverse folding from millions of predicted structures. ICML 2022 / bioRxiv 10.1101/2022.04.10.487779"
+    url: "https://www.biorxiv.org/content/10.1101/2022.04.10.487779v2.full"
+    doi: "10.48550/arXiv.2204.07148"
+    note: "GVP equivariant internally; overall p(Y|X) invariant (Appendix A.3)"
+  - kind: PAPER
+    citation: "Yim J. et al. SE(3) diffusion model with application to protein backbone generation. ICML 2023 / arXiv:2302.02277"
+    url: "https://arxiv.org/abs/2302.02277"
+    note: "SO(3)-equivariant score; IPA + Transformer FramePred; 20312 PDB monomers"
+  - kind: PAPER
+    citation: "Luo S. et al. Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models. NeurIPS 2022"
+    url: "https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf"
+    note: "§3.3 local-frame ε; Proposition 1 F/G/H"
+  - kind: PAPER
+    citation: "Kong X., Huang W., Liu Y. End-to-End Full-Atom Antibody Design (dyMEAN). ICML 2023; arXiv:2302.00203"
+    url: "https://arxiv.org/abs/2302.00203"
+    note: "AME Eqs. 8–13; E(3); Kabsch docking"
+  - kind: CODE
+    citation: "luost26/diffab EpsilonNet.forward — local ε then apply_rotation_to_vector"
+    url: "https://github.com/luost26/diffab/blob/c3e2966601bf8025025ab87717b31b08fdd4834e/diffab/modules/diffusion/dpm_full.py"
+    note: "commit c3e2966601bf8025025ab87717b31b08fdd4834e"
+repo:
+  url: "https://github.com/luost26/diffab"
+  commit: "c3e2966601bf8025025ab87717b31b08fdd4834e"
+  ref: "main (archived)"
+  license: "Apache-2.0 (каталог YAML); SPDX не перечитывался"
+  files:
+    - diffab/modules/diffusion/dpm_full.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **geometric inductive bias** внутри другой головы: denoiser frames, inverse-folding encoder, iterative full-atom refine. Сама по себе SE(3)-сеть не задаёт $p(\\mathrm{data})$ и не выбирает mutants. Generated/scored state зависит от головы: обновлённые координаты или frames, equivariant vector channels, либо (после проекции в локальный кадр) invariant scalars для sequence logits."
+        source: INTERPRETATION
+      - text: "Математический объект входа — конечное множество точек $x_i\\in\\mathbb{R}^3$ и/или residue frames $T_i=(R_i,t_i)\\in\\mathrm{SE}(3)$, плюс invariant атрибуты (тип атома, pair distances). Выход векторного типа должен преобразовываться как геометрический тензор при глобальном движении лабораторной системы."
+        source: PAPER
+        locator: "Thomas et al. §representations; Jing Eq. 1; Yim FrameDiff §1 SE(3)^N"
+      - text: "Задачи каталога, куда bias встраивается: [de novo backbone](/tasks/de-novo-backbone-generation.html) ([FrameDiff](/tools/framediff.html), [RFdiffusion](/tools/rfdiffusion.html)), [joint CDR sequence–structure](/tasks/joint-cdr-sequence-structure-design.html) ([DiffAb](/tools/diffab.html), [dyMEAN](/tools/dymean.html)), [de novo antibody](/tasks/de-novo-antibody-design.html) ([RFantibody](/tools/rfantibody.html) как frame diffusion + IF). Не few-shot ELISA и не codon optimization."
+        source: MATRIX
+        locator: "seed applicable_task_ids; reverse index tools"
+      - text: "Это **не** [invariant models](/architectures/invariant-models.html): там $f(Rx+t)=f(x)$ для скаляров (IF logits, 2D templates). Это **не** [geometric transformers](/architectures/geometric-transformers.html) как задача «Transformer поверх геометрии»: GVP-Transformer Hsu — гибрид, у которого Transformer уже на invariant tokens. Это **не** [frame diffusion](/architectures/frame-diffusion.html) и **не** [coordinate diffusion](/architectures/coordinate-diffusion.html): те классы задают noising/score на состоянии; equivariant net — только аппроксиматор score/ε. Это **не** [graph neural networks](/architectures/graph-neural-networks.html) в целом: обычный MPNN на скалярных рёбрах (длины) не обязан быть SE(3)-equivariant для координат."
+        source: INTERPRETATION
+      - text: "Catalog `architecture_ids` включают этот класс: [AbDiffuser](/tools/abdiffuser.html), [DiffAb](/tools/diffab.html), [dyMEAN](/tools/dymean.html), [ESM-IF1](/tools/esm-if1.html), [FrameDiff](/tools/framediff.html), [RFantibody](/tools/rfantibody.html), [RFdiffusion-AA](/tools/rfdiffusion-aa.html), [RFdiffusion](/tools/rfdiffusion.html). Часто путают с [ProteinMPNN](/tools/proteinmpnn.html) (GNN на локальных инвариантах, **нет** этого id) и с [AntiFold](/tools/antifold.html) (fine-tune ESM-IF1, id = inverse folding / geometric transformers)."
+        source: MATRIX
+      - text: "**ESM-IF1 в этом id — особый случай.** GVP-слои rotation-equivariant для vector channels (Jing; Hsu). Released GVP-Transformer делает change of basis в локальные N–Cα–C кадры и дальше обычный Transformer; итоговый $p(Y\\mid X)$ **инвариантен**: $p(Y\\mid X)=p(Y\\mid TX)$ (Hsu Appendix A.3). Нельзя описывать ESM-IF1 как сеть, которая выдаёт повёрнутые координаты."
+        source: PAPER
+        locator: "Hsu bioRxiv §GVP-Transformer; Appendix A.3"
+      - text: "SE(3) vs E(3): группа ориентаций-сохраняющих движений vs та же плюс отражения. EGNN и dyMEAN формулируют E(n)/E(3) (ортогональные $Q$, включая reflections). GVP Eq. 1 — rotations **and** reflections. DiffAb Proposition 1 — proper $R\\in\\mathrm{SO}(3)$. Не смешивать «всегда без зеркал»."
+        source: PAPER
+        locator: "Satorras §3.1; Kong Theorem 4.1; Jing Eq. 1; Luo Prop. 1"
+      - text: "Класс не закрывает [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html) сам по себе: Δℓ ESM-IF1 — голова IF, не equivariant vector field."
+        source: INTERPRETATION
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Лабораторная поза комплекса произвольна. Сеть, которая запоминает абсолютные xyz, тратит ёмкость на одну и ту же геометрию во всех ориентациях. Equivariant слой строится так, что единственные операции над векторами — линейные комбинации, поэлементное масштабирование нормами и свёртка с фильтрами, наследующими сферические гармоники; тогда поворот входа поворачивает векторный выход, а скаляры (энергии-подобные, типы, attention weights из расстояний) остаются на месте."
+        source: PAPER
+        locator: "Jing §3.1; Thomas §filters; Satorras Eq. 4 radial updates"
+      - text: "На inference меняется **геометрическое состояние**, которое голова умеет обновлять: noisy frames → predicted $x_0$ / score (FrameDiff); local-frame Cartesian ε → world `R @ ε` (DiffAb); multi-channel atom coords (dyMEAN AME). Sequence logits, если есть, берутся из invariant канала. Глобальный поворот всего комплекса не должен менять designed sequence и внутреннюю геометрию — только абсолютную позу выхода."
+        source: PAPER
+        locator: "Luo Prop. 1; Yim Corollary 3.7; Kong Theorem 4.1"
+      - text: "Главный эмпирический рычаг — **локальный кадр residue** (N–Cα–C / AF2 Algorithm 21): предсказывать смещение в этом кадре и поворачивать в мир. DiffAb прямо: $\\hat\\varepsilon_j = O_j^t\\,\\mathrm{MLP}_G(h_j)$. Тот же приём в Hsu для *инвариантности* Transformer (проекция GVP vectors **внутрь** кадра, без обратного поворота в мир)."
+        source: PAPER
+        locator: "Luo §3.3; Hsu Appendix A.3; CODE dpm_full.py apply_rotation_to_vector"
+      - text: "Предостережение по метрикам. scRMSD / scTM после ProteinMPNN+ESMFold (FrameDiff Fig. 3) — **self-consistency evaluator**, не experimental fold и не $K_d$. pLDDT ESMFold на сэмпле FrameDiff — confidence предиктора. AAR / lDDT / DockQ dyMEAN Table 1 — retrospective vs crystal, не BLI. Rosetta/OpenMM после DiffAb — post-hoc packer/minimizer. Ни один из них не следует из equivariance."
+        source: PAPER
+        locator: "Yim §designability; Kong §metrics; Luo §3.4 Rosetta+OpenMM"
+      - text: "FAPE (AF2) может входить в auxiliary structure losses FrameDiff; это не определение equivariance и не affinity loss. Не переносить UCB или ProGen NLL на эту страницу."
+        source: INTERPRETATION
+        locator: "Yim §4.2 auxiliary losses near t≈0; w=0.25"
+      - text: "Centering CoM (FrameDiff training): без центра нет $\\mathbb{R}^3$-invariant вероятностной меры; translation invariance процесса достигается удержанием диффузии в начале координат. Это ограничение **генеративной** постановки на SE(3)^N, не свойство любого GVP-слоя на фиксированном комплексе."
+        source: PAPER
+        locator: "Yim §3.3 and §centering of training examples"
+      - text: "Permutation residues ломает химию цепи; SE(3)-слой обычно permutation-equivariant как GNN на **множестве** точек (Thomas; Satorras), но белок имеет sequential порядок в AR-IF голове — это уже другой класс."
+        source: PAPER
+        locator: "Thomas permutation; Hsu AR decoder"
+      - text: "Отражения: E(3)-equivariant слой будет зеркалить векторный выход. Для L-аминокислот chirality — физическое ограничение; ломать её «успешной equivariance» нельзя выдавать за правильную биохимию."
+        source: INTERPRETATION
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Ниже — родовая SE(3)-эквивариантность векторного поля на точках. Она **не** является уравнением RFdiffusion, DiffAb DDPM, ESM-IF1 CE или dyMEAN Kabsch. Подтипы — отдельные формулы. Не подставлять seed one-liner $f(Rx+t)=Rf(x)+t$ как «loss RFdiffusion»."
+        source: INTERPRETATION
+    equations:
+      - latex: "f(Rx+t)=Rf(x)+t\\qquad\\forall R\\in\\mathrm{SO}(3),\\; t\\in\\mathbb{R}^3"
+        caption: "Родовая SE(3)-эквивариантность векторного выхода $f$ на облаке точек $x$. Для скалярного выхода — инвариантность $s(Rx+t)=s(x)$ (другой класс). Generic."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: x, type: "R^{N×3}", meaning: "координаты точек / Cα / atoms"}
+          - {sym: R, type: "SO(3)", meaning: "глобальный поворот лабораторной системы"}
+          - {sym: t, type: "R^3", meaning: "глобальный сдвиг"}
+          - {sym: f, type: "map", meaning: "сеть или голова с векторным выходом той же размерности, что и x"}
+        meaning: "Обучается не эта формула, а конкретный denoising / CE / coordinate MSE при архитектуре, которая формуле удовлетворяет (доказательство по слоям). Семплируется геометрическое состояние головы, не «группа SE(3)»."
+    sections:
+      - id: math-gvp
+        level: 3
+        title: "GVP (Jing) — vector neurons"
+        equations:
+          - latex: "\\mathrm{GVP}(\\mathbf{s},R(\\mathbf{V}))=(\\mathbf{s}',R(\\mathbf{V}'))"
+            caption: "Jing Eq. 1. $R$ — произвольная композиция поворотов и отражений в $\\mathbb{R}^3$. Скаляры invariant, векторы equivariant. Algorithm 1: $V_h=W_h V$, нормы $\\|V_h\\|_2$ конкатенируются в scalar MLP, $V'=\\sigma^+(\\|V_\\mu\\|_2)\\odot V_\\mu$."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Jing Algorithm 1; Eq. 1"
+            symbols:
+              - {sym: "\\mathbf{s}", type: "R^n", meaning: "invariant scalar channels"}
+              - {sym: "\\mathbf{V}", type: "R^{ν×3}", meaning: "vector channels (каждая строка в R^3)"}
+              - {sym: "W_h,W_\\mu,W_m", type: "matrices", meaning: "обучаемые линейные карты; действуют на каналы, не на xyz как свёртка SO(3)"}
+            meaning: "GVP — слой. Loss CPD у Jing — AR sequence CE на CATH; MQA — регрессия GDT-TS. Не ΔG."
+      - id: math-egnn
+        level: 3
+        title: "EGNN (Satorras) — radial coordinate updates"
+        equations:
+          - latex: "\\mathbf{m}_{ij}=\\phi_e(\\mathbf{h}_i^l,\\mathbf{h}_j^l,\\|\\mathbf{x}_i^l-\\mathbf{x}_j^l\\|^2,a_{ij}),\\quad \\mathbf{x}_i^{l+1}=\\mathbf{x}_i^l+C\\sum_{j\\neq i}(\\mathbf{x}_i^l-\\mathbf{x}_j^l)\\phi_x(\\mathbf{m}_{ij})"
+            caption: "Satorras Eqs. 3–4. Сообщения зависят от квадрата расстояния (invariant). Сдвиг координат — взвешенная сумма относительных векторов (equivariant type-1). $C=1/(M-1)$ в paper. E(n): $Q\\mathbf{x}+g$."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Satorras Eqs. 3–4, 3.1"
+            symbols:
+              - {sym: "\\mathbf{h}_i", type: "R^{nf}", meaning: "invariant node embedding"}
+              - {sym: "\\phi_e,\\phi_x", type: "MLP", meaning: "edge MLP и скалярный вес радиального поля"}
+              - {sym: "\\mathbf{x}_i", type: "R^n", meaning: "координаты; n=3 для белков"}
+            meaning: "В каталоге нет tool с чистым EGNN как единственной архитектурой. Не подставлять Eqs. 3–4 на RFdiffusion."
+      - id: math-tfn
+        level: 3
+        title: "TFN (Thomas) — spherical harmonic filters"
+        equations:
+          - latex: "F^{(l_f,l_i)}_c(\\vec{r})=R^{(l_f,l_i)}_c(\\|\\vec{r}\\|)\\,Y^{(l_f)}(\\hat{r})"
+            caption: "Thomas: фильтр = обучаемая радиальная функция × сферическая гармоника. Свёртка + Clebsch–Gordan даёт слои, отображающие irreps $l\\to l'$. Translation equivariance — только разности $\\vec{r}_i-\\vec{r}_j$. $l=0$ скаляры, $l=1$ векторы."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Thomas filter restriction; spherical harmonics l=0,1"
+            symbols:
+              - {sym: "Y^{(l)}", type: "spherical harmonic", meaning: "угловая часть фильтра, SO(3)-equivariant"}
+              - {sym: "R_c(\\|r\\|)", type: "R→R", meaning: "обучаемый радиальный профиль канала c"}
+              - {sym: l, type: "int", meaning: "rotation order / irrep"}
+            meaning: "Вычислительно тяжелее GVP/EGNN (гармоники). В catalog tools как самостоятельный backbone — NR. SE(3)-Transformer Fuchs — pointer, формула attention на irreps здесь не выписана."
+      - id: math-ipa
+        level: 3
+        title: "IPA + BackboneUpdate (Jumper / FrameDiff)"
+        paragraphs:
+          - text: "Invariant Point Attention (AF2) обновляет **скалярные** node embeddings, посещая соседей в координатном пространстве с queries/keys, построенными в локальных frames; FrameDiff: «updates are SE(3)-invariant since IPA is SE(3)-invariant». Затем `BackboneUpdate` (AF2 Algorithm 23) линейно предсказывает translation и rotation updates кадров. Это **не** уравнение score matching: score $s_\\theta^r,s_\\theta^x$ в FrameDiff получают из предсказанного $\\hat T^{(0)}$ через условный $\\nabla\\log p_{t|0}$. Полные суммы IPA (Algorithm 22) в этом файле NR."
+            source: PAPER
+            locator: "Yim §4.1 FramePred; Luo §3.3 IPA citation"
+        equations:
+          - latex: "s_\\theta^{\\mathrm{x}}(t,\\mathbf{T}^{(t)})_n=\\nabla_{\\mathbf{X}_n^{(t)}}\\log p_{t|0}(\\mathbf{X}_n^{(t)}\\mid\\hat{\\mathbf{X}}_n^{(0)})"
+            caption: "FrameDiff: перевод предсказания кадра в translation score. Rotation analogously on SO(3). Не DiffAb ε-MSE. Не ставить как default всех восьми catalog tools."
+            generic_or_specific: "FrameDiff [PAPER]"
+            source: PAPER
+            locator: "Yim §4.1 Score parameterization"
+            symbols:
+              - {sym: "\\mathbf{T}^{(t)}", type: "SE(3)^N", meaning: "noisy frames"}
+              - {sym: "\\hat{\\mathbf{X}}^{(0)}", type: "R^{N×3}", meaning: "сеть предсказывает чистые трансляции (через FramePred)"}
+            meaning: "Оптимизируется DSM на SO(3)×R^3 (центрированный процесс). Семплируется reverse SDE/ODE на frames; sequence — отдельный ProteinMPNN (evaluator/design stage)."
+      - id: math-diffab
+        level: 3
+        title: "Local-frame ε → world (DiffAb; не универсальная формула класса)"
+        equations:
+          - latex: "\\hat{\\varepsilon}_j=O_j^{t}\\,\\mathrm{MLP}_G(h_j)"
+            caption: "Luo §3.3. Код: `eps_crd = eps_crd_net(in_feat)`; `eps_pos = apply_rotation_to_vector(R, eps_crd)` при $R=\\mathrm{so3vec\\_to\\_rotation}(v_t)$. Proposition 1: $F$ invariant (типы), $G$ и $H$ equivariant (позиции и ориентации) к $(R,r)\\in\\mathrm{SE}(3)$."
+            generic_or_specific: "DiffAb [PAPER Prop. 1 + CODE]"
+            source: CODE
+            locator: "dpm_full.py EpsilonNet.forward; Luo Eqs. 14–16"
+            symbols:
+              - {sym: "O_j^t", type: "SO(3)", meaning: "ориентация residue j на шаге t"}
+              - {sym: "h_j", type: "vector", meaning: "IPA hidden; DiffAb paper — shared encoder + MLP"}
+              - {sym: "F,G,H", type: "networks", meaning: "type / Cα / orientation denoisers (Prop. 1)"}
+            meaning: "Train target DiffAb — joint diffusion type+Cα+SO(3), не эта страница. Здесь только механизм equivariance головы G."
+      - id: math-dymean
+        level: 3
+        title: "AME multi-channel (dyMEAN; tool-specific)"
+        paragraphs:
+          - text: "Kong Eqs. 8–11: invariant messages $m_{ij}$ из нормализованного $T_R(X_i,X_j)$; координаты $X_i\\in\\mathbb{R}^{3\\times c_i}$ (разное число атомов) обновляются $T_S$-масштабированными относительными каналами. $T_R$ E(3)-invariant, $T_S$ O(3)-equivariant. Docking — Kabsch paratope↔shadow paratope (Eq. 18), не часть GVP. Не копировать AME на FrameDiff."
+            source: PAPER
+            locator: "Kong §4.3 Eqs. 8–13; Theorem 4.1"
+    tables:
+      - caption: "Смежные постановки, которые нельзя смешивать"
+        source: INTERPRETATION
+        headers: ["Постановка", "Train target", "Sampler / декодер", "Что в каталоге"]
+        rows:
+          - ["SE(3)-equivariant networks (эта страница)", "зависит от головы; bias не loss", "слой внутри другого алгоритма", "8 tools с architecture_id"]
+          - ["[Invariant models](/architectures/invariant-models.html)", "CE / scalar regression", "IF logits, 2D templates", "ESM-IF1 (выход invariant)"]
+          - ["[Frame diffusion](/architectures/frame-diffusion.html)", "SE(3) score / $x_0$ frames", "reverse на $(R_i,t_i)$", "RFdiffusion, FrameDiff, RFantibody"]
+          - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "score/ε на xyz", "SDE/DDPM на точках", "Chroma, RFdiffusion-AA (гибрид)"]
+          - ["[Joint seq–struct diffusion](/architectures/joint-sequence-structure-diffusion.html)", "ε-pos + rot + seq KL", "T reverse steps", "DiffAb, AbDiffuser, BoltzGen"]
+          - ["[GNN](/architectures/graph-neural-networks.html)", "CE IF / design-net", "MPNN kNN", "ProteinMPNN — **нет** этого id"]
+          - ["[Geometric transformers](/architectures/geometric-transformers.html)", "CE $p(Y\\mid X)$ после GVP", "AR Transformer", "ESM-IF1, AntiFold, tFold"]
+    paragraphs:
+      - text: "Формулы, которые **не** принадлежат default ни одному catalog tool как «уравнение SE(3)-класса»: UCB; ProGen NLL; MLM Δℓ; FAPE как единственный loss (auxiliary у FrameDiff); DiffAb KL-on-amino-acids; ProteinMPNN random-order decode."
+        source: INTERPRETATION
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы: атомы (TFN point cloud) или residues (GVP, IPA, DiffAb, dyMEAN). GVP (Jing §3.2): scalar dihedrals $\\{\\sin,\\cos\\}\\circ\\{\\phi,\\psi,\\omega\\}$; vector unit directions Cα forward/reverse и imputed Cβ; edges — k=30 nearest Cα, unit Cα–Cα, 16 Gaussian RBF на $[0,20]$ Å, sinusoidal sequence distance $j-i$. Hidden sizes Jing Appendix D в этом файле не копируются (NR, если не из той таблицы)."
+        source: PAPER
+        locator: "Jing §3.2 protein graph"
+      - text: "Hsu GVP-Transformer: после 4 GVP-GNN encoder — local frames как AF2 Algorithm 21; invariant tokens в Transformer $d=512$, 8 heads, 8+8 layers, 142M (текст Appendix; Table A.1 numeric grid NR)."
+        source: PAPER
+        locator: "Hsu §GVP-Transformer; Appendix A.3"
+      - text: "DiffAb train config (ранее аудированный codesign_single.yml): `res_feat` dim 128, `pair_feat` 64, GAEncoder layers 6, T=100, position scale 10 Å. `t_embed=(\\beta,\\sin\\beta,\\cos\\beta)` конкатенируется к residue features перед ε-головами. `mask_generate` vs context. Не выдумывать иные dim."
+        source: CODE
+        locator: "diffab analysis: codesign_single.yml; dpm_full.py t_embed"
+      - text: "FrameDiff: node $h_\\ell\\in\\mathbb{R}^{N\\times D_h}$, edge $z_\\ell\\in\\mathbb{R}^{N\\times N\\times D_z}$, fully connected (квадратично по N). $D_h,D_z$ — Appendix I.2, в HTML не извлечены → NR. L=4 layers, 17.4M parameters (main text)."
+        source: PAPER
+        locator: "Yim Fig. 2; §5 17.4M, L=4"
+      - text: "dyMEAN: на вершине invariant $h_i\\in\\mathbb{R}^d$ и $X_i\\in\\mathbb{R}^{3\\times c_i}$ (c_i = число атомов residue). Epitope / antibody / shadow paratope — разные графы; обмен только $h_i$, не $X_i$."
+        source: PAPER
+        locator: "Kong §4 overview"
+      - text: "Вход сети vs внешние файлы. PDB/CIF numbering, IMGT, contig/hotspot RFdiffusion, SAbDab summary TSV DiffAb — preprocessor, не тензор equivariant слоя. Library CSV EVOLVEpro к этому классу не относится."
+        source: INTERPRETATION
+      - text: "Аугментации. GVP/Hsu: Gaussian noise на predicted backbone (Hsu; AntiFold SI цитирует 0.1 Å — IF страница). FrameDiff: random global rotation совместима с equivariance; **centering** обязателен для DSM на R^3. DiffAb: normalize Cα (mean 0, scale 10 Å) так, что CDR ≈ standard normal — это standardization, не data aug в смысле extra copies."
+        source: PAPER
+        locator: "Yim centering; Luo §3.4 coordinate normalize; Hsu span mask / noise"
+      - text: "Pair features: distances и dihedrals (DiffAb pairwise MLP; RF 2D template на [invariant models](/architectures/invariant-models.html)). Они invariant; не путать с vector channels."
+        source: PAPER
+        locator: "Luo §3.3 pairwise embedding"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Точки $x_i$ — ядра атомов или Cα в Å. Frame $T_i$ — ориентация пептидной плоскости / N–Cα–C (Yim Fig. 1A; AF2 frames). GVP imputed Cβ — tetrahedral construction, не экспериментальный Cβ при глицине."
+        source: PAPER
+        locator: "Jing Cβ formula; Yim backbone N-Cα-C-O"
+      - text: "SE(3): слои GVP/EGNN/TFN **equivariant** для векторных каналов. IPA **invariant** для node embeddings (FrameDiff). Итоговая IF-голова ESM-IF1 **invariant**. DiffAb G,H **equivariant**. Смешивать эти четыре статуса в одну фразу «модель equivariant» нельзя."
+        source: PAPER
+      - text: "Глобальный поворот: vector/frame выходы поворачиваются; sequence нет. Перестановка residues: GNN permutation-equivariant на множестве, но пептидная связность и AR order — биологический порядок, не S_N-симметрия белка. Chain concat (Hsu 10 mask tokens) — конвенция представления комплексов, не физический линкер и не SE(3)."
+        source: PAPER
+        locator: "Hsu complexes 10 mask tokens"
+      - text: "Side chains. Jing GVP CPD — backbone-only graph (side chains unknown). DiffAb: reconstruct N,Cα,C,O,Cβ from Cα+orientation (Engh & Huber), rest — Rosetta pack (evaluator). dyMEAN — full-atom $c_i$ channels в state. FrameDiff/RFdiffusion — backbone frames; sequence+pack после."
+        source: PAPER
+        locator: "Luo §3.4; Kong AME; Yim backbone"
+      - text: "Промежуточный noisy $x_t$ / $T_t$ — не MD-траектория и не энергия. Local-frame $\\varepsilon$ — статистический residual, не сила."
+        source: INTERPRETATION
+      - text: "Chirality: proper-rotation SE(3) сохраняет ориентацию; E(3)/GVP reflections могут порождать D-геометрию, если нет явного ограничения. NR, проверялся ли каждый catalog checkpoint на mirrored inputs."
+        source: NR
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    physchem:
+      - feature: "Координаты атомов / Cα"
+        interpretation: "ядерная геометрия в лабораторной системе"
+        encoded: "прямо как $x$ или $t_i$ кадра"
+        limitation: "нет электронной плотности, протонов, растворителя"
+      - feature: "Residue frames / SO(3) ориентации"
+        interpretation: "жёсткий локальный остов N–Cα–C"
+        encoded: "прямо (DiffAb, FrameDiff)"
+        limitation: "гибкость петли ≠ MD; ω-cis не из equivariance"
+      - feature: "GVP vector channels / imputed Cβ"
+        interpretation: "ориентация side-chain stub / peptide plane"
+        encoded: "прямо как $\\mathbf{V}$; Cβ imputed tetrahedral"
+        limitation: "не rotamer library"
+      - feature: "Pair distances / dihedrals / RBF"
+        interpretation: "инвариантные контакты и торсии"
+        encoded: "прямо в рёбрах/pairs"
+        limitation: "не H-bond donor–acceptor chemistry"
+      - feature: "Amino-acid identity"
+        interpretation: "химический тип residue"
+        encoded: "invariant one-hot / discrete diffusion (DiffAb F); не вектор SE(3)"
+        limitation: "нет частичных зарядов"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "steric context интерфейса"
+        encoded: "прямо как зажатые точки/frames (DiffAb context; RFantibody hotspot — на frame-diffusion)"
+        limitation: "не ΔG и не docking score"
+      - feature: "H-bonds, electrostatics, solvation, entropy"
+        interpretation: "могут коррелировать со статистикой train PDB"
+        encoded: "не представлены явно"
+        limitation: "запрещено писать, что слой «считает ΔG»"
+      - feature: "Evolutionary statistics"
+        interpretation: "нет в чистом geometric layer"
+        encoded: "отсутствуют, пока не добавлен PLM/MSA (другой класс)"
+        limitation: "ESM-IF1 эволюция — через IF likelihood, не через GVP vectors"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Обучаются веса слоёв $\\theta$ (GVP $W_h,W_\\mu,W_m$; EGNN $\\phi_e,\\phi_x,\\phi_h$; TFN радиальные $R_c$; IPA/Transformer FrameDiff; DiffAb encoder+ε heads; dyMEAN $\\phi_m,\\phi_x,\\phi_h,T_R$ weights). Equivariance — **ограничение архитектуры**, не отдельный loss (кроме случаев, когда её проверяют численно — NR в прочитанных catalog methods)."
+        source: INTERPRETATION
+      - text: "GVP Jing CPD: AR CE на native sequence given backbone (CATH 4.2). MQA: регрессия GDT-TS. Negative non-binders в loss нет."
+        source: PAPER
+        locator: "Jing §3.3 CPD; §4 MQA"
+      - text: "Hsu: CE teacher-forced $p(Y\\mid X)$; GVP часть encoder. Frozen vs trained: всё обучается; PLM не используется."
+        source: PAPER
+        locator: "Hsu loss AR"
+      - text: "FrameDiff: DSM на rotation и translation scores + auxiliary structure losses с весом $w=0.25$ при $t<T_F/4$ (clash/chain-break). Affinity labels нет. Pretrain structure-prediction, в отличие от RFdiffusion (Yim: FrameDiff without pretrained network)."
+        source: PAPER
+        locator: "Yim §4.2; §5 vs RFdiffusion pretraining"
+      - text: "DiffAb: cosine loss на $R$, MSE на position ε, KL sequence posterior — на странице [joint diffusion](/architectures/joint-sequence-structure-diffusion.html). Equivariance обеспечивается local-frame ε, не отдельным членом loss."
+        source: CODE
+        locator: "FullDPM.forward loss_dict"
+      - text: "dyMEAN: coordinate loss после Kabsch-align к ground truth + bond-length terms (Kong §4.4). Sequence softmax на paratope $h_i$. Не contrastive binder/non-binder."
+        source: PAPER
+        locator: "Kong Eqs. 15–17 region"
+      - text: "RFdiffusion / RFAA / AbDiffuser / RFantibody fine-tune: конкретный $\\theta$ и loss **NR** без Methods. Не заполнять FAPE/MSE наугад."
+        source: NR
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Общий шаблон класса: геометрический encoder → разделение invariant scalars и equivariant vectors/frames → голова задачи. Inverse folding (ESM-IF1) **останавливает** equivariant path сменой базиса и декодирует sequence. Diffusion (FrameDiff, DiffAb) **продолжает** path до обновления позы. dyMEAN итерирует AME, затем Kabsch. ProteinMPNN / Rosetta / ESMFold / AF — другие модули: generator vs evaluator."
+        source: INTERPRETATION
+      - text: "DiffAb CODE: `so3vec_to_rotation(v_t)` → `GAEncoder(R, p_t, res_feat, pair_feat)` → ε heads с time embed → `apply_rotation_to_vector(R, eps_crd)` → `R_next = R @ U` из quaternion. Sequence softmax invariant."
+        source: CODE
+        locator: "EpsilonNet.forward"
+    mermaid: |
+      flowchart TD
+        IN["Точки / frames / atom channels"] --> GEO["Geometric layers: GVP, EGNN, TFN, IPA"]
+        GEO --> S["Invariant scalars s"]
+        GEO --> V["Equivariant vectors / updated T_i"]
+        S --> HI["Invariant head: AA logits, pair features"]
+        V --> HE["Equivariant head: world Δx, R ε, score s_θ"]
+        HI --> GSEQ["Sequence generator или scorer"]
+        HE --> GSTR["Structure generator / denoiser"]
+        GSEQ --> EV["Evaluator: AF/ESMFold/Rosetta/MPNN — не этот bias"]
+        GSTR --> EV
+        subgraph gen ["Generator heads"]
+          GSEQ
+          GSTR
+        end
+        subgraph ev ["External evaluator / experiment"]
+          EV
+        end
+    mermaid_caption: "Схема класса по Jing/Hsu/Luo/Yim/Kong, не копия paper figure. Experiment (ELISA/BLI) в слой не входит."
+    mermaid_source: "Jing Algorithm 1; Hsu A.3; Luo Prop. 1; Yim Fig. 2; Kong AME"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "У класса как bias **нет** единого корпуса. Ниже — подтипы из прочитанных papers. Split, которого нет в источнике, не восстанавливается из README."
+        source: INTERPRETATION
+      - text: "Jing CPD: CATH 4.2 splits Ingraham et al. — train/val/test 18204 / 608 / 1120 (40% nonredundancy, CATH topology). TS50: PSIBLAST <30% к TS50. MQA: CASP 5–10 train (79200 models / 528 targets), test CASP 11–12 и отдельно CASP 13."
+        source: PAPER
+        locator: "Jing §4 datasets"
+      - text: "Hsu: CATH topology 80/10/10 — 16153 / 1457 / 1797; плюс 12M UniRef50 AF2 (≤500 AA, Amber-relaxed). Mix experimental + 10% subsample predicted ≈ 1:80. Gene3D filter leakage. Span mask ≤30 AA until 15% coords. pLDDT<90 masked on predicted."
+        source: PAPER
+        locator: "Hsu §data; Table 1 discussion"
+      - text: "FrameDiff: 20312 filtered PDB monomer backbones; 17.4M params; one week, 2×A100; L=4. Точные фильтры resolution/length — Section J.1, в HTML не развёрнуты → NR. Centering каждого примера. Auxiliary losses только $t<T_F/4$."
+        source: PAPER
+        locator: "Yim §5; J.1 NR this pass"
+      - text: "DiffAb: SAbDab, drop non-protein antigens, resolution worse than 4 Å; cluster CDR-H3 50% identity; test = five manually chosen clusters, 19 complexes (PDF §4.1). Точный N train — NR без tables. 200k iterations в ранее читанном train config."
+        source: PAPER
+        locator: "Luo §4.1 dataset; CODE configs 200k (tool page)"
+      - text: "dyMEAN: ICML experimental setup vs pipeline baselines; точные N комплексов/split hashes в этом проходе не извлечены → NR."
+        source: NR
+        locator: "Kong §5 — numbers not copied"
+      - text: "Симуляция vs wet-lab. FrameDiff Fig. 3 — in silico designability (MPNN+ESMFold). DiffAb/dyMEAN tables — retrospective crystal recovery / in silico energy. Prospective yeast/SPR RFantibody — на tool page, не доказательство equivariance. Не смешивать."
+        source: INTERPRETATION
+      - text: "RFdiffusion pretrain on structure prediction (Yim contrast). Веса и mixed precision — NR без Methods."
+        source: PAPER
+        locator: "Yim §1 / §5 RFdiffusion pretrained weights"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт зависит от головы, не от bias. FrameDiff: шум на centered SE(3)^N; $N_{\\mathrm{steps}}=500$ в Fig. 3 caption; $\\zeta=0.1$. DiffAb: $s_T\\sim\\mathrm{Unif}(20)$, $x_T\\sim\\mathcal{N}(0,I_3)$ в normalized coords, $O_T\\sim\\mathrm{Unif}(\\mathrm{SO}(3))$; T=100 в коде; context residues зажаты. GVP-IF: PDB backbone → AR decode, temperature (AntiFold $t=0.20$ — tool page). dyMEAN: structural initialization + T AME iterations + Kabsch."
+        source: PAPER
+        locator: "Yim Fig. 3; Luo §3.4; Kong Eq. 14"
+      - text: "Post-hoc **evaluator**, не generator: ProteinMPNN+ESMFold self-consistency (FrameDiff); Rosetta pack + OpenMM AMBER99 (DiffAb §3.4); IgFold/HDock в dyMEAN **baselines**, не внутри AME. AF/RF pLDDT filter у RFantibody — другая страница."
+        source: PAPER
+      - text: "Чего в классе нет: ELISA loop, beam search как определение SE(3), recycle AF2 (FrameDiff явно без StopGradient между rotation updates, но это не AF2 inference recycle). Assay отсутствует."
+        source: PAPER
+        locator: "Yim unlike AF2 StopGradient"
+      - text: "AbDiffuser / RFAA / RFantibody sampler details — NR."
+        source: NR
+      - text: "Нельзя считать «успешный» mirrored sample физически валидным L-белком без проверки chirality."
+        source: INTERPRETATION
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Что зажимается — свойство **головы**. DiffAb: framework+antigen coordinates/types (context_mask). FrameDiff monomer paper: primarily length; motif scaffolding обсуждается как related work / PAR не этот файл. RFdiffusion contig/hotspot — [frame diffusion](/architectures/frame-diffusion.html). dyMEAN: epitope graph + incomplete antibody sequence; shadow paratope для E(3)-invariant связи."
+        source: PAPER
+        locator: "Luo context; Kong SP; Yim length"
+      - text: "Чего нет в geometric layer: ELISA labels, CATH CFG как у Proteina, library $\\mathcal{X}$ EVOLVEpro. Hotspot one-hot RFantibody — conditioner diffusion, не GVP formula."
+        source: INTERPRETATION
+      - text: "Classifier-free guidance — NR для прочитанных SE(3) papers этого каталога. Masking: Hsu span mask на coords; DiffAb generate_flag."
+        source: PAPER
+      - text: "Global SE(3) самого комплекса не является «conditioner», который пользователь задаёт как epitope tensor: это симметрия, от которой сеть должна быть независима."
+        source: INTERPRETATION
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    items:
+      - "N residues / atoms: TFN/EGNN fully-connected плохо масштабируются; GVP kNN k=30 — степень фиксирована."
+      - "FrameDiff: fully connected IPA+Transformer ⇒ $O(N^2)$; авторы прямо пишут quadratic in backbone length."
+      - "TFN: сферические гармоники и CG-произведения; Thomas: без equivariance 3D угловое разрешение $\\delta$ требует $O(\\delta^{-3})$ фильтров vs $O(\\delta^{-1})$ в 2D."
+      - "DiffAb: pair $O(L^2)$ на комплексе Ab+Ag; T=100 NFE; GAEncoder 6 layers (config)."
+      - "FrameDiff sampling $N_{\\mathrm{steps}}=500$ в reported figure; 17.4M params; wall-clock «one week 2×A100» — **train**, не inference latency (inference GPU time NR)."
+      - "RFdiffusion NFE / crop size — NR без Methods."
+      - "Не писать «дешевле diffusion» как свойство equivariance: Satorras Table 2 — N-body vs TFN/SE(3)-Transformer runtime на другой задаче, не белки каталога."
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: одна и та же локальная геометрия не дублируется по ориентациям. Thomas: 3D rotation augmentation для углового разрешения дороже, чем 2D. Jing: GVP-GNN превосходит Structured Transformer на CATH 4.2 recovery/perplexity **на CPD benchmark paper** — не affinity."
+        source: PAPER
+        locator: "Thomas intro O(δ^{-3}); Jing Table 1 CATH"
+      - text: "Hsu: GVP-Transformer 51.6% recovery vs 38.3% без predicted structures (Table 1) — эффект данных+масштаба, не «магия equivariance» отдельно от Transformer. GVP layers complementary (Fig. C.1)."
+        source: PAPER
+        locator: "Hsu Table 1; Fig. C.1"
+      - text: "Yim Corollary 3.7: SO(3)-equivariant score не сужает класс SO(3)-invariant распределений на frames. FrameDiff генерирует designable monomers без RF pretrain (авторское сравнение с RFdiffusion — разные setups, не один benchmark)."
+        source: PAPER
+        locator: "Yim Cor. 3.7; §5"
+      - text: "Luo Prop. 1: co-design головы F invariant / G,H equivariant by construction через local frame. Это architectural rationale (evidence type 1), не prospective $K_d$."
+        source: PAPER
+        locator: "Luo Prop. 1"
+      - text: "Это **не** гарантия стабильности, экспрессии или аффинности. Equivariant denoise может выдать правдоподобный clashy loop; clash filter и MPNN — снаружи."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    items:
+      - "Математика: E(3) включает отражения; SE(3) нет. Сломанная реализация (забытый `R @ ε`, Transformer на world vectors без local frames — Hsu A.3) уничтожает заявленную симметрию."
+      - "Представление: backbone frames игнорируют χ; full-atom dyMEAN дороже и зависит от channel padding $T_S$."
+      - "Физика/химия: нет растворителя, H-bonds, энтропии; нет energy head ⇒ нет ΔG."
+      - "Данные: PDB/SAbDab/CATH bias; Hsu predicted AF2 structures — свои ошибки геометрии как вход."
+      - "Обобщение: monomer FrameDiff ≠ antibody Fv; DiffAb CDR при зажатом framework ≠ de novo Fv."
+      - "Deployment: quadratic IPA; TFN гармоники; RFantibody SHA NR; AbDiffuser repo NR."
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Повесить формулу DiffAb `apply_rotation_to_vector` на RFdiffusion/IPA без Methods."
+      - "Назвать ESM-IF1 SE(3)-equivariant **генератором координат**; выход — invariant sequence."
+      - "Принять scRMSD/pLDDT/AAR за experimental binding."
+      - "Скормить сети mirrored PDB и интерпретировать как валидный L-белок (E(3))."
+      - "Сломать local frames numbering (C/N swap) → «equivariant» мусор."
+      - "Не зажать antigen в DiffAb и ожидать epitope-specific CDR."
+      - "Считать ProteinMPNN примером этого класса (нет architecture_id; relative invariants)."
+      - "FrameDiff без centering: высокая дисперсия translation DSM (Yim)."
+      - "Over-smoothing петель при глубоком message passing (seed failure; количественно NR без ablation)."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    tables:
+      - caption: "Все catalog tools с architecture_id se3-equivariant-models"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[DiffAb](/tools/diffab.html)", "local-frame vector ε + IPA-like encoder", "EpsilonNet: `eps_pos = apply_rotation_to_vector(R, eps_crd)`; Prop. 1; commit `c3e29666`", "Joint diffusion; не FrameDiff DSM"]
+          - ["[FrameDiff](/tools/framediff.html)", "SO(3)-equivariant score on SE(3)^N", "IPA + Transformer FramePred; 17.4M; 20312 PDB; 500 steps in Fig. 3", "Нет sequence в denoiser; MPNN+ESMFold evaluator"]
+          - ["[ESM-IF1](/tools/esm-if1.html)", "GVP equivariant vectors → local-frame invariant tokens", "4 GVP + 8+8 Transformer; $p(Y\\mid TX)=p(Y\\mid X)$", "Выход invariant; id одновременно invariant-models"]
+          - ["[dyMEAN](/tools/dymean.html)", "E(3) multi-channel EGNN-like AME", "Eqs. 8–13; shadow paratope; Kabsch dock", "Iterative refine, не DDPM; code not line-audited"]
+          - ["[RFdiffusion](/tools/rfdiffusion.html)", "SE(3) frame denoiser (RF-like)", "NR Methods this pass; Yim: pretrained structure net + heuristic loss", "Канон — [frame diffusion](/architectures/frame-diffusion.html)"]
+          - ["[RFantibody](/tools/rfantibody.html)", "тот же RF frame stack, Ab FT", "SHA NR; sequence = ProteinMPNN после frames", "Не joint diffusion"]
+          - ["[RFdiffusion-AA](/tools/rfdiffusion-aa.html)", "гибрид frames + ligand atoms", "Science Methods NR", "Не копировать IPA FrameDiff"]
+          - ["[AbDiffuser](/tools/abdiffuser.html)", "заявлен equivariant full-atom diffusion", "repo NR; paper unread", "Не уравнивать с DiffAb ε"]
+      - caption: "Литература вне карточек tools"
+        source: PAPER
+        headers: ["Метод", "Роль", "Каталог"]
+        rows:
+          - ["Jing GVP-GNN", "foundational vector neurons; CPD/MQA", "не tool; слой ESM-IF1"]
+          - ["Thomas TFN", "spherical irreps", "не catalog tool"]
+          - ["Satorras EGNN", "radial E(n) GNN", "не catalog tool"]
+          - ["Fuchs SE(3)-Transformer", "attention on irreps", "pointer-only"]
+          - ["Jumper IPA", "invariant spatial attention", "внутри FrameDiff/DiffAb/AF2"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо как **компонент**: [de novo backbone](/tasks/de-novo-backbone-generation.html) ([workflows/de-novo-backbone-then-mpnn](/workflows/de-novo-backbone-then-mpnn.html)), [joint CDR co-design](/tasks/joint-cdr-sequence-structure-design.html) ([cdr-codesign-diffab](/workflows/cdr-codesign-diffab.html)), [de novo antibody](/tasks/de-novo-antibody-design.html) ([de-novo-antibody-rfantibody](/workflows/de-novo-antibody-rfantibody.html)), [inverse folding](/tasks/inverse-folding.html) через GVP-энкодер ([fixed-backbone-inverse-folding](/workflows/fixed-backbone-inverse-folding.html))."
+        source: INTERPRETATION
+      - text: "Не применимо как замена [few-shot active learning](/tasks/few-shot-active-learning.html) / [EVOLVEpro](/tools/evolvepro.html): нет assay loop. Не [humanization](/tasks/humanization.html) как Humatch. Не [sequence-first de novo](/workflows/sequence-first-de-novo.html) без 3D state. Для чистых sequence logits после local frames смотреть [invariant models](/architectures/invariant-models.html) и [inverse folding](/architectures/inverse-folding.html)."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Прочитаны в этом проходе: Jing GVP; Thomas TFN; Satorras EGNN; Hsu bioRxiv (GVP-Transformer, A.3); Yim FrameDiff HTML (теория SE(3) diffusion + FramePred); Luo NeurIPS PDF §3.3–3.4 и Prop. 1; Kong dyMEAN AME; DiffAb `dpm_full.py` @c3e29666."
+        source: PAPER
+      - text: "Pointer-only: Fuchs SE(3)-Transformer; Puny et al. frame averaging (seed subtype, текст не читался); Watson RFdiffusion Nature Methods; RFAA Science; AbDiffuser; AF2 SI Algorithm 22 fully expanded; Hsu PMLR Table A.1."
+        source: NR
+      - text: "Не раздувать библиографию всеми geometric papers 2018–2026. ProteinMPNN/Ingraham Structured Transformer — [GNN](/architectures/graph-neural-networks.html) / IF, не обязательный citation этого класса, кроме контраста Jing Table 1."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Jing B., Eismann S., Suriana P., Townshend R.J.L., Dror R.O. Learning from Protein Structure with Geometric Vector Perceptrons. ICLR 2021."
+    url: "https://arxiv.org/abs/2009.01411"
+    doi: "10.48550/arXiv.2009.01411"
+  - id: 2
+    text: "Thomas N. et al. Tensor field networks: Rotation- and translation-equivariant neural networks for 3D point clouds. arXiv:1802.08219."
+    url: "https://arxiv.org/abs/1802.08219"
+  - id: 3
+    text: "Satorras V.G., Hoogeboom E., Welling M. E(n) Equivariant Graph Neural Networks. ICML 2021."
+    url: "https://arxiv.org/abs/2102.09844"
+  - id: 4
+    text: "Hsu C. et al. Learning inverse folding from millions of predicted structures. ICML 2022; bioRxiv 10.1101/2022.04.10.487779."
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2204.07148"
+  - id: 5
+    text: "Yim J. et al. SE(3) diffusion model with application to protein backbone generation. ICML 2023; arXiv:2302.02277."
+    url: "https://arxiv.org/abs/2302.02277"
+  - id: 6
+    text: "Luo S. et al. Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models for Protein Structures. NeurIPS 2022."
+    url: "https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf"
+  - id: 7
+    text: "Kong X., Huang W., Liu Y. End-to-End Full-Atom Antibody Design. ICML 2023; arXiv:2302.00203."
+    url: "https://arxiv.org/abs/2302.00203"
+  - id: 8
+    text: "Jumper J. et al. Highly accurate protein structure prediction with AlphaFold. Nature 2021. IPA / Algorithm 21–23 — pointer; SI не транскрибирован полностью."
+    doi: "10.1038/s41586-021-03819-6"
+  - id: 9
+    text: "Fuchs F., Worrall D., Fischer V., Welling M. SE(3)-Transformers: 3D Roto-Translation Equivariant Attention Networks. ICML 2020. Pointer-only."
+    url: "https://arxiv.org/abs/2006.10503"
+  - id: 10
+    text: "Watson J.L. et al. De novo design of protein structure and function with RFdiffusion. Nature 2023. Methods не close-read в этом проходе."
+    doi: "10.1038/s41586-023-06415-8"
+unresolved:
+  - "Точные IPA суммы (AF2 Algorithm 22) и D_h/D_z FrameDiff Appendix I.2"
+  - "RFdiffusion / RFAA: какой модуль (IPA vs RF 3-track) реализует equivariance; commit SHA"
+  - "AbDiffuser: подтвердить SE(3) mechanism из paper, не из названия"
+  - "Численная проверка equivariance released DiffAb/FrameDiff checkpoints на mirrored/rotated PDB"
+  - "Стоит ли оставить ESM-IF1 в architecture_id se3-equivariant-models или только invariant-models (GVP internal vs output)"
+  - "Fuchs SE(3)-Transformer и frame averaging — не включены в уравнения"
+  - "dyMEAN train split sizes; Hsu Table A.1"

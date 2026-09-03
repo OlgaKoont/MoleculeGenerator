@@ -1,0 +1,181 @@
+identity:
+  id: ligandmpnn
+  name: LigandMPNN
+  slug: ligandmpnn
+  aliases:
+  - LigandMPNN
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/dauparas/LigandMPNN
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Code + weights
+  publication_status: Peer-reviewed journal; Nature Methods (Q1)
+classification:
+  task_ids:
+  - inverse-folding
+  - functional-site-design
+  workflow_ids:
+  - fixed-backbone-inverse-folding
+  architecture_ids:
+  - inverse-folding
+  - graph-neural-networks
+  generator_classes:
+  - inverse-folding
+  output_modalities:
+  - sequence
+  supported_formats: Protein–ligand and biomolecular complexes
+  de_novo_or_optimization: Design/redesign on fixed backbone
+  general_protein_relevance: High for enzyme/small-molecule interface design
+  antibody_relevance: No antibody-specific evidence
+  VHH_relevance: No specific evidence
+  mutation_relevance: High for pocket/interface combinatorial redesign
+  compatibility_group: inverse-folding
+generation:
+  exact_generated_object: Sequence + side-chain conformations
+  required_input: Protein backbone plus ligand/metal/nucleic-acid atomic context
+  conditioning: Design masks; fixed residues; non-protein atoms; chain context
+  fixed_components: null
+  editable_components: null
+  generated_components: Sequence + side-chain conformations
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No built-in Pareto optimizer
+  candidate_generation_mechanism: ProteinMPNN-family graph model with non-protein atomic context
+    and side-chain packing
+architecture:
+  base_model: null
+  model_family: ProteinMPNN-family graph model with non-protein atomic context and side-chain
+    packing
+  model_type: 2 Fixed-backbone inverse-folding generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Design masks; fixed residues; non-protein atoms; chain context
+  generation_mechanism: ProteinMPNN-family graph model with non-protein atomic context and
+    side-chain packing
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Sequence + side-chain conformations
+  internal_scorer: Conditional sequence probability; side-chain confidence
+  structure_generation: No global structure predictor
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: LigandMPNN
+  integrated_generators: []
+  integrated_scorers:
+  - Conditional sequence probability; side-chain confidence
+  integrated_structure_predictor: No global structure predictor
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Folding, ligand-pose/interaction validation, experiments
+  optional_external_dependencies:
+  - Side-chain packing included
+  breakdown:
+  - name: LigandMPNN
+    role: primary_generator
+    architecture_class: ProteinMPNN-family graph model with non-protein atomic context and
+      side-chain packing
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Conditional sequence probability; side-chain confidence
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Folding, ligand-pose/interaction validation, experiments
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–4 prospective experimental validation
+  retrospective_validation: null
+  prospective_binding_validation: Experimental structural/functional evidence for general
+    proteins
+  prospective_functional_validation: Experimental structural/functional evidence for general
+    proteins
+  developability_validation: null
+  tested_design_count: 'Multiple ligand/enzyme/interface campaigns; aggregate count: NR'
+  success_criterion: Experimental structural/functional evidence for general proteins
+  independent_validation: null
+  evidence_summary: Experimental structural/functional evidence for general proteins
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Requires a credible backbone and ligand pose.
+  - does not generate backbone or prove catalysis/binding.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited internal pilot
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - evodiff
+  - framediff
+  - progen
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-ligandmpnn
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

@@ -1,0 +1,50 @@
+id: paper-hudiff
+slug: hudiff
+title: Humanization of antibodies and nanobodies by diffusion models
+authors: null
+year: 2024/2025
+venue: bioRxiv preprint (Frontier/Watchlist)
+publication_status: bioRxiv preprint (Frontier/Watchlist)
+doi: 10.1101/2024.10.22.619416
+url: https://doi.org/10.1101/2024.10.22.619416
+preprint_url: https://doi.org/10.1101/2024.10.22.619416
+tool_ids:
+- hudiff
+main_task: De novo framework generation / humanization of antibodies and nanobodies from CDRs
+claimed_novelty: null
+model_architecture: Adaptive autoregressive diffusion; separate antibody and nanobody models
+input_representation: null
+encoder_decoder: null
+generative_state: Humanized variable-domain sequence around supplied CDRs
+conditioning: CDRs fixed; human/nanobody priors
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Best antibody variant 0.15 nM vs parent 0.12 nM by BLI;
+  nanobody binding retained in reported study
+tested_designs: One murine antibody and two alpaca nanobody parents prospectively humanized
+success_criterion: Best antibody variant 0.15 nM vs parent 0.12 nM by BLI; nanobody binding
+  retained in reported study
+main_results: Best antibody variant 0.15 nM vs parent 0.12 nM by BLI; nanobody binding retained
+  in reported study
+limitations: Preprint; only three parent series prospectively tested; retained affinity does
+  not establish reduced immunogenicity/manufacturability.
+demonstrates:
+- Best antibody variant 0.15 nM vs parent 0.12 nM by BLI; nanobody binding retained in reported
+  study
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Humanization of antibodies and nanobodies by diffusion models
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: bioRxiv preprint (Frontier/Watchlist)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

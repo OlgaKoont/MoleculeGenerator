@@ -1,0 +1,135 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Дискретная диффузия / noising аминокислотных токенов (EvoDiff, categorical CDR in DiffAb).
+  - type: p
+    text: Генератор sequence (иногда joint). Не structure predictor.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Токены портятся к случайному amino acid / mask; сеть восстанавливает.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: q(s_t\mid s_{t-1})=\mathrm{Cat}(s_t; Q_t s_{t-1})
+    caption: Discrete diffusion transition matrices \(Q_t\). Tool-specific Q.
+    source: '[PAPER] Austin D3PM; EvoDiff Alamdari et al.; DiffAb sequence transition'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - noisy tokens
+    - t embedding
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Sequence only unless coupled to coords.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - Token noise
+      - destroys identity
+      - stochastic process
+      - not mutational chemistry
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: CE / KL on posterior (DiffAb seq KL).
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - noise sequence
+    - denoise T steps
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: Natural sequences or CDR-in-complex.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Reverse discrete chain, T steps.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Motif tokens clamped (EvoDiff); framework clamped (DiffAb).
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: \(T\times L\); pair if structure-aware.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Non-AR bidirectional generation.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - T cost.
+    - Unconditional sequence ≠ foldable protein.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Invalid chemistry (non-canonical via vocab bugs).
+    - CDR length mismatch.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - <a href="/tools/evodiff.html">EvoDiff</a>
+      - sequence diffusion
+      - OADM/D3PM protein
+      - structure not generated
+    - - DiffAb seq channel
+      - categorical on CDR
+      - joint with frames
+      - needs complex
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Sequence generation. Не IF-only scoring.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Alamdari et al., EvoDiff
+      url: https://doi.org/10.1101/2023.09.11.556673
+inaccessible:
+- EvoDiff full paper/code not re-audited in this pass; class page uses public method description.

@@ -1,0 +1,51 @@
+id: paper-esm-1v-efficient-evolution
+slug: esm-1v-efficient-evolution
+title: Efficient evolution of human antibodies from general protein language models
+authors: null
+year: '2024'
+venue: Peer-reviewed journal; Nature Biotechnology (Q1)
+publication_status: Peer-reviewed journal; Nature Biotechnology (Q1)
+doi: 10.1038/s41587-023-01763-2
+url: https://doi.org/10.1038/s41587-023-01763-2
+preprint_url: null
+tool_ids:
+- esm-1v-efficient-evolution
+main_task: Zero-shot proposal of beneficial single mutations in human antibodies
+claimed_novelty: null
+model_architecture: Ensemble protein language-model likelihood ranking with efficient experimental
+  selection
+input_representation: null
+encoder_decoder: null
+generative_state: Ranked single-amino-acid substitutions
+conditioning: Single substitutions; no antigen/structure required
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: C143 variants included 32× Beta and 19× D614G neutralization
+  improvements; workload is single-mutation only
+tested_designs: Seven antibodies; roughly 10 single substitutions per parent selected for
+  testing
+success_criterion: C143 variants included 32× Beta and 19× D614G neutralization improvements;
+  workload is single-mutation only
+main_results: C143 variants included 32× Beta and 19× D614G neutralization improvements; workload
+  is single-mutation only
+limitations: Zero-shot evolutionary plausibility, not affinity prediction; combination/epistasis
+  not addressed; improvements are antibody/assay specific.
+demonstrates:
+- C143 variants included 32× Beta and 19× D614G neutralization improvements; workload is single-mutation
+  only
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Efficient evolution of human antibodies from general protein language models
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Biotechnology (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

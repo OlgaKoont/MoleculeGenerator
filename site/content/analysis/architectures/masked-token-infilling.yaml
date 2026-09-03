@@ -1,0 +1,599 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс masked-token infilling описан как семейство infill-генераторов, не одна BERT-softmax формула. Прочитаны: Shuai/Ruffolo/Gray IgLM Cell Systems 14, 979–989 (2023) STAR+Results (карточка tools, тот же проход каталога) + Graylab/IgLM @de819b56238b5cb9c23d7a6fec4c55d7fc0395e4; Hayes et al. ESM3 bioRxiv 10.1101/2024.07.01.600583 (generative MLM, variable mask rate; Science 10.1126/science.ads0018 не page-sync); Alamdari et al. EvoDiff bioRxiv 10.1101/2023.09.11.556673 v2 HTML (OADM T=L, inpainting, Methods D3PM vs OADM, wet-lab Cox15/1PRW/MDM2). IgLM Tables S1–S2 не построчно. ESM3 Science SI не close-read. microsoft/evodiff и Biohub/esm commit SHA не аудировались. EvoDiff Table S1–S6 HTML — «View this table», численные ppl/Hamming не транскрибированы. Meier ESM-1v — соседний класс scoring, не catalog tool этого id."
+lede: "Masked-token infilling — **generator** (иногда density model) на masked span: восстанавливает $s_M$ при наблюдаемом контексте $s_{\\setminus M}$. Это не inverse folding при фиксированном backbone, не zero-shot $\\Delta\\ell$-ранжирование 19 замен и не affinity predictor. $\\Delta\\mathrm{LL}\\neq\\Delta\\Delta G$."
+inaccessible:
+  - source: "IgLM Cell Systems STAR Tables S1 (species counts) and S2 (3-mer prompts)"
+    reason: "S-tables не извлечены построчно"
+    workaround: "Основной HTML: OAS 809M→588M cluster→558M train; infill math — STAR ILM + CODE IgLM.infill"
+  - source: "Hayes et al. Science 10.1126/science.ads0018 journal HTML + SI"
+    reason: "В этом проходе канон ESM3 — bioRxiv 10.1101/2024.07.01.600583 (предыдущий close-read PLM-страницы); Science pagination не сличена"
+    workaround: "Generative MLM, tracks, mask schedule A.2.2, esmGFP 58% ID — preprint; Science-only numbers NR"
+  - source: "microsoft/evodiff line audit + commit SHA"
+    reason: "extra_constraints: code unaudited this pass"
+    workaround: "OADM/D3PM и inpainting — bioRxiv Methods; tool-specific hypers кода — NR"
+  - source: "Biohub/esm ESM3 inference unmask loop + commit"
+    reason: "Репозиторий не инспектировался в этом проходе"
+    workaround: "Iterative unmask — Hayes Fig. 1A prose; README «8 steps» не цитировать как Methods"
+  - source: "EvoDiff Supplementary Tables S1–S6 numeric cells"
+    reason: "HTML отдаёт caption без чисел («View this table»)"
+    workaround: "Качественные сравнения OADM vs D3PM/LRAR из основного текста; точные ppl/FPD/success counts таблиц — NR кроме тех, что есть в prose (8/13 of 17 problems)"
+  - source: "Hoogeboom et al. Autoregressive Diffusion Models (OADM) full PDF Eqs."
+    reason: "Читался Alamdari Methods prose, не исходный OADM paper постранично"
+    workaround: "T=L, one-token mask/unmask, MLM = one OADM step — Alamdari Discussion; не выдумывать номер уравнения Austin/Hoogeboom"
+sources:
+  - kind: PAPER
+    citation: "Shuai R.W., Ruffolo J.A., Gray J.J. IgLM: Infilling language modeling for antibody sequence design. Cell Systems 14, 979–989 (2023)"
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+    doi: "10.1016/j.cels.2023.10.001"
+    note: "Journal: ILM span Unif{10..20}; GPT-2 12.9M; OAS unpaired; no wet-lab binding"
+  - kind: PAPER
+    citation: "Shuai et al. bioRxiv 10.1101/2021.12.13.472419"
+    url: "https://doi.org/10.1101/2021.12.13.472419"
+    doi: "10.1101/2021.12.13.472419"
+    note: "Open preprint того же IgLM; не сливать pagination с Cell Systems"
+  - kind: PAPER
+    citation: "Hayes T. et al. Simulating 500 million years of evolution with a language model. bioRxiv 10.1101/2024.07.01.600583"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.01.600583"
+    doi: "10.1101/2024.07.01.600583"
+    note: "ESM3 generative MLM all mask rates; 1.4/7/98B; tracks sequence/structure/function"
+  - kind: PAPER
+    citation: "Alamdari S. et al. Protein generation with evolutionary diffusion: sequence is all you need. bioRxiv 10.1101/2023.09.11.556673"
+    url: "https://www.biorxiv.org/content/10.1101/2023.09.11.556673v2.full"
+    doi: "10.1101/2023.09.11.556673"
+    note: "Preprint (не journal): OADM T=L infill; D3PM T=500 — другой канал; UniRef50 42M; wet-lab IDR/Ca2+/MDM2"
+  - kind: PAPER
+    citation: "Meier J. et al. Language models enable zero-shot prediction of the effects of mutations. bioRxiv 10.1101/2021.07.09.450648"
+    url: "https://www.biorxiv.org/content/10.1101/2021.07.09.450648"
+    doi: "10.1101/2021.07.09.450648"
+    note: "Masked-marginal Δℓ Eq. 1 — канон zero-shot scoring, не train target этой страницы"
+  - kind: CODE
+    citation: "Graylab/IgLM IgLM.infill / generate / log_likelihood"
+    url: "https://github.com/Graylab/IgLM"
+    note: "commit de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id masked-token-infilling"
+    note: "esm3, evodiff, iglm"
+repo:
+  url: "https://github.com/Graylab/IgLM"
+  commit: "de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+  ref: "main; единственный line-audit этого класса в проходе (IgLM). EvoDiff/ESM3 CODE NR"
+  license: "JHU Academic (карточка IgLM)"
+  files:
+    - iglm/model/IgLM.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **generator** дискретных amino-acid tokens на множестве маскированных позиций $M$. При scoring-only использовании тех же logits (likelihood span) модель становится **evaluator**, не generator. Это не sequential assay loop и не geometric inductive bias."
+        source: INTERPRETATION
+      - text: "Generated state — заполненные идентичности $s_i$, $i\\in M$. Observed state — $s_{\\setminus M}$ плюс optional tags/tracks. Координаты и frames **не** обязательны: IgLM и EvoDiff-Seq — sequence-only; ESM3 может infill и structure tokens — пересечение с [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html), не определение класса."
+        source: PAPER
+        locator: "IgLM unpaired sequence; Alamdari inpainting sequence; Hayes tracks"
+      - text: "Задачи каталога: [CDR sequence generation](/tasks/cdr-sequence-generation.html) ([IgLM](/tools/iglm.html)), [general protein sequence generation](/tasks/general-protein-sequence-generation.html) и [motif scaffolding](/tasks/motif-scaffolding.html) через sequence clamp ([EvoDiff](/tools/evodiff.html)), [joint sequence–structure](/tasks/joint-sequence-structure-generation.html) для ESM3 unmask. Workflows: [antibody sequence infilling](/workflows/antibody-sequence-infilling.html), [sequence-first de novo](/workflows/sequence-first-de-novo.html), [joint multimodal](/workflows/joint-multimodal-generation.html)."
+        source: MATRIX
+      - text: "Это **не** [autoregressive generation](/architectures/autoregressive-generation.html) как left-to-right без маски: ProGen пишет цепь с префикса. IgLM infill **использует** AR, но только после ILM-перестановки span — это подтип infill, не «просто GPT»."
+        source: INTERPRETATION
+      - text: "Это **не** [protein language models](/architectures/protein-language-models.html) целиком: PLM — семейство ролей (AR, MLM, frozen $E$, $\\Delta\\ell$). Infilling — *режим* генерации masked span. Это **не** [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html): Meier $\\Delta\\ell$ ранжирует 19 замен без семплирования библиотеки de novo."
+        source: INTERPRETATION
+      - text: "Это **не** [sequence diffusion](/architectures/sequence-diffusion.html) в смысле EvoDiff-**D3PM** (mutation transition matrix, $T=500$, uniform/BLOSUM): там нет absorbing [MASK] как канон infill. Канон infill у EvoDiff — **OADM**. D3PM оставлять на странице sequence-diffusion."
+        source: PAPER
+        locator: "Alamdari Methods: D3PM only for discrete corruption; OADM for masking"
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html): $p(s\\mid x)$ при зажатом backbone. [AntiFold](/tools/antifold.html) masked regions = IF logits, **не** UniRef MLM и **нет** этого `architecture_id`."
+        source: INTERPRETATION
+      - text: "Catalog tools с `architecture_id: masked-token-infilling`: [IgLM](/tools/iglm.html), [ESM3](/tools/esm3.html), [EvoDiff](/tools/evodiff.html). Часто путают с [ProGen](/tools/progen.html) (AR без ILM), [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html) (scoring), [ProteinMPNN](/tools/proteinmpnn.html)/AntiFold (IF), [HuDiff](/tools/hudiff.html) (sequence diffusion, другой id)."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Часть последовательности скрыта. Модель видит фланги (и, у ESM3, другие tracks) и восстанавливает пропуски. При inference меняются **только** токены в $M$ (или итеративно shrinking mask); контекст зажат. Если $|M|\\to L$, infill вырождается в почти unconditional generation — это тот же класс, другой режим."
+        source: INTERPRETATION
+      - text: "Три несовместимых механизма. (i) IgLM: span вырезается, клеится в конец после `[SEP]`, GPT-2 пишет span **слева направо** — двусторонний контекст флангов, но causal decoder. (ii) ESM3: bidirectional transformer, variable-rate mask, iterative unmask any order. (iii) EvoDiff-OADM: по одному [MASK] за forward-шаг до $T=L$, reverse — order-agnostic unmask. Не сводить к одному BERT-softmax."
+        source: PAPER
+        locator: "IgLM STAR ILM; Hayes generative MLM; Alamdari Fig. 1B OADM"
+      - text: "Главный рычаг **IgLM**: species/chain tags + длина/позиция span (train $m\\sim\\mathrm{Unif}\\{10,\\ldots,20\\}$). PAPER. Temperature $T$ и nucleus $P$ — entropy sampler, не $kT$ термодинамики (CODE defaults $T=1$, $P=1$)."
+        source: PAPER
+        locator: "IgLM STAR mask length; CODE generate temperature/top_p"
+      - text: "Рычаг **ESM3**: mask schedule по всем rates (не 15% BERT) и prompt tracks (sequence/structure/function). PAPER Appendix A.2.2 mix. Не ELISA labels."
+        source: PAPER
+        locator: "Hayes all masking rates; A.2.2 β(3,9)+uniform"
+      - text: "Рычаг **EvoDiff infill**: clamp observed subsequence, decode remainder (OADM any order). Тот же checkpoint для unconditional и conditional — PAPER, без finetune на scaffolding (в отличие от RFdiffusion scaffolding finetune, сравнение авторов)."
+        source: PAPER
+        locator: "Alamdari: same models unconditional and conditional; vs RFdiffusion finetuned"
+      - text: "Предостережение по метрикам **этого класса**. Infilling PPL, OASis, CamSol, AF/OmegaFold pLDDT, scPerplexity, motifRMSD, FPD, DR-BERT disorder **не** experimental affinity / $K_d$ / ELISA / BLI. IgLM: in silico developability на 49 therapeutics, authors «could then be experimentally screened». ESM3 pTM/cRMSD preference — structure metrics. EvoDiff scPerplexity = ESM-IF PPL к generated sequence — **evaluator** IF, не generator."
+        source: PAPER
+        locator: "IgLM Discussion screening; Alamdari Fig. 2A scPerplexity = ESM-IF"
+      - text: "$\\Delta\\mathrm{LL}$ / masked logits на одной позиции — канон [zero-shot scoring](/architectures/zero-shot-mutation-scoring.html), не infill library. $\\Delta\\mathrm{LL}\\neq\\Delta\\Delta G$. Не ранжировать CDR-H3 IgLM по Meier Eq. 1 как «аффинность»."
+        source: PAPER
+        locator: "Meier Eq. 1; extra_constraints"
+      - text: "EvoDiff BLI $K_D$ к MDM2 (ниже) — **experiment** одной scaffolding-кампании preprint, не выход $\\phi$ и не свойство IgLM/ESM3."
+        source: PAPER
+        locator: "Alamdari MDM2 BLI paragraph"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовое условие infill $p(s_M\\mid s_{\\setminus M},c)$. Затем подтипы: ILM-AR (IgLM); generative MLM (ESM3); OADM (EvoDiff-Seq/MSA). Не одна формула BERT-softmax на все три. Не подставлять seed one-liner как уравнение инструмента."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются уравнениями default-инструмента этого класса: Ho VP-DDPM xyz; Lipman CFM; UCB; FAPE; Meier $\\Delta\\ell$ как train target; ProteinMPNN $p(s\\mid x)$; EvoDiff-D3PM $Q$-matrix (канон — [sequence-diffusion](/architectures/sequence-diffusion.html)); ProGen next-token без ILM permute."
+        source: INTERPRETATION
+      - text: "Не сравнивать IgLM infill PPL на OAS, ESM3 esmGFP identity и EvoDiff MDM2 $K_D$ как один benchmark: generated object, oracle и split разные."
+        source: INTERPRETATION
+      - text: "Alamdari: MLM train task = **один шаг** OADM; LRAR = фиксированный decode order. Это PAPER-интерпретация связи классов, не лицензия копировать BERT 15% как EvoDiff loss."
+        source: PAPER
+        locator: "Alamdari Discussion OADM generalizes LRAR and MLM"
+    equations:
+      - latex: "M\\subset\\{1,\\ldots,L\\},\\qquad p_\\theta(s_M\\mid s_{\\setminus M},c)"
+        caption: "Родовая постановка класса: распределение на masked tokens при наблюдаемом контексте и conditioner $c$. Generic: не checkpoint IgLM/ESM3/EvoDiff. Факторизация $p_\\theta$ — подтип-специфична."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "индуктивно STAR IgLM $p(S\\mid A\\setminus S)$; Hayes $p(x_m\\mid x_{\\setminus m})$; Alamdari inpaint remainder"
+        symbols:
+          - {sym: M, type: "index set", meaning: "маскированные позиции (span, random, motif complement)"}
+          - {sym: "s_M", type: "AA tokens", meaning: "генерируемые идентичности"}
+          - {sym: "s_{\\setminus M}", type: "context", meaning: "зажатые наблюдаемые токены"}
+          - {sym: c, type: "conditioner", meaning: "tags / tracks / MSA; не ELISA по умолчанию"}
+          - {sym: "\\theta", type: "params", meaning: "веса infiller"}
+        meaning: "Оптимизируется восстановление masked tokens. Семплируется $s_M$. Affinity labels в формулу не входят."
+    sections:
+      - id: math-iglm
+        level: 3
+        title: "Подтип A — ILM span + causal decode (IgLM; не BERT)"
+        paragraphs:
+          - text: "Donahue-style: span $S$ заменяется `[MASK]`; исходная лента + `[SEP]` + $S$ + `[ANS]`. Train: $m\\sim\\mathrm{Unif}\\{10,\\ldots,20\\}$, старт $j$ uniform. Tags $c_c,c_s$ prepend. Tool-specific [IgLM](/tools/iglm.html)."
+            source: PAPER
+            locator: "IgLM STAR Methods ILM; Table 1 params"
+        equations:
+          - latex: "p_\\theta(S\\mid A\\setminus S,c)=\\prod_i p_\\theta(S_i\\mid A\\setminus S, S_{<i}, c_c,c_s)"
+            caption: "Infill как AR на переставленном span до `[ANS]`. Не bidirectional softmax на каждой позиции независимо. Не ESM3 unmask."
+            generic_or_specific: "IgLM [PAPER+CODE]; tool-specific"
+            source: PAPER
+            locator: "IgLM infill factorization; CODE IgLM.infill"
+            symbols:
+              - {sym: A, type: "token sequence", meaning: "unpaired VH или VL"}
+              - {sym: S, type: "span", meaning: "masked участок; train 10–20; inference — пользовательский [start,end)"}
+              - {sym: "c_c,c_s", type: "tags", meaning: "[HEAVY]/[LIGHT] и species"}
+            meaning: "Train: next-token CE на ILM-ленте. Sample: ancestral в span. PPL_infill ≠ Kd."
+      - id: math-esm3
+        level: 3
+        title: "Подтип B — generative MLM, iterative unmask (ESM3; не 15% BERT)"
+        paragraphs:
+          - text: "Supervision across all masking rates; any-order factorization; tracks fused (sequence, structure tokens, function). Geometric attention в первом блоке. Канон совместных tracks — joint-страница; здесь — infill как unmask $m$."
+            source: PAPER
+            locator: "Hayes after Fig. 1; geometric attn block 1"
+        equations:
+          - latex: "\\mathbb{E}_{m}\\bigl[-\\log p_\\theta(x_m\\mid x_{\\setminus m})\\bigr],\\quad m\\sim\\mathrm{noise\\ schedule}"
+            caption: "Generative MLM на multimodal $x$. Schedule bioRxiv A.2.2: 80% $\\beta(3,9)$ (mean 25%) + 20% uniform, overall $\\sim$30% — tool-specific, не IgLM $m\\in[10,20]$. Не OADM $T=L$."
+            generic_or_specific: "ESM3 [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Hayes generative masked LM; A.2.2"
+            symbols:
+              - {sym: x, type: "multimodal tokens", meaning: "AA + VQ structure + function"}
+              - {sym: m, type: "mask", meaning: "variable-rate mask"}
+            meaning: "Train: CE masked tokens. Sample: iterative unmask until $m=\\emptyset$. pTM ≠ ELISA."
+      - id: math-oadm
+        level: 3
+        title: "Подтип C — OADM absorbing mask (EvoDiff-Seq/MSA infill; не D3PM $Q$)"
+        paragraphs:
+          - text: "Forward: на каждом шаге один remaining AA → special mask token; после $T=L$ вся последовательность замаскирована. Reverse: сеть undoes corruption; timestep OADM **implicit** в числе масок (нет sinusoidal t, в отличие от D3PM). Infill: не маскировать зажатый motif/фланги, декодировать remainder. Architecture: ByteNet CNN 38M / 640M (Seq); MSA Transformer ~100M. CODE NR."
+            source: PAPER
+            locator: "Alamdari Fig. 1B; Methods OADM; T=L; implicit timestep"
+        equations:
+          - latex: "T=L,\\quad x_T=\\texttt{[MASK]}^{L},\\quad \\text{reverse: unmask one index per step from remaining }M_t"
+            caption: "OADM absorbing process (Alamdari Methods + Fig. 1B). Не выписывать Hoogeboom Eq. с номером без PDF. Не D3PM $T=500$, $\\lambda=0$, uniform/BLOSUM $Q$."
+            generic_or_specific: "EvoDiff-OADM [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods Order-Agnostic Autoregressive Diffusion Models; T=L"
+            symbols:
+              - {sym: L, type: int, meaning: "длина sequence; число forward mask steps"}
+              - {sym: "M_t", type: "index set", meaning: "ещё замаскированные позиции на reverse-шаге"}
+              - {sym: "x_T", type: "tokens", meaning: "полностью masked (unconditional start)"}
+            meaning: "Train: CE undo-mask (OADM). Sample: order-agnostic unmask. D3PM не infill-канон."
+    tables:
+      - headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        source: INTERPRETATION
+        rows:
+          - ["Masked-token infilling (эта страница)", "восстановление $s_M\\mid s_{\\setminus M}$ (ILM-CE / MLM / OADM)", "span AR / iterative unmask / OADM unmask", "IgLM, ESM3, EvoDiff-OADM"]
+          - ["[Autoregressive generation](/architectures/autoregressive-generation.html)", "next-token CE left-to-right", "ancestral L→R", "ProGen; IgLM full-chain после ILM tape"]
+          - ["[Protein language models](/architectures/protein-language-models.html)", "семейство CE AR или MLM или frozen", "зависит от роли", "надкласс; infill — одна роль"]
+          - ["[Sequence diffusion](/architectures/sequence-diffusion.html)", "D3PM $Q$ / discrete noising", "T mutation steps", "EvoDiff-D3PM; не OADM infill"]
+          - ["[Zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html)", "нет task loss", "enumerate 19×pos, rank Δℓ", "ESM-1v; не generator infill"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "CE $p(s\\mid x)$", "AR/random-order decode", "MPNN, AntiFold — нет этого id"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы: позиции токенов. Рёбра: self-attention (IgLM GPT-2, ESM3 transformer) или dilated conv ByteNet (EvoDiff-Seq). Pair geometry **не** обязательна. ESM3 geometric attention block 1 — structure track, не DiffAb pair IPA."
+        source: PAPER
+        locator: "IgLM GPT-2; Alamdari ByteNet/CARP; Hayes geometric attn"
+      - text: "IgLM tokens: `BertTokenizerFast` / `vocab.txt` (AA + specials). Chain `[HEAVY]`/`[LIGHT]`, species token. CODE `max_length=150` в `generate()` — tool-specific, может обрезать длинный CDR3. Mask span — полуинтервал `[start,end)` в `infill`."
+        source: CODE
+        locator: "IgLM.py infill/generate; max_length=150"
+      - text: "IgLM train mask: $m\\sim\\mathrm{Unif}\\{10,\\ldots,20\\}$ residues, не BERT 15%. Нет time embedding. Conditioner = tags, не contig file RFdiffusion."
+        source: PAPER
+        locator: "STAR ILM length"
+      - text: "ESM3: multimodal tokens (AA, VQ structure, function keywords); BOS/EOS; crop/length **NR** сверх PLM-страницы (не выдумывать hidden width). Mask rate variable. Structure tokens — local atomic neighborhoods, не PDB numbering как вход сети (PDB — препроцессинг токенизатора, CODE NR)."
+        source: PAPER
+        locator: "Hayes Fig. 1 tracks"
+      - text: "EvoDiff-Seq: UniRef50 sequences, max length 2048 at sample (Methods). OADM: timestep = count of masks. D3PM: 1D sinusoidal $t$ — **не** infill-канон. MSA models: depth 64, length 512, pad; Rand vs MaxHamming subsample. GAP tokens в MSA."
+        source: PAPER
+        locator: "Methods modeling; MSA 64×512; sample length ≤2048"
+      - text: "Внешние файлы vs сеть: OAS/UniRef dumps, Chothia CDR bounds для IgLM paper libraries — препроцессинг. Motif scaffolding EvoDiff: motif AA identities as clamp, **не** 3D coords в conditioner (только sequence motif). Library CSV DMS — нет как вход generator."
+        source: PAPER
+        locator: "Alamdari motif: sequence conditioning only"
+      - text: "Аугментации токенов: IgLM ILM permutation (не splicing). EvoDiff MSA Rand/Max subsample. ESM3 mask-rate sampling. 3D rotation неприменима к IgLM/EvoDiff-Seq."
+        source: PAPER
+        locator: "IgLM ILM; Alamdari MSA Rand/Max"
+      - text: "Размерности hidden: IgLM $d=512$, 4 layers, 8 heads, FFN 2048, **12 889 600** params; IgLM-S $d=192$, 3 layers — PAPER Table 1. EvoDiff Seq 38M ($d=1020$, 16 layers) и 640M ($d=1280$, 56 layers, encoder hidden $d$) — Methods. ESM3 1.4/7/98B — PAPER; layer widths Science SI — NR."
+        source: PAPER
+        locator: "IgLM Table 1; Alamdari Methods 38M/640M; Hayes 1.4/7/98B"
+      - text: "AntiFold region masks — IF graph features, не этот data-repr. Не копировать."
+        source: INTERPRETATION
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $s_i$ ↔ однобуквенный код аминокислоты (IgLM unpaired VH/VL; EvoDiff любое UniRef; ESM3 + structure/function tokens). Assay $y$ (BLI $K_D$, CD, microscopy) **не** координата state."
+        source: INTERPRETATION
+      - text: "SE(3): **не применимо** к IgLM и EvoDiff-Seq (нет coords в generator). ESM3 structure track — discrete tokens / geometric attention; не FrameDiff IGSO(3). Global rotation не определена для sequence-only."
+        source: INTERPRETATION
+      - text: "Перестановка residues в биологическом порядке ломает смысл, **кроме** явного ILM (IgLM) и OADM random unmask order (EvoDiff) — это train-time/decode order, не эволюция. Concat VH||VL: IgLM генерирует цепи независимо; paired Fv не один infill."
+        source: PAPER
+        locator: "IgLM unpaired OAS"
+      - text: "Side chains: **отсутствуют** в state IgLM/EvoDiff-Seq. ESM3 может эмитить structure tokens; pack/AF — **predictor**, не infiller."
+        source: INTERPRETATION
+      - text: "Промежуточный masked token / ILM tape / OADM $x_t$ ≠ траектория фолдинга и ≠ энергия. OmegaFold/AF pLDDT на generated sequence — внешний predictor."
+        source: PAPER
+        locator: "Alamdari Fig. 2A OmegaFold; IgLM AF-Multimer paper-only"
+      - text: "Antigen coords / epitope tensor: **нет** у IgLM и EvoDiff infill. ESM3 function keywords ≠ ELISA epitope. EvoDiff motif clamp — residue identities мотива, не hotspot 3D RFantibody."
+        source: PAPER
+        locator: "IgLM no antigen; Alamdari no binder coords at inference"
+      - text: "MSA у EvoDiff-MSA — evolutionary context (OpenFold alignments), не experimental $y$. Subsample 64 может не покрыть мелкие семьи (авторы: 1YCR/3IXT MSA <64 — out of train support)."
+        source: PAPER
+        locator: "Alamdari 1YCR, 3IXT fewer than 64 sequences"
+      - text: "Ghost/GAP: EvoDiff MSA pad `<GAP>`; IgLM нет AHo ghosts (переменная длина span)."
+        source: PAPER
+        locator: "Alamdari MSA pad"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head. Запрещено писать, что infiller «считает $\\Delta G$». Likelihood / PPL — статистика корпуса, не термодинамика."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "первичная структура"
+        encoded: "прямо, categorical tokens"
+        limitation: "нет partial charge; IgLM unpaired не кодирует VH–VL covariation"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "3D fold"
+        encoded: "IgLM/EvoDiff-Seq — не представлена; ESM3 — косвенно structure tokens"
+        limitation: "pLDDT predictor ≠ generated structure validation"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "интерфейс"
+        encoded: "не представлена (IgLM, EvoDiff infill); ESM3 — не ELISA tensor"
+        limitation: "не epitope-conditioned antibody design"
+      - feature: "H-bonds / electrostatics / solvation / entropy"
+        interpretation: "могут коррелировать с OAS/UniRef статистикой"
+        encoded: "не явно"
+        limitation: "OASis/CamSol — external evaluators IgLM"
+      - feature: "Evolutionary statistics"
+        interpretation: "семейные частоты; MSA"
+        encoded: "прямо: OAS (IgLM), UniRef50 (EvoDiff), ESM3 pretrain; EvoDiff-MSA alignments"
+        limitation: "human-heavy skew IgLM; UniRef bias"
+      - feature: "Experimental y"
+        interpretation: "binding / localization / CD"
+        encoded: "не в infill loss; EvoDiff wet-lab post-hoc; IgLM нет SPR; ESM3 GFP campaign — не этот id как assay head"
+        limitation: "не переносить MDM2 Kd на IgLM CDR libraries"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\theta$ infiller. Frozen affinity surrogate **нет**. IgLM: весь GPT-2 `GPT2LMHeadModel` обучается; released checkpoints frozen at inference. CODE `log_likelihood` — тот же $\\theta$, роль evaluator."
+        source: CODE
+        locator: "IgLM.py; log_likelihood returns -NLL"
+      - text: "IgLM loss: стандартный AR NLL на ILM-перестроенной последовательности (включая span). Negative / non-binder / contrastive / affinity labels **нет**."
+        source: PAPER
+        locator: "STAR training objective CE"
+      - text: "ESM3: generative MLM CE на masked multimodal tokens; alignment preference pairs по pTM/cRMSD (не ELISA). Fine-tune vs pretrain details Science SI — **NR** this pass beyond bioRxiv scale numbers."
+        source: PAPER
+        locator: "Hayes generative MLM; preference pTM/cRMSD"
+      - text: "EvoDiff-OADM: CE undo-mask; timestep implicit. D3PM hybrid $\\mathcal{L}_{vb}+\\lambda\\mathcal{L}_{ce}$ с $\\lambda=0$, $T=500$ — **не** infill default. Negative binders в loss **нет**."
+        source: PAPER
+        locator: "Methods D3PM λ=0 T=500; OADM section"
+      - text: "Pretrain корпуса: IgLM OAS unpaired (не SAbDab structures). EvoDiff UniRef50 42M (Seq) / OpenFold MSAs 372 296 train (MSA). ESM3 3.15B sequences / 236M structures / 539M function / 771B tokens (bioRxiv). Не один split."
+        source: PAPER
+        locator: "IgLM STAR dataset; Alamdari 42M UniRef50; 372296 train MSAs; Hayes token counts"
+      - text: "Fine-tune IgLM на antigen **нет**. EvoDiff scaffolding **без** finetune (same weights). Не путать с RFdiffusion motif finetune."
+        source: PAPER
+        locator: "Alamdari same model unconditional/conditional"
+      - text: "Teacher forcing: IgLM AR на ILM tape — да. ESM3/OADM — mask reconstruction, не left-to-right TF в биологическом порядке. Self-conditioning — NR в прочитанных methods."
+        source: INTERPRETATION
+      - text: "ESM-1v ensemble 5 seeds — scoring class, не infill $\\theta$."
+        source: PAPER
+        locator: "Meier 5-seed; not this architecture_id"
+      - text: "microsoft/evodiff optimizer line-by-line — NR (Adam 1e-4, warmup 16k Seq / 15k MSA — PAPER Methods, не CODE locator)."
+        source: PAPER
+        locator: "Methods Adam 1e-4"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "IgLM infill: tags + parent → replace span `[MASK]` → append span after `[SEP]` at train; at sample write tokens until `[ANS]` → **пересборка** full-length (ILM markers снимаются). Geometry не появляется. AF-Multimer / OASis — paper post-hoc **evaluator**."
+        source: CODE
+        locator: "IgLM.infill; STAR full-length reassembly"
+      - text: "ESM3: prompt tracks → geometric attn block 1 → transformer → iterative unmask → optional structure decoder. Sequence vs structure vs score: tokens сначала; pTM — internal confidence **evaluator**, не Kd. GFP spectra — **experiment** (Hayes), не logit."
+        source: PAPER
+        locator: "Hayes Fig. 1A iterative sampling; Fig. 4 GFP"
+      - text: "EvoDiff infill: observed tokens clamped; remainder `[MASK]`; ByteNet/MSA transformer predicts; unmask one (OADM) until $M=\\emptyset$. Не прятать OmegaFold, ESM-IF scPerplexity, DR-BERT, MitoFates, BLI внутрь CNN."
+        source: PAPER
+        locator: "Alamdari inpainting; Fig. 2A evaluators"
+      - text: "Не прятать ProteinMPNN внутрь EvoDiff: scPerplexity **вызывает** ESM-IF как внешний IF. MotifRMSD — после OmegaFold, predictor."
+        source: PAPER
+        locator: "Fig. 2A ESM-IF; motif success pLDDT and motifRMSD"
+      - text: "IgLM `generate` full-chain: всё ещё ILM-trained GPT-2, не BERT fill. Prompt 3 N-terminal residues из-за >40% OAS truncations (Table S2 exact motifs NR)."
+        source: PAPER
+        locator: "Full-length generation; N-terminal truncation"
+      - text: "EvoDiff-D3PM reverse from uniform AA — **не** infill forward pass этой страницы."
+        source: PAPER
+        locator: "Methods sampling x_T uniform amino acids"
+      - text: "Likelihood rerank (`log_likelihood`) — evaluator. Clash filter / pack — нет в классе как канон."
+        source: CODE
+        locator: "IgLM.log_likelihood"
+      - text: "Biohub/esm unmask implementation — CODE NR; не утверждать число steps."
+        source: NR
+    mermaid: |
+      flowchart TD
+        CTX["Observed tokens s without M plus tags/tracks/MSA"] --> MASK["Build mask M: ILM span or [MASK] remainder"]
+        MASK --> INF["Infiller θ"]
+        INF --> ILM["IgLM: permute span, GPT-2 AR until ANS — generator"]
+        INF --> MLM["ESM3: bidirectional unmask iterate — generator"]
+        INF --> OAD["EvoDiff-OADM: unmask one site per step — generator"]
+        ILM --> SEQ["Filled sequence"]
+        MLM --> SEQ
+        OAD --> SEQ
+        SEQ --> LL["Model PPL / log_likelihood — evaluator"]
+        SEQ --> STR["AF / OmegaFold / ESM-IF — predictor"]
+        STR --> DEV["OASis / DR-BERT / pLDDT — evaluator"]
+        SEQ --> ASSAY["Optional CD / microscopy / BLI — experiment"]
+        subgraph gen ["Generator"]
+          INF
+          ILM
+          MLM
+          OAD
+        end
+        subgraph ev ["Evaluator / predictor"]
+          LL
+          STR
+          DEV
+        end
+        subgraph ex ["Experiment"]
+          ASSAY
+        end
+    mermaid_caption: "Схема класса по Shuai STAR ILM, Hayes unmask, Alamdari OADM inpaint — не копия Fig. 1 papers. Generator отделён от AF/ESM-IF и от assay."
+    mermaid_source: "IgLM ILM; Hayes Fig. 1A; Alamdari Fig. 1B–D"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого split класса нет. Не выводить EvoDiff split из README. Не смешивать OAS cluster split с UniRef50."
+        source: INTERPRETATION
+      - text: "IgLM: OAS unpaired; после фильтра ошибок 809M unique → LinClust 95% → 588M. Random 5% test; 558M train, 1M val. Skew: human heavy ~70%. Split **не** germline-holdout: conserved regions остаются в train (авторы явно). N-terminal truncation >40% OAS."
+        source: PAPER
+        locator: "STAR Antibody sequence dataset"
+      - text: "IgLM compute: batch 512, 2 grad accum, DeepSpeed, ~3 days × 4×A100 — PAPER. Не wall-clock ESM3."
+        source: PAPER
+        locator: "STAR training hardware"
+      - text: "EvoDiff-Seq: 42M UniRef50, CARP ByteNet. 38M: 8×V100 32GB, ~2 weeks, ~700k steps; 640M: 32×V100, 23 days without convergence (OADM/D3PM-Uniform). MSA: 382 296 alignments → 372 296 train / 10 000 val; 16×V100 10 days, 55k steps. Test-set ppl protocol: sample t, corrupt, one forward — Methods; **численные** Table S1 NR."
+        source: PAPER
+        locator: "Methods training details; 42M; MSA split"
+      - text: "Симуляция: IgLM infill PPL, ANARCI control, in silico aggregation. EvoDiff pLDDT/scPerplexity/FPD — in silico. Prospective: IgLM **нет** wet-lab в primary. EvoDiff: expression/CD; yeast Cox15 microscopy; Ca2+ spectroscopy; MDM2 BLI — preprint, не journal."
+        source: PAPER
+        locator: "IgLM no SPR; Alamdari wet-lab sections"
+      - text: "ESM3 train split / leakage vs GFP — bioRxiv details beyond token counts **частично** на PLM-странице; Science SI NR. Не выводить из HuggingFace README."
+        source: NR
+      - text: "Leakage IgLM: CDR-H3 test mAbs vs OAS — не аудирован как structural homologs; authors keep conserved CDRs in train."
+        source: PAPER
+        locator: "STAR split rationale"
+      - text: "Time-sampling: EvoDiff D3PM $t\\sim U\\{1,\\ldots,T-1\\}$; OADM implicit via mask count. IgLM no diffusion t."
+        source: PAPER
+        locator: "Methods D3PM t~U; OADM implicit"
+      - text: "ESM-2 15% BERT — related MLM literature, не catalog tool этого id и не train IgLM."
+        source: INTERPRETATION
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт IgLM infill: parent sequence + chain/species + `[start,end)`. Старт ESM3: partial or fully masked tracks. Старт EvoDiff infill: context tokens + `[MASK]` on $M$; unconditional OADM: all-mask $x_T$, length from train length distribution (≤2048)."
+        source: PAPER
+        locator: "IgLM infill API; Alamdari x_T all-mask; length distribution"
+      - text: "IgLM sampler: temperature categorical + optional nucleus $P$. CODE defaults `temperature=1`, `top_p=1`, `max_length=150`, `bad_words_ids`, stop at `[ANS]` (`eos`=cls). Paper libraries: 49 Thera-SAbDab, CDR-H3 Chothia удалён, 1000 seq × $\\{T\\in 0.8,1.0,1.2\\}\\times\\{P\\in 0.5,0.75,1.0\\}=9000$/parent."
+        source: PAPER
+        locator: "IgLM 49 mAbs 9000 variants; CODE generate defaults"
+      - text: "ESM3: iterative unmask any order. Unconditional 98B example $T=0.7$ (Fig. S14 bioRxiv). Число unmask steps как закон Methods — NR (DOC README не цитировать)."
+        source: PAPER
+        locator: "Hayes S14 T=0.7; steps NR as Methods"
+      - text: "EvoDiff-OADM: unmask one remaining mask per step, $L$ steps if fully masked; infill — только $|M|$ steps. Нет beam как канон. D3PM sampling from uniform AA — другой режим."
+        source: PAPER
+        locator: "Fig. 1B reverse; inpainting decode remainder"
+      - text: "Post-hoc **evaluator/predictor**, не generator: IgLM AF-Multimer pLDDT, OASis; EvoDiff OmegaFold pLDDT, ESM-IF scPerplexity, DR-BERT, MitoFates; ESM3 structure confidence. Pack/relax — нет в каноне."
+        source: PAPER
+        locator: "IgLM paper AF; Alamdari Fig. 2A / IDR pipeline"
+      - text: "Чего нет: assay-in-the-loop; AF recycle в сети; classifier-free ELISA guidance. EvoDiff future-work guidance — D3PM, не реализованный infill default."
+        source: PAPER
+        locator: "Alamdari Discussion guidance fits D3PM"
+      - text: "Argmax vs sample: IgLM paper uses temperature sampling for libraries, не greedy-only. EvoDiff scaffolding 100 samples/problem (in silico 17 motifs)."
+        source: PAPER
+        locator: "Alamdari 100 samples scaffolding; IgLM T/P grid"
+      - text: "microsoft/evodiff CLI flags — CODE NR."
+        source: NR
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается: unmasked tokens $s_{\\setminus M}$. IgLM: species, chain type, span bounds. ESM3: any subset of tracks (sequence/structure/function keywords). EvoDiff: motif AA sequence; MSA minus query; IDR flanks. Не ELISA / measured_var / CATH как default tensor."
+        source: PAPER
+        locator: "IgLM tags; Hayes prompts; Alamdari Fig. 1D"
+      - text: "Чего нет: antigen 3D / hotspot residue IDs RFantibody; epitope tensor PALM; library $\\mathcal{X}$ EVOLVEpro. Не приписывать."
+        source: INTERPRETATION
+      - text: "Classifier-free guidance: не в IgLM STAR. ESM3 CFG — NR без Methods locator this pass. EvoDiff infill = hard clamp, не CFG; guidance discussed as D3PM future."
+        source: PAPER
+        locator: "Alamdari Discussion guidance D3PM"
+      - text: "Contig RFdiffusion **нет**. Masking = token [MASK] / ILM span, не geometric contig."
+        source: INTERPRETATION
+      - text: "EvoDiff motif: только residue identities мотива; «without providing any explicit information about the binding target» (1PRW/p53 campaigns)."
+        source: PAPER
+        locator: "Alamdari Ca2+ and MDM2 paragraph"
+      - text: "IgLM не кондиционируется на paired partner chain. Independent VH/VL — failure of pairing, не баг sampler."
+        source: PAPER
+        locator: "unpaired OAS"
+      - text: "MSA Max vs Rand — conditioner construction, не acquisition UCB."
+        source: PAPER
+        locator: "Methods MSA subsampling"
+      - text: "Function keywords ESM3 ≠ SPR label. Taxonomy 98B (last 30k steps, PLM-страница) — организм, не affinity."
+        source: PAPER
+        locator: "Hayes function/taxonomy tracks (prior PLM read)"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: длина $L$; $|M|$ (infill steps); $O(L^2)$ attention (IgLM, ESM3) vs ByteNet conv (EvoDiff-Seq); MSA $64\\times 512$; число samples; unmask iterations; assay latency **не** часть neural reverse."
+        source: INTERPRETATION
+      - text: "IgLM 12.9M — маленький decoder; 9000 seq/parent paper grid. Wall-clock sampling — **NR** кроме train 3 days 4×A100."
+        source: PAPER
+        locator: "Table 1 12.9M; 9000 variants; 3 days train"
+      - text: "EvoDiff 640M × $L$ OADM steps (unconditional) vs infill $|M|\\ll L$. Не писать «дешевле diffusion structure» без NFE comparison в paper. Alamdari сравнивает success rates с RFdiffusion на 17 problems, не wall-clock GPU sampling."
+        source: PAPER
+        locator: "17 motif problems; no NFE table in prose"
+      - text: "ESM3 98B vs 1.4B — параметрный scale ≠ affinity. Unmask steps × $L^2$ — INTERPRETATION, steps NR."
+        source: INTERPRETATION
+      - text: "Train GPU: EvoDiff 38M 8×V100; 640M 32×V100 23 days — PAPER. Не переносить на IgLM A100."
+        source: PAPER
+        locator: "Methods 8 vs 32 V100"
+      - text: "EvoDiff CODE throughput — NR."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: локальный redesign не переписывает зажатый контекст; двусторонние фланги (ILM/MLM/OADM) доступны до завершения span — в отличие от left-to-right, который не видит C-terminus при генерации CDR-H3 середины."
+        source: INTERPRETATION
+      - text: "IgLM Fig. 1D: bidirectional infill PPL лучше preceding-only и ProGen2-OAS на held-out OAS (качественно PAPER; точные числа фигур не таблица S). PPL ≠ function. Не обобщать на терапевтический mAb."
+        source: PAPER
+        locator: "Fig. 1D infill PPL"
+      - text: "EvoDiff: один OADM умеет unconditional и inpaint без finetune. IDR inpaint — structure-based generators typically fail IDRs (авторский claim). 8/8 Cox15 designed N-terminal IDRs colocalize with native Cox15 in yeast (microscopy), vs ∆2-45 and N1 negatives."
+        source: PAPER
+        locator: "Fig. 5F–G all 8 EvoDiff-IDRCox15"
+      - text: "EvoDiff in silico scaffolding: Seq 8/17 problems, MSA 13/17 с критерием pLDDT>70 и motifRMSD≤1 Å (prose). Это OmegaFold oracle, не wet-lab. Не сравнивать с IgLM 49 mAbs как один score."
+        source: PAPER
+        locator: "Alamdari 8 and 13 of 17 problems"
+      - text: "EvoDiff MDM2: 24 designs screened BLI; 4 with $K_D<50$ nM on ≥2 replicates; strongest 25.9 nM and 40.2 nM (MSA-p53-Design-2/3); 8 designs some binding across 3 replicates. **Одна** p53/MDM2 кампания preprint. Не класс, не IgLM."
+        source: PAPER
+        locator: "BLI paragraph KD < 50 nM; 25.9 and 40.2 nM"
+      - text: "ESM3 variable-rate MLM позволяет infill и nearly-unconditional из одного $\\theta$. esmGFP 58% ID — bioRxiv campaign, не antibody."
+        source: PAPER
+        locator: "Hayes esmGFP 58% (prior PLM read)"
+      - text: "Явно: infill naturalness не гарантия стабильности / аффинности / экспрессии. IgLM authors откладывают experimental screening. EvoDiff 25 nominated unconditional → 4 CD-positive; pLDDT poorly predicts expression (two successes pLDDT<85)."
+        source: PAPER
+        locator: "IgLM Discussion; Alamdari 25 candidates 4 expressed; pLDDT caveat"
+      - text: "1PRW: 13 nominated, 12 expressed, **one** Ca2+ spectroscopic shift — не 12 binders."
+        source: PAPER
+        locator: "12 expressed; one spectroscopic shift"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: ILM ≠ BERT; независимый per-position softmax (наивный MLM decode) mismatch с generative task (Alamdari: unconditional MLM worse structural plausibility). OADM фиксирует AA после unmask — плохо для guidance (авторы → D3PM future)."
+        source: PAPER
+        locator: "Table S3 MLM mismatch prose; Discussion OADM vs guidance"
+      - text: "Представление: нет 3D в IgLM/EvoDiff-Seq conditioner; ESM3 structure tokens ≠ crystal. Длинный mask ≈ unconditional. IgLM `max_length=150`."
+        source: CODE
+        locator: "generate max_length=150"
+      - text: "Физика/химия: нет electrostatics head. Idealized IF/pack отсутствует."
+        source: INTERPRETATION
+      - text: "Данные/bias: OAS human-heavy, unpaired, truncations, rat tag failure. UniRef50. OpenFold MSA depth filter. Conserved CDRs в IgLM train."
+        source: PAPER
+        locator: "IgLM skew/rat; Alamdari MSA ≥64"
+      - text: "Обобщение: IgLM не antigen-specific. EvoDiff motif success orthogonal to RFdiffusion (мало overlap high-success problems). Antibody CDR не калиброван в EvoDiff primary."
+        source: PAPER
+        locator: "almost no correlation EvoDiff vs RFdiffusion success"
+      - text: "Deployment: IgLM JHU non-commercial; ESM3 small non-commercial; EvoDiff MIT + Zenodo weights, preprint. Не therapeutic generator proven."
+        source: MATRIX
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Слишком большой $M$: infill → unconditional, теряется смысл «CDR redesign»."
+      - "IgLM без species/chain tags или неверный tag (rat failure PAPER Fig. 2C)."
+      - "Независимый VH и VL без pairing — workflow failure."
+      - "Подмена метрики: PPL / OASis / pLDDT / ΔLL как Kd."
+      - "AntiFold/MPNN region mask принят за UniRef MLM infill."
+      - "EvoDiff-D3PM API для infill без OADM (mutation noise ≠ span mask)."
+      - "MSA <64 sequences на EvoDiff-MSA (1YCR/3IXT out of support)."
+      - "Temperature collapse IgLM низкий $T$ / nucleus — mode collapse библиотек."
+      - "CDR3 длиннее `max_length=150` — truncation CODE."
+      - "Считать 12/13 1PRW expressed = 12 Ca2+ binders (только 1 shift)."
+      - "Перенос MDM2 nM на IgLM Thera-SAbDab libraries."
+      - "ESM3 function prompt как ELISA supervision."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Полный reverse index. Неравные oracles не в одной колонке «успех»."
+        source: MATRIX
+    tables:
+      - headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        source: INTERPRETATION
+        rows:
+          - ["[IgLM](/tools/iglm.html)", "infill $p(s_M\\mid s_{\\setminus M})$", "ILM+GPT-2 12.9M; OAS; tags; commit `de819b56238b5cb9c23d7a6fec4c55d7fc0395e4`; no wet-lab binding in primary", "Causal after permute; не BERT; unpaired Ab only"]
+          - ["[ESM3](/tools/esm3.html)", "тот же класс: fill masks", "generative MLM all rates; 1.4/7/98B; multimodal tracks; Biohub/esm commit **NR**; Science SI NR", "Не 15% ESM-2; structure tokens; не antibody-calibrated"]
+          - ["[EvoDiff](/tools/evodiff.html)", "OADM absorbing infill", "UniRef50 42M; ByteNet 38M/640M; T=L; inpaint motif/IDR; CODE SHA **NR**; D3PM = другой подтип diffusion", "Не IgLM ILM; wet-lab IDR/Ca2+/MDM2 — preprint, не переносить на IgLM"]
+      - headers: ["Метод вне карточек tools / не этот id", "Зачем указан", "Не делать"]
+        source: PAPER
+        rows:
+          - ["Donahue ILM (NLP)", "источник перестановки span IgLM", "не catalog tool"]
+          - ["ESM-2 15% MLM / Meier ESM-1v", "соседний MLM / Δℓ scoring", "нет masked-token-infilling id у ESM-1v tool"]
+          - ["AntiFold masked regions", "IF logits", "не UniRef MLM; другой architecture_id"]
+          - ["EvoDiff-D3PM", "sequence-diffusion sibling", "не уравнение infill-страницы"]
+          - ["Hoogeboom OADM / Austin D3PM papers", "родовые discrete kernels", "номера уравнений без PDF — NR"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо для локального sequence redesign при известном контексте: [antibody-sequence-infilling](/workflows/antibody-sequence-infilling.html) ([IgLM](/tools/iglm.html)); sequence-first exploration и motif sequence-clamp ([EvoDiff](/tools/evodiff.html), [sequence-first-de-novo](/workflows/sequence-first-de-novo.html)); multimodal completion ([ESM3](/tools/esm3.html), [joint-multimodal-generation](/workflows/joint-multimodal-generation.html)). Задача [cdr-sequence-generation](/tasks/cdr-sequence-generation.html)."
+        source: MATRIX
+      - text: "Этим **нельзя** заменять: de novo backbone ([frame diffusion](/architectures/frame-diffusion.html)); antigen-conditioned CDR co-design 3D ([joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html), [DiffAb](/tools/diffab.html)); few-shot ELISA ([active learning](/architectures/active-learning.html)); zero-shot 19-mutant ranking ([ESM-1v](/tools/esm-1v-efficient-evolution.html)); IF при готовом backbone ([ProteinMPNN](/tools/proteinmpnn.html))."
+        source: INTERPRETATION
+      - text: "Не использовать IgLM likelihood как specificity к антигену. Нужен antigen structure — не этот класс."
+        source: MATRIX
+        locator: "antibody-sequence-infilling decision_criteria"
+      - text: "EvoDiff IDR/MDM2 evidence не делает инструмент antibody therapeutic generator. ESM3 не имеет primary antibody wet-lab в catalog card."
+        source: MATRIX
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational: Donahue ILM (цитируется IgLM); Devlin BERT MLM (контраст, не IgLM); Hoogeboom OADM / Austin D3PM (цитируются Alamdari (24)(25)). Catalog: [paper-iglm](/papers/paper-iglm.html), [paper-esm3](/papers/paper-esm3.html), [paper-evodiff](/papers/paper-evodiff.html)."
+        source: PAPER
+      - text: "Прочитано: IgLM Cell Systems + CODE de819b56; EvoDiff bioRxiv v2 HTML Methods+wet-lab prose; ESM3 bioRxiv (PLM-проход, Science не sync). Pointer-only: Science ESM3 SI; EvoDiff S-tables numbers; evodiff/esm commits; Hoogeboom PDF Eqs."
+        source: INTERPRETATION
+      - text: "Не библиография всего masked LM: CARP, ESM-MSA как baselines EvoDiff — указаны в paper, не карточки этого id. Не блоги."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Shuai R.W., Ruffolo J.A., Gray J.J. IgLM: Infilling language modeling for antibody sequence design. Cell Systems 14, 979–989 (2023)."
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+    doi: "10.1016/j.cels.2023.10.001"
+  - id: 2
+    text: "Hayes T. et al. Simulating 500 million years of evolution with a language model. bioRxiv 10.1101/2024.07.01.600583."
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.01.600583"
+    doi: "10.1101/2024.07.01.600583"
+  - id: 3
+    text: "Alamdari S. et al. Protein generation with evolutionary diffusion: sequence is all you need. bioRxiv 10.1101/2023.09.11.556673."
+    url: "https://www.biorxiv.org/content/10.1101/2023.09.11.556673"
+    doi: "10.1101/2023.09.11.556673"
+  - id: 4
+    text: "Graylab/IgLM commit de819b56238b5cb9c23d7a6fec4c55d7fc0395e4."
+    url: "https://github.com/Graylab/IgLM"
+  - id: 5
+    text: "Meier J. et al. Language models enable zero-shot prediction of the effects of mutations. bioRxiv 10.1101/2021.07.09.450648. (соседний класс Δℓ, не infill train target.)"
+    doi: "10.1101/2021.07.09.450648"
+  - id: 6
+    text: "Hoogeboom et al. Autoregressive Diffusion Models — цитируется Alamdari как (24); PDF уравнений в этом проходе не close-read."
+  - id: 7
+    text: "Austin J. et al. Structured denoising diffusion models in discrete state-spaces. NeurIPS 2021. (D3PM; EvoDiff sequence-diffusion sibling.)"
+    url: "https://arxiv.org/abs/2107.03006"
+unresolved:
+  - "IgLM Table S1 species counts; Table S2 exact 3-mer prompts"
+  - "ESM3 Science 10.1126/science.ads0018 SI vs bioRxiv pagination"
+  - "Biohub/esm unmask step count / commit SHA"
+  - "microsoft/evodiff commit SHA and sampler functions"
+  - "EvoDiff Table S1–S6 numeric perplexity/FPD/Hamming cells"
+  - "Hoogeboom OADM loss equation number (не транскрибирован из исходного PDF)"
+  - "ESM3 hidden widths / exact unmask algorithm in code"
+  - "Independent replication IgLM libraries — NR"
+  - "EvoDiff journal version — нет; preprint only"

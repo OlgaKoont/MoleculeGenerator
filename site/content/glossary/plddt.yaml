@@ -1,0 +1,7 @@
+id: plddt
+slug: plddt
+term: pLDDT / ipTM / PAE
+term_ru: Метрики structure predictor
+definition: Confidence scores AlphaFold-семейства. Не являются experimental affinity.
+related_ids:
+- evidence-level

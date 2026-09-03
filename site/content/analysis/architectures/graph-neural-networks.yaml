@@ -1,0 +1,723 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — message passing на графе residues/atoms, не одна generative process и не задача inverse folding. В этом проходе: Dauparas et al. ProteinMPNN — Science HTML + catalog CODE close-read dauparas/ProteinMPNN @8907e667 (protein_mpnn_utils.py, protein_mpnn_run.py, training/README.md); SI PDF / Fig. S1 не постранично. LigandMPNN — Nature Methods HTML 10.1038/s41592-025-02626-1 (Methods: три графа, M=25, encoder 3+2, packing как отдельная сеть, split 317/74/83); preprint 10.1101/2023.12.22.573103 не сличать с journal pagination; dauparas/LigandMPNN line-audit NR. dyMEAN — arXiv HTML 2302.00203 (Eqs. 1–24, Theorem 4.1, Table 1/3/4/6, Appendix F hyperparameters); PMLR kong23c PDF не постранично; thunlp-mt/dymean CODE NR. Chroma — Nature HTML 10.1038/s41586-023-06728-8 (Fig. 1: random long-range GNN denoiser + отдельная design GNN после backbone; 310 designs; crystals 8TNM/8TNO); SI Tables 2–3 / Appendices E–G graph widths NR; generatebio/chroma commit NR. Gilmer ICML 2017 — pointer (Chroma refs 30), full text unread. Не ставить GVP-Transformer / FAPE / UCB / VP-SDE как default этого класса."
+lede: "Graph neural networks (GNN / MPNN) — **слой сообщений** на графе residues или atoms: локальный geometric inductive bias, из которого делают generator только после decode head. Это не задача $p(s\\mid x)$, не dense pair Transformer, не SE(3)-класс как таковой и не diffusion process."
+inaccessible:
+  - source: "Dauparas et al. Science 2022 Supporting Information PDF / Fig. S1 (k-saturation, tied-decoding panels)"
+    reason: "SI не скачан постранично в этом проходе (известный блокер слота)"
+    workaround: "Основной Science HTML: Table 1 ablation, k saturates 32–48 в тексте; CODE released k=48 через checkpoint['num_edges']"
+  - source: "Dauparas et al. LigandMPNN Nature Methods SI / Supplementary Fig. 1 numeric panels; dauparas/LigandMPNN commit + line-audit"
+    reason: "SI PDF не постранично; extra_constraints: code not line-audited this pass"
+    workaround: "Journal HTML Methods: M=25 context atoms, 3 protein encoder + 2 protein–ligand, packing mixture-of-von-Mises, 300k Adam steps. Protein-graph neighbor K численно — NR"
+  - source: "Kong et al. ICML 2023 PMLR v202 PDF vs arXiv 2302.00203 pagination; THUNLP-MT/dyMEAN commit SHA"
+    reason: "Этот проход — arXiv HTML; CODE unaudited; PMLR не сличен"
+    workaround: "Уравнения и Table 1/6 из arXiv HTML; не цитировать PMLR-only номера страниц"
+  - source: "Ingraham et al. Nature 2023 SI Tables 2–3, Supplementary Figs. 4–8, Appendices E–G (graph widths, seven-architecture ablation numbers)"
+    reason: "SI PDF не page-read this pass"
+    workaround: "Main HTML: random long-range GNN, sub-quadratic O(N) or O(N log N); design network — отдельный GNN после backbone. Hidden dim / #layers denoiser — NR"
+  - source: "Gilmer et al. ICML 2017 Neural message passing for quantum chemistry full text"
+    reason: "Pointer / Chroma Nature ref. 30; не close-read this pass"
+    workaround: "Родовая схема MPNN помечена INTERPRETATION; реализация ProteinMPNN — Dauparas + CODE EncLayer"
+  - source: "Ingraham et al. NeurIPS 2019 Structured Transformer / graph-based protein design full methods"
+    reason: "Ancestor ProteinMPNN / Chroma design network; не close-read this pass"
+    workaround: "Dauparas Science: baseline MPNN; Chroma Nature: design network builds on refs 15, 16 (Ingraham 2019 lineage) + ProteinMPNN experimental validation citations"
+  - source: "generatebio/chroma weights + commit; Chroma v.0 vs v.1 architecture tables"
+    reason: "Веса gated; commit NR; Supplementary Table 2 — SI"
+    workaround: "Канон генерации — /architectures/coordinate-diffusion.html; на этой странице только роль GNN"
+  - source: "LigandMPNN bioRxiv HTML 10.1101/2023.12.22.573103 this pass"
+    reason: "Fetch 429; канон — journal Nature Methods"
+    workaround: "Не смешивать preprint-only numbers с journal HTML"
+sources:
+  - kind: PAPER
+    citation: "Dauparas J. et al. Robust deep learning-based protein sequence design using ProteinMPNN. Science 378, 49–56 (2022)"
+    url: "https://doi.org/10.1126/science.add2187"
+    doi: "10.1126/science.add2187"
+    note: "Science HTML + prior catalog close-read analysis/tools/proteinmpnn.yaml: order-agnostic AR, 3+3 MPNN, Table 1, wet-lab Fig. 3–4. SI Fig. S1 NR this pass"
+  - kind: PAPER
+    citation: "Dauparas J. et al. Atomic context-conditioned protein sequence design using LigandMPNN. Nat. Methods (2025), 10.1038/s41592-025-02626-1; preprint 10.1101/2023.12.22.573103"
+    url: "https://www.nature.com/articles/s41592-025-02626-1"
+    doi: "10.1038/s41592-025-02626-1"
+    note: "Journal HTML this pass. Не сливать preprint pagination. Protein graph K — NR"
+  - kind: PAPER
+    citation: "Kong X., Huang W., Liu Y. End-to-End Full-Atom Antibody Design. ICML 2023; arXiv:2302.00203"
+    url: "https://arxiv.org/abs/2302.00203"
+    doi: "10.48550/arXiv.2302.00203"
+    note: "arXiv HTML: AME Eqs. 8–13, Kabsch 18–19, losses 20–24, Table 1 RAbD, Appendix F Table 6. PMLR HTML pointer-only"
+  - kind: PAPER
+    citation: "Ingraham J. et al. Illuminating protein space with a programmable generative model. Nature 623, 1070–1078 (2023)"
+    url: "https://www.nature.com/articles/s41586-023-06728-8"
+    doi: "10.1038/s41586-023-06728-8"
+    note: "Nature HTML Fig. 1: GNN denoiser + design GNN. Train target — polymer-correlated diffusion, не CE IF. SI graph hypers NR"
+  - kind: PAPER
+    citation: "Gilmer J. et al. Neural message passing for quantum chemistry. ICML 2017, PMLR 70:1263–1272"
+    url: "https://proceedings.mlr.press/v70/gilmer17a.html"
+    note: "Pointer; Chroma Nature ref. 30. Full text unread"
+  - kind: CODE
+    citation: "dauparas/ProteinMPNN — ProteinMPNN class, run script, training README"
+    url: "https://github.com/dauparas/ProteinMPNN"
+    note: "commit 8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+  - kind: CODE
+    citation: "dauparas/LigandMPNN — pointer, unaudited this pass"
+    url: "https://github.com/dauparas/LigandMPNN"
+    note: "commit NR"
+  - kind: CODE
+    citation: "THUNLP-MT/dyMEAN — pointer, unaudited this pass"
+    url: "https://github.com/thunlp-mt/dymean"
+    note: "commit NR; paper spelling THUNLP-MT/dyMEAN"
+  - kind: CODE
+    citation: "generatebio/chroma — pointer, weights gated"
+    url: "https://github.com/generatebio/chroma"
+    note: "commit NR"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id graph-neural-networks"
+    note: "chroma, dymean, ligandmpnn, proteinmpnn"
+repo:
+  url: "https://github.com/dauparas/ProteinMPNN"
+  commit: "8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+  ref: "main (catalog inspection; this pass paper HTML LigandMPNN/dyMEAN/Chroma, не повторный line-audit MPNN)"
+  license: "MIT (repo / catalog YAML)"
+  files:
+    - protein_mpnn_utils.py
+    - protein_mpnn_run.py
+    - training/README.md
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **geometric inductive bias / message-passing density model**: узлы (residues или atoms) обмениваются сообщениями по sparse рёбрам (kNN, radius, bonds, ligand nearest atoms). Generator появляется только когда к MPNN добавлен decode head: AR sequence (ProteinMPNN / LigandMPNN), iterative full-atom update + Kabsch (dyMEAN), или denoiser/design-net внутри другого generative process (Chroma). Сама семья слоёв не задаёт assay loop и не выбирает mutants по UCB."
+        source: INTERPRETATION
+      - text: "Generated или scored state зависит от подтипа. ProteinMPNN: дискретные AA tokens при **зафиксированном** backbone $x$. LigandMPNN: то же плюс отдельная сеть $\\chi$-углов при фиксированных backbone и ligand coords. dyMEAN: типы paratope **и** full-atom координаты всего antibody, затем docked pose. Chroma GNN: обновление noisy backbone coords (denoiser) и, отдельно, sequence/side chains (design network) — канон семпла coords принадлежит [coordinate diffusion](/architectures/coordinate-diffusion.html)."
+        source: PAPER
+        locator: "Dauparas Science Fig. 1; LigandMPNN Nat. Methods Fig. 1; Kong §3 task; Ingraham Nature Fig. 1"
+      - text: "Задачи каталога, которые класс реально закрывает как слой: [inverse folding](/tasks/inverse-folding.html) (ProteinMPNN, LigandMPNN); [functional-site-design](/tasks/functional-site-design.html) при **заданном** ligand/NA/metal pose (LigandMPNN); [joint CDR sequence–structure design](/tasks/joint-cdr-sequence-structure-design.html) (dyMEAN). De novo topology из шума — не MPNN-IF; у Chroma это diffusion, не «GNN generates fold from empty graph»."
+        source: MATRIX
+        locator: "seed applicable_task_ids; reverse index"
+      - text: "Это **не** страница задачи [inverse folding](/architectures/inverse-folding.html): $p(s\\mid x)$ можно реализовать GVP-Transformer, ESM-IF1, AntiFold, ProteinMPNN. Класс GNN — про **как** кодируется локальный граф, не про постановку CPD."
+        source: INTERPRETATION
+      - text: "Это **не** [geometric transformers](/architectures/geometric-transformers.html). ESM-IF1 / AntiFold: GVP-GNN encoder **затем** Transformer на invariant tokens. Нельзя называть ESM-IF1 «просто GNN» и нельзя копировать Hsu $p(Y\\mid X)$ GVP-Transformer на ProteinMPNN."
+        source: PAPER
+        locator: "Hsu/AntiFold на соседней странице; extra_constraints"
+      - text: "Это **не** [SE(3)-equivariant models](/architectures/se3-equivariant-models.html) как класс. ProteinMPNN оперирует **invariant** distances (N/Cα/C/O/virtual Cβ) — не vector channels GVP и не IPA. dyMEAN — E(3)-equivariant multi-channel $X_i$; Chroma denoiser — equivariant reconstruction из inter-residue geometries (Nature). Смешивать четыре статуса в фразу «GNN equivariant» нельзя."
+        source: PAPER
+        locator: "Dauparas edge features; Kong Theorem 4.1; Ingraham Nature equivariant layers"
+      - text: "Это **не** [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html) и не [joint seq–struct diffusion](/architectures/joint-sequence-structure-diffusion.html). dyMEAN co-design'ит paratope sequence и coords итеративно, но train target — CE + Huber coords/bonds/dock, не DiffAb KL-on-amino-acids. ProteinMPNN **не** семплирует backbone. Chroma jointness = diffusion backbone **плюс** design GNN после, не один MPNN-IF."
+        source: PAPER
+        locator: "Kong losses §4.4; Ingraham Nature design network after backbone"
+      - text: "Это **не** [coordinate diffusion](/architectures/coordinate-diffusion.html) и не [frame diffusion](/architectures/frame-diffusion.html). VP-SDE / DDPM / SE(3) score — train target соседних классов. GNN может **параметризовать** denoiser (Chroma), но уравнение noising не принадлежит этой странице."
+        source: INTERPRETATION
+      - text: "Catalog tools с `architecture_id: graph-neural-networks`: [ProteinMPNN](/tools/proteinmpnn.html), [LigandMPNN](/tools/ligandmpnn.html), [dyMEAN](/tools/dymean.html), [Chroma](/tools/chroma.html). Часто путают с [ESM-IF1](/tools/esm-if1.html) / [AntiFold](/tools/antifold.html) (geometric-transformers), с [RFdiffusion](/tools/rfdiffusion.html) (frame diffusion; MPNN только post-hoc sequence), с [DiffAb](/tools/diffab.html) (joint diffusion)."
+        source: MATRIX
+        locator: "site/src/mappings.py"
+      - text: "RFantibody и workflow [de-novo-backbone-then-mpnn](/workflows/de-novo-backbone-then-mpnn.html) **используют** ProteinMPNN как sequence stage, но `architecture_ids` RFantibody **не** включают этот класс: генератор fold — diffusion. Не переносить wet-lab RFantibody на «успех GNN-класса»."
+        source: MATRIX
+        locator: "workflow architecture_ids; RFantibody tool ids"
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Аминокислота (или атом) «смотрит» на непосредственных соседей по графу. Несколько слоёв расширяют рецептивное поле примерно как глубина × степень, но не дают dense $N\\times N$ pair memory AlphaFold. Dauparas: native identity в основном определяется immediate environment — поэтому sparse graph достаточен для sequence design, в отличие от structure prediction, где нужны дальние контакты."
+        source: PAPER
+        locator: "Dauparas Science architecture rationale (immediate environment)"
+      - text: "При inference меняется **разное**. ProteinMPNN/LigandMPNN: фиксирован $x$ (и ligand $Y$); семплируются токены $s$ по случайному порядку узлов; backbone не двигается. dyMEAN: обновляются и $h_i$, и $X_i$ на $T$ итерациях AME, затем rigid docking Kabsch. Chroma: noisy $x_t\\to\\hat x_0$ через GNN denoiser (это шаг **diffusion**); sequence появляется только в design network на уже выбранном backbone."
+        source: PAPER
+        locator: "Dauparas Fig. 1; Kong Eqs. 14–19; Ingraham Nature Fig. 1a–b"
+      - text: "Главный эмпирический рычаг IF-подтипа — **шум на входных coords при train** и **temperature при decode**. ProteinMPNN Table 1: 0.02 Å Gaussian в ablation vs released checkpoints `v_48_002/010/020/030`; default inference `v_48_020` (0.20 Å). Temperature default 0.1 в run script. LigandMPNN train noise 0.1 Å; recovery падает с ростом шума (как у ProteinMPNN)."
+        source: PAPER
+        locator: "Dauparas Table 1 vs training/README.md; LigandMPNN Methods noise 0.1 Å; CODE protein_mpnn_run.py --sampling_temp"
+      - text: "Рычаг LigandMPNN — **атомарный контекст** $M$ ближайших ligand atoms (лучшее $M=25$ по Supplementary Fig. 1a, панель в SI не перерисована). Без ligand atoms модель вырождается в ProteinMPNN-like на том же PDB split."
+        source: PAPER
+        locator: "LigandMPNN Nat. Methods Fig. 1 caption; Methods 25 closest"
+      - text: "Рычаг dyMEAN — **shadow paratope** (клон paratope у epitope, shared $h$, private $X$) плюс **full-atom** $c_i$ каналов. Ablation Table 4: без full-atom DockQ 0.343 vs 0.409; без sharing 0.356; $T=3$ лучше $T=2/4$ по docking."
+        source: PAPER
+        locator: "Kong §4.2; Table 4"
+      - text: "Рычаг Chroma-GNN — **random long-range edges** (N-body connectivity) вместо полного pair track: sub-quadratic scaling. Это про вычислимость denoiser, не про «GNN лучше diffusion». Low-temperature sampling — модификация **diffusion** process (Appendix C), не temperature AR MPNN."
+        source: PAPER
+        locator: "Ingraham Nature paragraph scalable architecture; Supplementary Appendix C cited in HTML"
+      - text: "Предостережение по метрикам. Sequence recovery / AAR / CAAR, LigandMPNN confidence 0–100, $\\chi_1$ fraction within 10°, log $p(s\\mid x)$, AF2 pLDDT / scRMSD — **не** experimental affinity / $K_d$ / ELISA / BLI. ProteinMPNN wet-lab (solubility, oligomer SEC, crystal, Grb2 BLI) — отдельные кампании, не тождество likelihood. LigandMPNN «>100 experimental binders» и 100-fold cholic-acid — конкретные design campaigns, не класс-benchmark против dyMEAN DockQ."
+        source: PAPER
+        locator: "Dauparas Fig. 3–4; LigandMPNN abstract / Fig. 4; Kong Table 1 vs §5.3"
+      - text: "dyMEAN «affinity optimization» подгоняет MLP к **предсказанному** $\\Delta\\Delta G$ Shan et al. 2022 (и отдельно FoldX в Appendix K). Авторы сами пишут, что computational energy может плохо коррелировать с экспериментом. Это **не** SPR и не loss native CE."
+        source: PAPER
+        locator: "Kong §5.3; §7 Reliability of Computational Energy Functions"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовая схема слоя. Затем четыре подтипа каталога — **разные train target**. Не подставлять seed one-liner как уравнение default-инструмента. Не переносить FAPE, diffusion score, UCB, MLM $\\Delta\\ell$, Hsu GVP-Transformer на эту страницу без дисклеймера."
+        source: INTERPRETATION
+      - text: "Формулы ниже, помеченные tool-specific, **не** являются уравнениями «GNN по умолчанию» и не являются уравнениями соседнего catalog tool. ProteinMPNN CE $\\neq$ dyMEAN Huber. Chroma $\\hat x_\\theta(x_t,t)$ $\\neq$ AR $p(s\\mid x)$."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** принадлежат default ни одному catalog tool как «уравнение GNN-класса»: FAPE; DiffAb KL-on-amino-acids; FrameDiff DSM на frames; UCB / few-shot AL; Hsu GVP-Transformer $p(Y\\mid X)$; ProteinMPNN seed one-liner без random-order $\\pi$; Chroma polymer VP-SDE как якобы MPNN loss."
+        source: INTERPRETATION
+      - text: "Gilmer 2017 в этом проходе не читался; родовая схема MPNN помечена INTERPRETATION. Dauparas Table 1 empirically shows encoder **edge updates** (experiment 2: 49.0% → 50.5% unnoised recovery). LigandMPNN EncLayer HTML Algorithm 7 — конкретная реализация $q_{ij}=[v_i,v_j,e_{ij}]$ + sum over $K$ neighbors / scale $s=30$."
+        source: PAPER
+        locator: "Dauparas Table 1 exp. 2; LigandMPNN Algorithm 7"
+      - text: "ProteinMPNN — order-agnostic AR, не N→C как Hsu. Не копировать GVP-Transformer уравнения на этот подтип (extra_constraints)."
+        source: PAPER
+        locator: "Dauparas Science Fig. 1 vs Hsu/AntiFold SI Eq. 1"
+      - text: "LigandMPNN sequence loss = тот же CE, что ProteinMPNN; packing — другой decoder (circular normals). Не склеивать в одно уравнение $\\chi$ и AA."
+        source: PAPER
+        locator: "LigandMPNN packing paragraph; Methods CE"
+      - text: "dyMEAN Theorem 4.1 E(3) — свойство AME+Kabsch, не ProteinMPNN. Affinity Table 3 — Shan surrogate, не loss native CE."
+        source: PAPER
+        locator: "Kong Theorem 4.1; §5.3"
+      - text: "Chroma GNN не делает класс «joint generator»: Nature явно разделяет denoiser graph и design network after backbone. Сравнивать Chroma split-GFP с ProteinMPNN mg/L как один GNN-benchmark нельзя."
+        source: PAPER
+        locator: "Ingraham Nature Fig. 1; Fig. 5 protocol"
+    equations:
+      - latex: "m_{ij}^{(\\ell)}=M^{(\\ell)}\\bigl(h_i^{(\\ell)},h_j^{(\\ell)},e_{ij}\\bigr),\\qquad h_i^{(\\ell+1)}=U^{(\\ell)}\\Bigl(h_i^{(\\ell)},\\bigoplus_{j\\in\\mathcal{N}(i)} m_{ij}^{(\\ell)}\\Bigr)"
+        caption: "Родовой MPNN (Gilmer schema). $\\oplus$ — sum/mean; $\\mathcal{N}(i)$ — kNN/radius/bond. ProteinMPNN encoder также обновляет рёбра (Table 1 experiment 2). Не уравнение default Chroma ELBO."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "Gilmer 2017 pointer; Dauparas Table 1 edge updates; LigandMPNN EncLayer HTML Algorithm 7"
+        symbols:
+          - {sym: "h_i^{(\\ell)}", type: "vector", meaning: "invariant (обычно) hidden узла i на слое ℓ"}
+          - {sym: "e_{ij}", type: "vector", meaning: "признаки ребра (distances, same-chain, offset, ligand geometry)"}
+          - {sym: "m_{ij}", type: "vector", meaning: "сообщение j→i"}
+          - {sym: "M,U", type: "networks", meaning: "message / update MLP"}
+          - {sym: "\\mathcal{N}(i)", type: "index set", meaning: "соседи по графу"}
+        meaning: "Обучаются параметры слоёв $M,U$ (и heads). Семплируется не этот слой сам по себе, а выход decode head."
+    sections:
+      - id: math-pmpnn
+        level: 3
+        title: "Residue MPNN inverse folding (ProteinMPNN; tool-specific)"
+        paragraphs:
+          - text: "Order-agnostic AR на residue graph. Не N→C Transformer. Не GVP. Ссылка: [/tools/proteinmpnn.html](/tools/proteinmpnn.html)."
+            source: PAPER
+            locator: "Dauparas Science Fig. 1"
+        equations:
+          - latex: "p(s\\mid x)=\\prod_{t=1}^{L} p\\bigl(s_{\\pi_t}\\mid s_{\\pi_{<t}}, x\\bigr),\\qquad \\pi\\sim\\mathrm{Unif}(S_L)"
+            caption: "Случайная перестановка decode. При inference фиксированный контекст можно декодировать первым (Fig. 1B). $x$ — backbone, не ligand."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "Dauparas Science; /tools/proteinmpnn.html"
+            symbols:
+              - {sym: "s", type: "discrete sequence", meaning: "AA tokens (20 + X)"}
+              - {sym: "x", type: "coordinates", meaning: "backbone N/Cα/C/O (+ virtual Cβ в рёбрах)"}
+              - {sym: "\\pi", type: "permutation", meaning: "порядок AR"}
+              - {sym: "L", type: "integer", meaning: "число residues (цепи concatenated)"}
+            meaning: "Обучается CE на native $s^\\star$. Семплируется $s$ при фиксированном $x$."
+          - latex: "\\mathcal{L}=-\\sum_i \\log p(s_i^\\star\\mid s_{\\pi_{<i}}^\\star, x)"
+            caption: "Categorical CE / NLL. Label smoothing коэффициент в SI Methods — NR this pass."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "Dauparas; LigandMPNN Methods «categorical cross entropy following ProteinMPNN»"
+      - id: math-lmpnn
+        level: 3
+        title: "Atom-context MPNN (LigandMPNN; tool-specific)"
+        paragraphs:
+          - text: "Три графа, не один. Sequence decode — тот же random-order AR, что у ProteinMPNN. Packing $\\chi$ — **отдельная** сеть после sequence, mixture of circular normals. Не уравнение ProteinMPNN и не dyMEAN AME. Ссылка: [/tools/ligandmpnn.html](/tools/ligandmpnn.html). Тензор $K$ protein kNN в HTML задан как символ, число — NR."
+            source: PAPER
+            locator: "LigandMPNN Fig. 1; Methods Algorithms 10–13"
+        equations:
+          - latex: "Y\\in\\mathbb{R}^{L\\times M\\times 3},\\quad M=25"
+            caption: "На каждый residue — $M$ ближайших ligand atoms от virtual Cβ. Protein graph: 25 pairwise distances среди N/Cα/C/O/virtual Cβ для пары residues (это 5×5, не $M$)."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "LigandMPNN Methods Notation; Fig. 1"
+            symbols:
+              - {sym: "Y", type: "tensor", meaning: "координаты ближайших ligand atoms"}
+              - {sym: "L", type: "integer", meaning: "residues"}
+              - {sym: "M", type: "integer", meaning: "контекст atoms per residue; лучшее 25"}
+            meaning: "Кондиционер геометрии лиганда; не семплируется. Sequence семплируется AR; $\\chi$ — отдельным decoder."
+      - id: math-dymean
+        level: 3
+        title: "Full-atom E(3) multi-channel GNN (dyMEAN; tool-specific)"
+        paragraphs:
+          - text: "Не IF на фиксированном backbone. Не FAPE. Ссылка: [/tools/dymean.html](/tools/dymean.html)."
+            source: PAPER
+            locator: "Kong §4"
+        equations:
+          - latex: "m_{ij}=\\phi_m\\Bigl(h_i^{(l)}, h_j^{(l)}, \\frac{T_R(X_i^{(l)},X_j^{(l)})}{\\|T_R\\|_F+\\epsilon}\\Bigr),\\quad X_i^{(l+1)}=X_i^{(l)}+\\frac{1}{|\\mathcal{N}(i)|}\\sum_j X_{ij}"
+            caption: "AME (Kong Eqs. 8–11, сжато). $X_i\\in\\mathbb{R}^{3\\times c_i}$, $c_i$ = число атомов residue. $T_R$ E(3)-invariant, $T_S$ O(3)-equivariant. $\\epsilon=1$."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "Kong §4.3 Eqs. 8–13"
+            symbols:
+              - {sym: "X_i", type: "matrix 3×c_i", meaning: "координаты атомов residue i"}
+              - {sym: "c_i", type: "integer", meaning: "число атомов (full-atom, не фиксировано 4)"}
+              - {sym: "T_R,T_S", type: "operators", meaning: "geometric relation / message scaler"}
+              - {sym: "\\phi_m,\\phi_x,\\phi_h", type: "MLPs", meaning: "message / coord scale / hidden update"}
+            meaning: "Обучаются AME + heads. Семплируются типы paratope (softmax) и обновлённые coords, затем docked $\\tilde X$."
+          - latex: "Q,t=\\mathrm{Kabsch}(\\{X_i^{(T)}\\}_{i\\in\\mathcal{V}_P},\\{X_i^{(T)}\\}_{i\\in\\mathcal{V}_S}),\\quad \\tilde X_i=Q X_i^{(T)}+t"
+            caption: "Docking: выровнять native paratope на shadow paratope. Не часть ProteinMPNN."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "Kong Eqs. 18–19"
+            symbols:
+              - {sym: "Q", type: "O(3)", meaning: "ортогональное выравнивание"}
+              - {sym: "t", type: "R^3", meaning: "сдвиг"}
+              - {sym: "\\mathcal{V}_P,\\mathcal{V}_S", type: "index sets", meaning: "native / shadow paratope"}
+            meaning: "Поза комплекса; не energy minimization Rosetta."
+          - latex: "\\mathcal{L}_{\\mathrm{seq}}=\\frac{1}{T|\\mathcal{V}_P|}\\sum_{t=1}^{T}\\sum_{i\\in\\mathcal{V}_P}\\ell_{\\mathrm{ce}}(p_i^{(t)},p_i^\\star),\\quad \\mathcal{L}_{\\mathrm{struct}}=\\mathcal{L}_{\\mathrm{coord}}+\\mathcal{L}_{\\mathrm{bond}}"
+            caption: "CE на paratope каждый iteration; Huber на coords (Kabsch-aligned GT) и bond lengths. $\\mathcal{L}_{\\mathrm{dock}}=\\mathcal{L}_{\\mathrm{sp}}+\\mathcal{L}_{\\mathrm{dist}}$. Huber $\\delta=1$ (Appendix E)."
+            generic_or_specific: tool-specific
+            source: PAPER
+            locator: "Kong Eqs. 20–24; Appendix E"
+      - id: math-chroma
+        level: 3
+        title: "GNN as denoiser / design-net (Chroma; tool-specific — не CE IF)"
+        paragraphs:
+          - text: "Train target backbone — **correlated reverse diffusion**, не ProteinMPNN NLL. GNN только параметризует $\\hat x_\\theta(x_t,t)$ на random long-range graph и отдельно design network $p(s,\\chi\\mid x_0)$. Уравнение VP-SDE/ELBO — на [coordinate diffusion](/architectures/coordinate-diffusion.html), не копировать сюда как «GNN loss». Hidden widths — SI Tables 2–3, NR. Ссылка: [/tools/chroma.html](/tools/chroma.html)."
+            source: PAPER
+            locator: "Ingraham Nature Fig. 1; paragraph design network"
+        equations:
+          - latex: "\\hat x_\\theta(x_t,t)=\\mathrm{GNN}_{\\mathrm{denoise}}(x_t,t;\\,\\mathcal{G}_{\\mathrm{rand}})"
+            caption: "Схема роли (INTERPRETATION записи Nature «parameterize optimal denoiser as random GNN»). Не раскрывать ELBO. Не уравнение ProteinMPNN."
+            generic_or_specific: tool-specific
+            source: INTERPRETATION
+            locator: "Ingraham Nature Fig. 1a–b prose"
+            symbols:
+              - {sym: "x_t", type: "coords", meaning: "noisy backbone at diffusion time t"}
+              - {sym: "\\hat x_\\theta", type: "coords", meaning: "предсказанный чистый backbone"}
+              - {sym: "\\mathcal{G}_{\\mathrm{rand}}", type: "graph", meaning: "random long-range graph, N-body connectivity"}
+            meaning: "Обучается denoiser (diffusion ELBO — другой класс). Семплируется reverse diffusion; sequence — design GNN после."
+      - id: math-mix
+        level: 3
+        title: "Смежные постановки, которые нельзя смешивать"
+        paragraphs:
+          - text: "Таблица ниже — не бенчмарк инструментов. Generated object, oracle и split разные. ProteinMPNN не имеет `se3-equivariant-models` id; ESM-IF1 не имеет `graph-neural-networks` id."
+            source: INTERPRETATION
+        tables:
+          - caption: "Смежные постановки, которые нельзя смешивать"
+            source: INTERPRETATION
+            headers: ["Постановка", "Train target", "Sampler / декодер", "Что в каталоге"]
+            rows:
+              - ["GNN / MPNN (эта страница)", "зависит от головы: CE IF / Huber co-design / (Chroma) diffusion ELBO на coords", "AR random order; AME+Kabsch; или GNN внутри reverse SDE", "proteinmpnn, ligandmpnn, dymean, chroma"]
+              - ["[Inverse folding](/architectures/inverse-folding.html) как задача", "$p(s\\mid x)$ CE", "любой IF decoder", "ProteinMPNN и ESM-IF1 — разные architecture_id"]
+              - ["[Geometric transformers](/architectures/geometric-transformers.html)", "CE $p(Y\\mid X)$ после GVP или structure module", "AR Transformer / IPA", "ESM-IF1, AntiFold, tFold — **нет** этого GNN id"]
+              - ["[SE(3)-equivariant models](/architectures/se3-equivariant-models.html)", "bias слоя, не один loss", "внутри другого алгоритма", "dyMEAN имеет оба id; ProteinMPNN — **нет** se3 id"]
+              - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "score/ε/$x_0$ на xyz", "SDE/ODE steps T", "Chroma канон генерации; GNN — denoiser"]
+              - ["[Joint seq–struct diffusion](/architectures/joint-sequence-structure-diffusion.html)", "ε-pos + rot + seq KL", "T reverse steps", "DiffAb — **нет** graph-neural-networks id"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы ProteinMPNN: residues. Рёбра: kNN по Cα (released $k=48$ из checkpoint `num_edges`; класс `__init__` default $k=64$ **не** используется, если загружен checkpoint). Признаки ребра: 25 расстояний между N/Cα/C/O/virtual Cβ пар $i,j$; same-chain binary; relative sequence index, cap $\\pm 32$. Hidden 128; vocab 21; $\\approx 1.68$M (Table 1 exp. 4) vs 1.66M в тексте LigandMPNN — округление / retrained split, не выдумывать третье число."
+        source: PAPER
+        locator: "Dauparas Fig. 1, Table 1; CODE ProteinMPNN.__init__; protein_mpnn_run.py k_neighbors=checkpoint['num_edges']"
+      - text: "LigandMPNN protein graph: те же 25 residue–residue distances. Protein–ligand: каждый residue ↔ $M=25$ ближайших ligand atoms (virtual Cβ–ligand). Per-residue fully connected ligand graph на этих $M$ atoms; node ligand = element one-hot; edges = distances (+ sin/cos ligand в N–Cα–C frame). Encoder: 3 protein MPNN layers dim 128 + 2 protein–ligand blocks; 2.62M параметров. Protein-neighbor $K$ в Algorithm 7 — символ, численное значение **NR** (не приравнивать молча к 48)."
+        source: PAPER
+        locator: "LigandMPNN Fig. 1; Methods architecture; Algorithm 7 EncLayer"
+      - text: "dyMEAN: вершина = $(h_i\\in\\mathbb{R}^d, X_i\\in\\mathbb{R}^{3\\times c_i})$. Три графа: epitope $\\mathcal{G}_E$, antibody $\\mathcal{G}_A$, shadow paratope $\\mathcal{G}_S$. kNN по min pairwise atom distance (Eq. 1), $k=9$ (Table 6 `k_neighbors`). Три global nodes (heavy, light, epitope) + связь heavy–light globals. Channel attribute $d=16$ (Appendix B). Hidden 128, embed 64, n_layers 3."
+        source: PAPER
+        locator: "Kong §3 Eq. 1; Appendix F Table 6; Appendix B d=16"
+      - text: "Chroma: random graph с long-range connectivity (N-body statistics); не полный pair track AF2. Ширины слоёв / число рёбер на узел — SI Tables 2–3, **NR**. Design network — «similar graph neural-network architecture» + conditional sequence/side-chain layers (Nature; SI Figs. 7, 8, 15 не транскрибированы)."
+        source: PAPER
+        locator: "Ingraham Nature architecture paragraph; SI cited, widths NR"
+      - text: "Time embedding: у IF MPNN **нет** diffusion $t$. У Chroma denoiser $t$ входит в $\\hat x_\\theta(x_t,t)$ — это признак **diffusion**, не родовой GNN. dyMEAN iteration index $t=1..T$ — progressive full-shot decode, не noising time."
+        source: PAPER
+        locator: "Ingraham Fig. 1a; Kong Eq. 14"
+      - text: "Вход сети vs внешний файл. PDB/CIF numbering, IMGT position $r_i$ (dyMEAN embeddings), design JSONL ProteinMPNN, ligand coords из PDB HETATM, contig RFdiffusion — preprocessor. Library CSV / ELISA table — **не** тензор этого класса. SAbDab summary — фильтр датасета dyMEAN, не слой."
+        source: INTERPRETATION
+      - text: "Маски. ProteinMPNN: decode mask / chain encoding / tied positions. LigandMPNN: $Y_m$ ligand atom mask. dyMEAN: paratope `[MASK]` type; cosine unmask schedule train (90%→0%). Chroma: diffusion conditioner primitives (symmetry, motif, shape) — не MPNN mask, а guidance reverse SDE."
+        source: PAPER
+        locator: "CODE protein_mpnn_run.py; LigandMPNN Notation Y_m; Kong Appendix F unmask; Ingraham conditioners"
+      - text: "Аугментации, меняющие геометрию. Gaussian noise на backbone (±ligand) при train IF. LigandMPNN: 2–4% protein residues как extra context ligand atoms (recovery почти не растёт, но включает sidechain-as-context inference). dyMEAN: coords normalize to $\\mathcal{N}(0,I)$; SI conserved-residue template; affinity task — Gaussian disturbance known complex (Appendix D). Не путать noise с MD."
+        source: PAPER
+        locator: "LigandMPNN Methods augmentation; Kong §4.1 normalize; Appendix D"
+      - text: "Размерности, которых нет в прочитанном тексте, не выводятся: LigandMPNN protein $K$; Chroma GNN width; ProteinMPNN SI Fig. S1A точные точки k-sweep beyond «saturates 32–48»; dyMEAN $d$ hidden beyond Table 6 128."
+        source: NR
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический state IF-GNN: токены $s$ на backbone, который считается данным в Å. Virtual Cβ — tetrahedral construction из N/Cα/C, не экспериментальный Cβ глицина. Ligand atoms $Y$ — ядра непротеиновых атомов в том же кадре, что и protein (кристалл/модель), не docked-on-the-fly, если пользователь не подставил pose."
+        source: PAPER
+        locator: "Dauparas virtual Cβ; LigandMPNN Fig. 1"
+      - text: "dyMEAN $X_i$ — Cartesian ядер всех атомов residue. Paratope в paper = CDR-H3 (можно расширить маски). Epitope = 48 residues closest to antibody (Kong following Shan 2022) — это **определение датасета**, не физический epitope mapping эксперимента."
+        source: PAPER
+        locator: "Kong §3; §5 epitope 48"
+      - text: "Chroma $x_t$ — noisy backbone coords (polymer-correlated). Промежуточный $x_t$ **не** MD-траектория фолдинга и не энергия. Design-net sequence — дискретная identity на уже выбранном $x_0$."
+        source: PAPER
+        locator: "Ingraham Nature Fig. 1a"
+      - text: "SE(3). ProteinMPNN: **invariant** features (расстояния, offsets) → sequence invariant к глобальному повороту, если preprocessor не сломан. Перестановка residues ломает chain index / AR order, не «S_N-симметрию белка». Chain concat — конвенция батча, не линкер."
+        source: INTERPRETATION
+      - text: "dyMEAN Theorem 4.1: sequence paratope invariant, docked structure equivariant к E(3) epitope (и независимо к инициализации antibody). Обмен epitope↔antibody только через $h$ shadow paratope, не через $X$."
+        source: PAPER
+        locator: "Kong Theorem 4.1; §4.3 information exchanging"
+      - text: "Chroma: equivariant reconstruction from predicted inter-residue geometries (Nature). Точная группа (SE(3) vs E(3)/reflections) в SI — NR this pass. Не приписывать ProteinMPNN vector equivariance."
+        source: PAPER
+        locator: "Ingraham Nature equivariant layers sentence"
+      - text: "Side chains. ProteinMPNN: **отсутствуют** в state (pack post-hoc Rosetta/другой packer = evaluator). LigandMPNN: sequence generator не содержит $\\chi$; packing network предсказывает mixture circular normals $\\chi_{1..4}$ AR по углам (все $\\chi_1$, затем $\\chi_2$, …). dyMEAN: side chains **в state** ($c_i$). Chroma: side chains в design network после backbone, не в diffusion $x_t$ (по постановке Nature)."
+        source: PAPER
+        locator: "LigandMPNN packing paragraph; Kong full-atom; Ingraham design network"
+      - text: "Masked token / embedding $h_i$ / noisy $x_t$ $\\neq$ физическая траектория и $\\neq$ $\\Delta G$. Predicted Shan $\\Delta\\Delta G$ dyMEAN — scalar surrogate на графе, не SPR."
+        source: INTERPRETATION
+      - text: "Chirality: invariant-distance MPNN не содержит явного зеркального канала; E(3) dyMEAN включает reflections в группе Theorem 4.1. Проверялся ли каждый checkpoint на mirrored PDB — **NR**."
+        source: NR
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "тип residue; packing complementarity к окружению"
+        encoded: "прямо как discrete decode / CE; dyMEAN softmax на paratope каждый iteration"
+        limitation: "AAR / recovery ≠ Kd; unigram CDR-H3 (ARDG***DY) уже даёт 39.61% AAR на RAbD"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "остов и χ"
+        encoded: "ProteinMPNN: backbone coords как условие, не генерируются; LigandMPNN χ — отдельная packing net; dyMEAN full-atom X; Chroma backbone — diffusion, не MPNN-IF"
+        limitation: "χ3/χ4 poorly recovered (LigandMPNN HTML); dyMEAN bond Huber ≠ force field"
+      - feature: "Antigen / hotspot / ligand coords"
+        interpretation: "геометрия партнёра связывания"
+        encoded: "LigandMPNN: прямо как Y atoms; dyMEAN: epitope graph + shadow paratope; ProteinMPNN: только если пользователь зажал chain как context backbone, без химии лиганда; Chroma: conditioner / не MPNN-IF"
+        limitation: "нужен заданный pose; нет ELISA tensor"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "физическая энергия связывания и растворимости"
+        encoded: "косвенно через геометрию и native statistics; нет explicit Coulomb/GB head"
+        limitation: "нельзя говорить, что MPNN «считает ΔG»"
+      - feature: "Entropy / ensemble"
+        interpretation: "конформационная и sequence entropy"
+        encoded: "косвенно temperature decode; Chroma low-T — diffusion Appendix C, не этот класс"
+        limitation: "T=0.1 ProteinMPNN — heuristic, не термодинамический β"
+      - feature: "Evolutionary statistics"
+        interpretation: "MSA / PSSM / language-model prior"
+        encoded: "не представлена в ProteinMPNN/LigandMPNN/dyMEAN train (native PDB identities). Chroma caption/CATH classifiers — semantic conditioners diffusion, не MSA GNN"
+        limitation: "не ESM likelihood"
+      - feature: "Experimental y (Kd, ELISA, BLI, ΔG assay)"
+        interpretation: "измеренная функция"
+        encoded: "не в loss IF-GNN; dyMEAN affinity MLP fit к **predicted** ΔΔG Shan/FoldX; Chroma wet-lab — protocol после sampling, не train target GNN"
+        limitation: "predicted ΔΔG ≠ SPR; split-GFP ≠ affinity"
+    paragraphs:
+      - text: "Таблица не утверждает, что класс вычисляет энергию. LigandMPNN authors report experimental binders и X-ray — это **downstream campaigns**, не energy head."
+        source: PAPER
+        locator: "LigandMPNN abstract; Kong §7 energy reliability"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\theta$: MPNN encoder/decoder (и edge updates у ProteinMPNN), LigandMPNN extra protein–ligand blocks + отдельный packing $\\theta_{\\chi}$, dyMEAN AME + $\\phi_p,\\phi_d$ + Kabsch не обучается (алгоритм), Chroma denoiser $\\theta$ и отдельно design-net $\\theta_{\\mathrm{des}}$. Frozen MSA/PLM **нет** у ProteinMPNN/LigandMPNN/dyMEAN."
+        source: PAPER
+        locator: "Dauparas 3+3 layers; LigandMPNN 3+2; Kong AME; Ingraham two networks"
+      - text: "ProteinMPNN ~1.68M (Table 1 exp. 4); LigandMPNN 2.62M vs retrained ProteinMPNN 1.66M на том же PDB. Chroma / dyMEAN total parameter count в прочитанном HTML — **NR** (не выдумывать)."
+        source: PAPER
+        locator: "Dauparas Table 1; LigandMPNN parameter sentence"
+      - text: "Loss IF: categorical CE native sequence. Negative / non-binder / contrastive / affinity labels **нет**. Tied logits — decode constraint, не contrastive loss."
+        source: PAPER
+        locator: "Dauparas; LigandMPNN Methods CE"
+      - text: "LigandMPNN packing: mixture (3 components) circular normal на $\\chi_{1..4}$; log-probability scores. Это не CE sequence. chi3/chi4 struggle — HTML."
+        source: PAPER
+        locator: "LigandMPNN packing paragraph"
+      - text: "dyMEAN: $\\mathcal{L}_{\\mathrm{seq}}+\\mathcal{L}_{\\mathrm{struct}}+\\mathcal{L}_{\\mathrm{dock}}$. Нет assay labels. Affinity mode: extra MLP $\\hat f_\\theta$ fit к Shan predictor на generated complexes, затем gradient search на init $Z$ (Appendix D Eq. 4) — **другой** objective, surrogate не SPR."
+        source: PAPER
+        locator: "Kong §4.4; Appendix D"
+      - text: "Chroma denoiser: diffusion ELBO / score — **не** эта страница. Design network: sequence + side-chain heads, lineage Ingraham 2019 / ProteinMPNN citations Nature, **не** тот же checkpoint что dauparas/ProteinMPNN."
+        source: PAPER
+        locator: "Ingraham Nature design network sentence; refs 15, 16, 32"
+      - text: "Fine-tune vs pretrain. ProteinMPNN: CATH Table 1 vs production assemblies (25 361 clusters). LigandMPNN: train from PDB biounits 16 Dec 2022, не «FT ProteinMPNN weights» в прочитанном HTML (architecture generalization; retrained ProteinMPNN baseline). dyMEAN: train on SAbDab Nov 2022; cosine unmask. Antibody-specific FT ProteinMPNN в этом классе **нет** как catalog default (AntiFold — другой architecture_id)."
+        source: PAPER
+        locator: "Dauparas training corpora; LigandMPNN dataset; Kong §5.1 split"
+      - text: "Chroma semantic conditioners (CATH, captions) — **отдельные** classifier/caption nets, invertible как guidance. Не путать с GNN loss IF."
+        source: PAPER
+        locator: "Ingraham Fig. 4; Appendices S–T cited"
+      - text: "Negative binders в loss: **нет** ни у одного из четырёх catalog tools как train target этого класса."
+        source: PAPER
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Порядок IF: coords → graph build → encoder MPNN (node+edge) → decoder AR по $\\pi$ → AA logits → sample. Sequence появляется в decoder, не в encoder (encoder не видит unknown design tokens как GT; teacher forcing на уже декодированных). Geometry backbone **не** обновляется."
+        source: PAPER
+        locator: "Dauparas Fig. 1; CODE EncLayer / DecLayer in utils (ProteinMPNN); LigandMPNN Algorithms 10–13"
+      - text: "LigandMPNN вставляет protein–ligand encoder после protein encoder, до sequence decoder. Packing net: другой forward после фиксации $S$ — **не** прятать внутрь «одной сети», если веса packing отдельные (HTML: «also trained a sidechain packing neural network»)."
+        source: PAPER
+        locator: "LigandMPNN Fig. 1; packing paragraph"
+      - text: "dyMEAN: SI init $h,X$ → attach shadow paratope → alternate AME on $\\mathcal{G}_A$ and $\\mathcal{G}_E\\cup\\mathcal{G}_S$ copying $h$ (L layers) → $T$ progressive iterations (recompute kNN) → softmax paratope → Kabsch dock. Inverse folding MPNN **не** внутри AME."
+        source: PAPER
+        locator: "Kong Fig. 3; Eqs. 2–6, 14–19"
+      - text: "Chroma: noise backbone → GNN denoiser → consensus structure from inter-residue geometries → **затем** design GNN. AF2/ESMFold refolding в Nature — **evaluator**, не слой denoiser. split-GFP / CD / crystal — **experiment**."
+        source: PAPER
+        locator: "Ingraham Fig. 1; experimental protocol three steps"
+      - text: "Не прятать Rosetta pack, AF2, HDock, Shan ΔΔG, FoldX внутрь generator. Pipeline IgFold→HDock→MEAN→Rosetta в dyMEAN Table 1 — baselines, помечены $*$."
+        source: PAPER
+        locator: "Kong Table 1 caption"
+      - text: "RFdiffusion → ProteinMPNN: два модуля, два architecture_id. На этой странице только второй."
+        source: MATRIX
+      - text: "FlowDesign использует dyMEAN как **prior**, не как sampler этой страницы (другой architecture_id flow-matching)."
+        source: MATRIX
+        locator: "catalog FlowDesign; не уравнение здесь"
+      - text: "Score / likelihood rerank после семплов — evaluator. ProteinMPNN log p; LigandMPNN confidence 0–100 коррелирует с recovery на test (Fig. 2c), всё ещё не Kd."
+        source: PAPER
+        locator: "LigandMPNN Fig. 2c"
+    mermaid: |
+      flowchart TD
+        IN["External: PDB CIF ligand pose epitope coords"] --> G["Build graph: kNN residue / 25 ligand NN / shadow paratope / random long-range"]
+        G --> ENC["MPNN encoder messages"]
+        ENC --> SUB{"Subtype"}
+        SUB -->|"ProteinMPNN LigandMPNN"| AR["GENERATOR: AR decode random order sequence"]
+        SUB -->|"dyMEAN"| AME["GENERATOR: AME iterations update h and X"]
+        SUB -->|"Chroma"| DEN["GENERATOR is diffusion: GNN only parametrizes denoiser"]
+        AR --> PACK["LigandMPNN chi net or Rosetta pack — packing module"]
+        AME --> DOCK["Kabsch native to shadow paratope"]
+        DEN --> DES["Design GNN/CRF after backbone — not IF MPNN checkpoint"]
+        PACK --> EV["EVALUATOR: AF2 pLDDT scRMSD recovery DockQ Shan ddG"]
+        DOCK --> EV
+        DES --> EV
+        EV --> XP["EXPERIMENT: solubility crystal BLI yeast FP split-GFP"]
+    mermaid_caption: "Оригинальная схема класса по Dauparas / LigandMPNN Fig. 1 / Kong Fig. 3 / Ingraham Fig. 1 — не копипаст paper figures. Generator, packing, evaluator и experiment разведены. Chroma diffusion — канон другого класса."
+    mermaid_source: INTERPRETATION
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого корпуса класса нет. Split, которого нет в прочитанном тексте, **не** выводится из README."
+        source: INTERPRETATION
+      - text: "ProteinMPNN Table 1: 19.7k CATH 4.2 80/10/10 **monomers**. Production: assemblies ≤3.5 Å, <10k residues, mmseqs2 30% → **25 361** clusters. Noise 0.02 Å в Table 1 vs released 0.02/0.10/0.20/0.30 Å. Точный listing CATH IDs в SI — NR."
+        source: PAPER
+        locator: "Dauparas Science training paragraph; training/README.md checkpoints"
+      - text: "LigandMPNN: PDB biounits на 16 December 2022, X-ray/cryo-EM ≤3.5 Å, <6000 residues; mmseqs2 30%; exclude HOH/NA/CL/K/BR. Hold-out: 317 small-mol, 74 NA, 83 metal. Retrained ProteinMPNN на том же set без context. 0.1 Å noise. Adam β1=0.9 β2=0.98 ε=1e-9, batch 6000 tokens, 300 000 steps, one A100, AMP + grad checkpoint."
+        source: PAPER
+        locator: "LigandMPNN Methods dataset / optimizer"
+      - text: "dyMEAN: SAbDab November 2022; CDR-H3 clusters BLOSUM62 40% identity (MMseqs2); drop clusters overlapping RAbD; train 3256 Abs / 1644 clusters, val 365 / 182; test RAbD 60. Adam lr $10^{-3}\\to 10^{-4}$, batch 16, 2× RTX 2080 Ti, 200 epochs (CDR-H3 and affinity) / 250 (complex pred). Unmask 90%→0% cosine."
+        source: PAPER
+        locator: "Kong §5.1; Appendix F"
+      - text: "Chroma: PDB 20 March 2022, UniProt 2022_01, PFAM 35; train/test/val IDs Zenodo 10.5281/zenodo.8285077 (из catalog coordinate-diffusion close-read). Resolution filters в Nature Data paragraph — **NR** (SI). Не README."
+        source: PAPER
+        locator: "Ingraham Nature Data availability; prior catalog note"
+      - text: "Teacher forcing: AR IF на GT prefix по $\\pi$. Self-conditioning ProteinMPNN — **NR**. dyMEAN progressive full-shot с soft embedding predicted $p_i$ (Eq. after 15), не AR token-by-token по цепи."
+        source: PAPER
+        locator: "Kong prediction §4.4"
+      - text: "Что симуляция vs wet-lab. Table 1 recovery / RAbD AAR / in silico refolding Chroma — **in silico**. ProteinMPNN Fig. 3–4, LigandMPNN Fig. 4 and «>100 binders», Chroma Fig. 5 split-GFP/CD/crystal — **prospective wet-lab**, не смешивать с recovery. dyMEAN paper **не** содержит wet-lab affinity."
+        source: PAPER
+      - text: "Leakage. LigandMPNN: nonoverlapping ligand-context hold-out vs 30% seq clusters. dyMEAN: drop same CDR-H3 clusters as RAbD. Unigram ARDG***DY всё равно даёт высокий AAR — metric leakage через motif copying, не обязательно PDB ID leak."
+        source: PAPER
+        locator: "Kong §7 Data Diversity"
+      - text: "Batching ProteinMPNN GPU hours — **NR** (не путать с inference 1.2 s / 100 res vs Rosetta 4.3 min, Science)."
+        source: PAPER
+        locator: "Dauparas runtime sentence"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт ProteinMPNN: PDB/backbone json; optional CA-only weights. Шум на coords при inference **не** добавляется пользователем по умолчанию (шум был train-time). Design mask; tied positions для homomers."
+        source: CODE
+        locator: "protein_mpnn_run.py parse / --tied_positions"
+      - text: "Алгоритм: sample $\\pi$ (или decode fixed first); temperature softmax, default T=0.1; не beam в released script (NR если есть скрытый beam). top-k — **NR** в прочитанном argparse beyond temperature. Batch нескольких sequences."
+        source: CODE
+        locator: "protein_mpnn_run.py --sampling_temp default 0.1"
+      - text: "LigandMPNN: старт backbone + ligand/NA/metal coords; AR sequence с temperature (Algorithm 13); затем packing net. CPU 0.9 s / 100 residues vs ProteinMPNN 0.6 s (HTML)."
+        source: PAPER
+        locator: "LigandMPNN speed sentence; Algorithm 13"
+      - text: "dyMEAN: incomplete sequence (paratope masked) + epitope structure; SI template init; $T=3$ AME iterations; one complex per forward (не AR residue). kNN rebuild each iteration. Нет beam. Нет AF recycle."
+        source: PAPER
+        locator: "Kong n_iter=3 Table 6; Eq. 14"
+      - text: "Chroma: старт — noisy polymer (correlated diffusion), не MPNN mask. Low-T diffusion sampling (Appendix C). Затем **один** sequence sample per backbone в in silico refolding paragraph. Design network ≠ вызов dauparas/ProteinMPNN, если пользователь сам не подменил."
+        source: PAPER
+        locator: "Ingraham protocol; one sequence per backbone"
+      - text: "Post-hoc evaluator (не generator): AF2/ESMFold/OmegaFold refold; Rosetta pack/FastRelax; clash filters; DockQ; ProteinMPNN likelihood rerank; Shan/FoldX ΔΔG. HDock в dyMEAN baselines — чужой модуль."
+        source: INTERPRETATION
+      - text: "Чего в классе IF нет: recycle IPA, assay-in-the-loop, UCB, backbone diffusion steps, epitope tensor ELISA. Чего нет у dyMEAN paper: wet-lab SPR. Чего нет у ProteinMPNN: ligand atoms (это LigandMPNN)."
+        source: PAPER
+      - text: "Tied decoding: average logits then softmax лучше average probabilities для homomers (55% vs 53% vs 52% unconstrained) — Science Fig. 1C / S1C (S1C panel SI NR, число из HTML)."
+        source: PAPER
+        locator: "Dauparas Fig. 1C"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "ProteinMPNN зажимает: backbone $x$, позиции с mask=false (включая partner chain при binder IF), tied oligomer indices. Не зажимает: ligand atoms, ELISA, CATH label, epitope embedding отдельным тензором (только если coords партнёра в том же PDB)."
+        source: PAPER
+        locator: "Dauparas Fig. 1B"
+      - text: "LigandMPNN зажимает: backbone + nonprotein atoms $Y$ (small mol / NA / metal). Можно подать sidechain atoms как context (train aug 2–4%). Не зажимает: measured affinity. Pose лиганда — ответственность пользователя; модель не ищет docking."
+        source: PAPER
+        locator: "LigandMPNN Fig. 1; augmentation"
+      - text: "dyMEAN зажимает: epitope graph (48 closest residues в экспериментах paper), incomplete antibody sequence, IMGT-like $r_i$. Paratope masked. Shadow paratope — внутренний механизм, не user ELISA. Classifier-free guidance **нет**."
+        source: PAPER
+        locator: "Kong task definition; §5 epitope"
+      - text: "Chroma conditioners (symmetry, motif, shape, CATH, language) действуют на **diffusion**, не на ProteinMPNN mask. Design network conditioned on sampled backbone. Не приписывать Chroma MPNN-IF contig syntax RFdiffusion."
+        source: PAPER
+        locator: "Ingraham Fig. 1c, Fig. 3–4"
+      - text: "Classifier-free guidance как у diffusion image models — **не** описан для ProteinMPNN. Chroma: composable hard constraints + soft penalties (Appendix M cited), это не CFG dropout class token MPNN."
+        source: PAPER
+        locator: "Ingraham conditioner framework paragraph"
+      - text: "Чего нет: epitope tensor от phage counts; ELISA/BLI labels в forward; hotspot encoding RFdiffusion на этой странице (это другой tool)."
+        source: INTERPRETATION
+      - text: "Antibody numbering (IMGT) у dyMEAN — embedding $f_{r_i}$, внешняя конвенция файла, не выученный epitope."
+        source: PAPER
+        locator: "Kong §4.1 h_i^{(0)}"
+      - text: "Multistate / symmetry ProteinMPNN: tied decoding + random AR order «to facilitate symmetric 9, 16 and multistate» — LigandMPNN HTML переносит ту же схему. Не UCB."
+        source: PAPER
+        locator: "LigandMPNN paragraph random AR"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $N$ residues (и ligand atoms $M\\times N$ у LigandMPNN), степень kNN $k$, число MPNN layers, AR steps $=N$ (IF), dyMEAN $T\\times$ layers $\\times$ kNN rebuild, Chroma NFE diffusion **плюс** design-net (NFE — не эта страница без SI)."
+        source: INTERPRETATION
+      - text: "Sparse kNN: encoder $O(N k \\, d)$ на слой, не $O(N^2)$ pair Transformer. Dauparas именно этим мотивируют sparse graph vs structure prediction."
+        source: PAPER
+        locator: "Dauparas immediate-environment rationale"
+      - text: "LigandMPNN: linear in protein length (HTML); extra $[N,M]$ and $[N,M,M]$ ligand blocks, $M=25$. «Дешевле diffusion» как общее утверждение — **не** писать без NFE comparison в paper; LigandMPNN сравнивает себя с ProteinMPNN/Rosetta, не с RFdiffusion steps."
+        source: PAPER
+        locator: "LigandMPNN linear scaling sentence"
+      - text: "Chroma: sub-quadratic $O(N)$ or $O(N\\log N)$ vs typical $O(N^2)$/$O(N^3)$ structure generators (Nature). Это сравнение архитектурного scaling denoiser, не wall-clock MPNN vs diffusion на одном бенчмарке designs. V100 «>3000 residues in a few minutes» — Nature, полный protocol (diffusion+design), не слой GNN изолированно."
+        source: PAPER
+        locator: "Ingraham Nature scaling paragraph; last paragraph GPU"
+      - text: "ProteinMPNN Science: 1.2 s vs Rosetta 4.3 min per 100 residues — PAPER runtime IF vs Rosetta, не vs diffusion."
+        source: PAPER
+        locator: "Dauparas runtime"
+      - text: "dyMEAN vs HERN: Appendix G space complexity (paratope-only hierarchical AR) — qualitative efficiency claim; GPU hours train 200 epochs 2×2080 Ti — PAPER, не сравнивать с ProteinMPNN A100 300k steps как один benchmark."
+        source: PAPER
+        locator: "Kong Appendix F, G"
+      - text: "Wall-clock LigandMPNN GPU train 300k A100 steps — указано устройство, часы **NR**. Assay latency не часть класса."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Локальный packing inductive bias следует из kNN message passing: sequence design не обязан строить dense pair track. Это механизм, не маркетинг."
+        source: PAPER
+        locator: "Dauparas sparse graph rationale"
+      - text: "Sub-quadratic / linear scaling IF и Chroma random graph — из sparse/random connectivity, не из «магии GNN»."
+        source: PAPER
+      - text: "ProteinMPNN Table 1 unnoised recovery 50.8% после ablation (distances 49.0% → edge updates 50.5% → random order 50.8%); native recovery 52.4% vs Rosetta 32.9% на 402 monomers — **этот** split, не класс vs ESM-IF1."
+        source: PAPER
+        locator: "Dauparas Table 1; recovery vs Rosetta sentence"
+      - text: "Wet-lab ProteinMPNN (не обобщать на LigandMPNN/dyMEAN/Chroma): median soluble yield 9→247 mg/L на AF-hallucinated set (Fig. 3A); 50/96 redesigns correct oligomer SEC; crystal 2.35 Å / 8CYK; tetrahedral assemblies. Grb2 SH3 BLI — $K_d$ в HTML **NR**. AF2 был фильтром дизайна, не affinity oracle."
+        source: PAPER
+        locator: "Dauparas Fig. 3–4; catalog tool analysis"
+      - text: "LigandMPNN near-ligand recovery 63.3% / 50.5% / 77.5% vs ProteinMPNN 50.5 / 34.0 / 40.6 и Rosetta (abstract). chi1 packing median near small molecules 86.1% vs Rosetta 76.0%. 100-fold cholic-acid affinity — конкретная кампания (Fig. 4 / ref. 4), не класс. PDB 8TAC — DNA binder crystal, не Kd таблицы."
+        source: PAPER
+        locator: "LigandMPNN abstract; Fig. 3 chi1; Fig. 4; 8TAC sentence"
+      - text: "dyMEAN RAbD Table 1: AAR 43.65%, CAAR 28.11%, RMSD 8.11 Å, DockQ 0.409 vs pipeline MEAN* DockQ 0.162 — **in silico**, не SPR. Это не гарантия стабильности/аффинности/экспрессии."
+        source: PAPER
+        locator: "Kong Table 1"
+      - text: "Chroma: 310 proteins expression protocol; crystals UNC_079 / UNC_239 RMSD 1.1 / 1.0 Å (PDB 8TNM, 8TNO). Это protocol diffusion+design-net+likelihood selection **без** AF filter, не доказательство «GNN layer folds proteins»."
+        source: PAPER
+        locator: "Ingraham Fig. 5; protocol paragraph"
+      - text: "Явно: ни recovery, ни DockQ, ни split-GFP, ни predicted $\\Delta\\Delta G$ не гарантируют experimental affinity, developability или epitope correctness."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика. kNN cutoff отсекает дальние контакты; AR order-agnostic всё ещё left-to-right в выбранной $\\pi$ (ошибки префикса). dyMEAN Huber на coords ≠ Boltzmann energy. Chroma GNN не отменяет bias polymer prior diffusion."
+        source: INTERPRETATION
+      - text: "Представление. Residue graph ProteinMPNN не видит clashes sidechain до packing. LigandMPNN требует ligand coords. dyMEAN $c_i$ variable, но epitope=48 heuristic. Chroma SI widths непрочитаны — воспроизведение архитектуры по main text неполное."
+        source: PAPER
+      - text: "Физика/химия. Нет explicit H-bond/electrostatics/solvation head. Predicted ΔΔG / FoldX — surrogate. LigandMPNN не моделирует induced fit backbone (backbone fixed)."
+        source: PAPER
+        locator: "LigandMPNN backbone and ligand fixed sentence"
+      - text: "Данные/bias. PDB resolution и crystal packing memory → train noise. dyMEAN unigram CDR-H3. Chroma v.1 helix overrepresentation at low T (Supplementary Fig. 11b cited in HTML). LigandMPNN exclude ions HOH/NA/CL/K/BR — не «все гетероатомы»."
+        source: PAPER
+        locator: "Kong §7; Ingraham helix sentence; LigandMPNN parse exclude list"
+      - text: "Обобщение. IF models trained on native backbones; hallucinated/RFdiffusion backbones — distribution shift (ProteinMPNN как раз для этого noise checkpoints, не гарантия). dyMEAN RAbD 60 complexes. Antibody MPNN без SAbDab FT (vanilla ProteinMPNN) — другой режим, чем AntiFold."
+        source: INTERPRETATION
+      - text: "Deployment. Chroma weights gated. dyMEAN/LigandMPNN code unaudited this pass. ProteinMPNN default `v_48_020` ≠ Table 1 0.02 Å model — silent mismatch если цитировать Table 1 как production."
+        source: CODE
+        locator: "training/README.md; protein_mpnn_run.py default v_48_020"
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Подмена метрики: AAR / LigandMPNN confidence / DockQ / Shan ΔΔG / AF pLDDT как Kd. dyMEAN Table 3 «лучшие ΔΔG» — predicted, и unigram уже близок к AAR Table 1."
+        source: PAPER
+        locator: "Kong §7 unigram 39.61% AAR"
+      - text: "Неверный conditioner: LigandMPNN с пустым/не тем ligand pose; ProteinMPNN на antibody CDR без Ab-specific FT как будто AntiFold; dyMEAN epitope не те 48 residues / неверный numbering IMGT."
+        source: INTERPRETATION
+      - text: "Truncation sampler: T→0 ProteinMPNN (почти argmax) vs default 0.1; Chroma low-T уменьшает diversity (Nature). Не путать два temperature."
+        source: PAPER
+      - text: "Library / graph misspecification: k слишком мал (не released 48); забытые tied positions у homomer; LigandMPNN $M$ <<25 на nucleic acids (SI Fig. 1a: NA recovery падает)."
+        source: PAPER
+        locator: "LigandMPNN SI Fig. 1a prose in HTML"
+      - text: "Broken equivariance: dyMEAN без shadow paratope / без sharing (Table 4 DockQ drop); подача antibody и epitope в несогласованных кадрах без механизма SP."
+        source: PAPER
+        locator: "Kong Table 4 -sharing"
+      - text: "Exploitation collapse affinity mode: gradient search на Shan MLP (Appendix D) может эксплуатировать surrogate, не SPR — авторы предупреждают в §7."
+        source: PAPER
+        locator: "Kong §7; Appendix D"
+      - text: "Distribution shift: crystal-refined backbone memorization без train noise; LigandMPNN χ3/χ4; Chroma language/CATH conditioners не всегда совпадают с intended fold (Fig. 4 Ig/β-barrel examples)."
+        source: PAPER
+        locator: "Ingraham Fig. 4 caption; LigandMPNN chi3/chi4"
+      - text: "Путаница инструментов: вызвать ESM-IF1 как «GNN»; считать Chroma «ещё один ProteinMPNN»; сравнивать mg/L ProteinMPNN, 100-fold bile acid, DockQ dyMEAN и split-GFP Chroma как один benchmark."
+        source: INTERPRETATION
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Полный reverse index `architecture_id: graph-neural-networks`. Неравные объекты не ставить в одну колонку «успех»."
+        source: MATRIX
+        locator: "site/src/mappings.py"
+    tables:
+      - caption: "Catalog tools с этим architecture_id и foundational methods вне карточек"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[ProteinMPNN](/tools/proteinmpnn.html)", "Residue MPNN + AR decode", "3 encoder + 3 decoder, hidden 128, released k=48, random-order CE, default ckpt v_48_020, T=0.1; CODE 8907e667", "Нет ligand atoms; нет χ; нет E(3) vector update; не GVP-Transformer"]
+          - ["[LigandMPNN](/tools/ligandmpnn.html)", "MPNN IF + atomic context", "Три графа, M=25, 3+2 encoder, 2.62M, CE sequence; packing = отдельная circular-normal net; CODE commit NR this pass", "Контекст small mol/NA/metal; не antibody campaign в paper; не dyMEAN docking"]
+          - ["[dyMEAN](/tools/dymean.html)", "E(3) multi-channel GNN co-design", "AME Eqs. 8–11, k=9, n_layers=3, T=3, shadow paratope, Kabsch, CE+Huber; CODE NR", "Генерирует coords+seq+pose; predicted ΔΔG ≠ assay; не catalog IF default"]
+          - ["[Chroma](/tools/chroma.html)", "GNN denoiser + GNN design-net", "Random long-range graph; design after backbone; SI widths NR; commit NR", "Канон генерации — coordinate diffusion; split-GFP не MPNN-IF; веса gated"]
+          - ["Ingraham NeurIPS 2019 Structured Transformer (не карточка tools)", "Graph + attention CPD", "NR this pass (pointer)", "Ancestor ProteinMPNN/Chroma design-net; не ESM-IF1"]
+          - ["Jing GVP-GNN CPD (не карточка tools)", "GVP message passing", "См. geometric-transformers / Jing ICLR", "**Не** этот catalog id; не копировать GVP Eq. на ProteinMPNN"]
+          - ["Gilmer MPNN 2017 (не карточка tools)", "Generic message passing", "Unread full text", "Схема слоя, не protein design checkpoint"]
+          - ["RFantibody sequence stage (не этот architecture_id)", "Вызов vanilla ProteinMPNN", "После RFdiffusion CDRs", "Не добавлять RFantibody в reverse index этого класса"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: [fixed-backbone inverse folding](/workflows/fixed-backbone-inverse-folding.html) (primary ProteinMPNN; LigandMPNN alternative при гетероатомах); sequence stage после [de-novo backbone](/workflows/de-novo-backbone-then-mpnn.html) — как **IF tool**, не как architecture_id workflow (там frame-diffusion). Ligand/NA/metal interfaces при известном pose — LigandMPNN / [functional-site-design](/tasks/functional-site-design.html)."
+        source: MATRIX
+      - text: "CDR co-design при epitope coords: [cdr-codesign-diffab](/workflows/cdr-codesign-diffab.html) lists dyMEAN as alternative generator; architecture_ids workflow — diffusion/flow/SE(3), не этот id. Использовать dyMEAN как end-to-end full-atom, не как ProteinMPNN."
+        source: MATRIX
+        locator: "cdr-codesign-diffab.yaml alternatives"
+      - text: "Chroma: [joint-multimodal-generation](/workflows/joint-multimodal-generation.html) alternative; канон — joint generation + coordinate diffusion ids. Не решать IF-only задачу «через Chroma GNN» без diffusion protocol."
+        source: MATRIX
+      - text: "Нельзя: de novo backbone **только** этим классом (нет noise→fold у ProteinMPNN). Для fold — [frame diffusion](/architectures/frame-diffusion.html) / [coordinate diffusion](/architectures/coordinate-diffusion.html) / RFdiffusion."
+        source: INTERPRETATION
+      - text: "Нельзя: few-shot active learning / ELISA loop — [sequential design](/architectures/sequential-design-loops.html), не MPNN CE. Нельзя: zero-shot mutation scoring как PLM Δℓ — другой класс."
+        source: INTERPRETATION
+      - text: "Нельзя: считать ESM-IF1/AntiFold/tFold реализациями этого id. Нельзя: affinity maturation по Shan ΔΔG как замену SPR. Нельзя: ligand design без pose (нужен docking/RFdiffusion-AA, не LigandMPNN alone)."
+        source: INTERPRETATION
+      - text: "Вместо путаницы: antibody IF с SAbDab — AntiFold (geometric-transformers); antigen-conditioned CDR diffusion — DiffAb; all-atom ligand binders — RFdiffusion-AA + LigandMPNN как **два** модуля."
+        source: MATRIX
+      - text: "Задачи seed `not_for_task_ids`: [few-shot-active-learning](/tasks/few-shot-active-learning.html), [de-novo-backbone-generation](/tasks/de-novo-backbone-generation.html) — GNN-IF их не закрывает; Chroma закрывает backbone через **другой** architecture_id."
+        source: MATRIX
+        locator: "content/architectures/graph-neural-networks.yaml not_for_task_ids"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational слой: Gilmer et al. 2017 (pointer, unread). Protein graph design: Ingraham et al. NeurIPS 2019 (pointer). Канон IF-GNN каталога: Dauparas Science 2022 — **прочитан** HTML + CODE 8907e667; SI PDF pointer-only."
+        source: PAPER
+      - text: "LigandMPNN Nature Methods 2025 — **прочитан** journal HTML this pass; preprint не сличен. Packing algorithms в HTML; protein $K$ NR."
+        source: PAPER
+      - text: "dyMEAN arXiv 2302.00203 HTML — **прочитан** methods/eqs/tables/appendices F–G excerpts; ICML PMLR pointer-only; GitHub unaudited."
+        source: PAPER
+      - text: "Chroma Nature 2023 HTML — **прочитан** main (GNN role, protocol, wet-lab); SI graph hypers pointer-only. Канонические уравнения diffusion — страница coordinate-diffusion, не дублировать ELBO."
+        source: PAPER
+      - text: "Не библиография «всего GNN»: EGNN Satorras, TFN Thomas, MEAN Kong 2022 — упоминаются dyMEAN related work, не catalog tools. HERN Jin 2022 — baseline Table 1, не карточка."
+        source: PAPER
+        locator: "Kong related work / Table 1"
+      - text: "Catalog papers: paper-proteinmpnn, paper-ligandmpnn, paper-dymean, paper-chroma. Tool analysis sidecar есть у ProteinMPNN; у LigandMPNN/dyMEAN/Chroma в этом проходе — paper HTML, не tool YAML audit."
+        source: MATRIX
+citations:
+  - id: 1
+    text: "Dauparas et al., Science 378, 49–56 (2022). ProteinMPNN."
+    url: "https://doi.org/10.1126/science.add2187"
+    doi: "10.1126/science.add2187"
+  - id: 2
+    text: "Dauparas et al., Nat. Methods (2025). LigandMPNN."
+    url: "https://doi.org/10.1038/s41592-025-02626-1"
+    doi: "10.1038/s41592-025-02626-1"
+  - id: 3
+    text: "Kong, Huang, Liu. End-to-End Full-Atom Antibody Design. arXiv:2302.00203 (ICML 2023)."
+    url: "https://arxiv.org/abs/2302.00203"
+    doi: "10.48550/arXiv.2302.00203"
+  - id: 4
+    text: "Ingraham et al., Nature 623, 1070–1078 (2023). Chroma."
+    url: "https://doi.org/10.1038/s41586-023-06728-8"
+    doi: "10.1038/s41586-023-06728-8"
+  - id: 5
+    text: "Gilmer et al., ICML 2017. Neural message passing for quantum chemistry (pointer)."
+    url: "https://proceedings.mlr.press/v70/gilmer17a.html"
+  - id: 6
+    text: "Ingraham et al., NeurIPS 2019. Generative models for graph-based protein design (pointer)."
+    url: "https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html"
+  - id: 7
+    text: "dauparas/ProteinMPNN commit 8907e6671bfbfc92303b5f79c4b5e6ce47cdef57"
+    url: "https://github.com/dauparas/ProteinMPNN"
+  - id: 8
+    text: "Shan et al., PNAS 2022. ΔΔG predictor used by dyMEAN affinity mode (not assay)."
+    url: "https://doi.org/10.1073/pnas.2122954119"
+    doi: "10.1073/pnas.2122954119"
+  - id: 9
+    text: "Adolf-Bryfogle et al. RAbD benchmark (dyMEAN test)."
+    url: "https://doi.org/10.1371/journal.pcbi.1006112"
+    doi: "10.1371/journal.pcbi.1006112"
+  - id: 10
+    text: "Jing et al., ICLR 2021 GVP-GNN — geometric-transformers page, not this architecture_id."
+    url: "https://arxiv.org/abs/2009.01411"
+unresolved:
+  - "ProteinMPNN Science SI PDF / Fig. S1 numeric k-sweep and tied-decoding supplementary panels"
+  - "LigandMPNN protein-graph neighbor K; SI Fig. 1a–e numeric tables; packing network parameter count; dauparas/LigandMPNN commit SHA"
+  - "LigandMPNN preprint vs journal pagination not aligned (bioRxiv 429 this pass)"
+  - "dyMEAN PMLR v202 vs arXiv page mapping; THUNLP-MT/dyMEAN commit; hidden-size beyond Table 6"
+  - "Chroma Nature SI Tables 2–3 / Appendices E–G graph widths, seven-architecture ablation numbers; generatebio/chroma commit; v.0 vs v.1 width delta"
+  - "Gilmer 2017 full text unread — generic MPNN marked INTERPRETATION"
+  - "Ingraham 2019 Structured Transformer methods unread"
+  - "ProteinMPNN label-smoothing coefficient in Methods SI"
+  - "Grb2 SH3 experimental Kd (Science HTML NR in catalog tool analysis)"
+  - "Whether released LigandMPNN packing weights are bundled vs separate checkpoint filenames"

@@ -1,0 +1,245 @@
+identity:
+  id: diffab
+  name: DiffAb
+  slug: diffab
+  aliases:
+  - DiffAb
+  version: null
+  release_year: '2022'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/luost26/diffab
+  official_documentation: null
+  official_service: null
+  license: Apache-2.0
+  commercial_use_status: Code + weights; repository archived/read-only
+  publication_status: NeurIPS 2022 main track (A*)
+classification:
+  task_ids:
+  - joint-cdr-sequence-structure-design
+  - antigen-conditioned-antibody-design
+  - cdr-sequence-generation
+  workflow_ids:
+  - cdr-codesign-diffab
+  architecture_ids:
+  - joint-sequence-structure-diffusion
+  - se3-equivariant-models
+  - coordinate-diffusion
+  generator_classes:
+  - joint-sequence-structure
+  - target-conditioned-binder
+  output_modalities:
+  - sequence
+  - structure
+  - joint
+  supported_formats: Fv-like antibody complexes
+  de_novo_or_optimization: CDR de novo generation or local optimization
+  general_protein_relevance: Antibody-specific
+  antibody_relevance: Direct in silico evidence
+  VHH_relevance: Not specifically validated
+  mutation_relevance: Supports local redesign; no prospective mutation evidence
+  compatibility_group: antibody-codesign
+generation:
+  exact_generated_object: CDR sequence + backbone/geometry; interface proposal
+  required_input: Antigen–antibody complex context and framework with design mask
+  conditioning: CDR masks, fixed framework, antigen structure
+  fixed_components: Framework and antigen coordinates
+  editable_components: Masked CDRs
+  generated_components: CDR residue types and geometry
+  support_for_single_mutations: Yes through masks
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No explicit Pareto optimizer
+  candidate_generation_mechanism: Diffusion over residue type, Cα position and orientation with equivariant
+    network
+architecture:
+  base_model: Equivariant diffusion over residue type, Cα position and orientation
+  model_family: Joint sequence–structure diffusion
+  model_type: Antigen-conditioned CDR co-design
+  input_representation: Antibody–antigen complex with framework residues observed and CDR residues
+    to be generated; residue types, Cα, orientations
+  node_features: Residue type (noisy), Cα, orientation frame
+  edge_or_pair_features: Equivariant geometric messages between residues, including antigen residues
+  encoder: SE(3)/E(3)-equivariant denoising network
+  decoder: Joint reverse diffusion of discrete type and continuous geometry
+  latent_or_generative_state: Noisy residue type + noisy Cα + noisy orientation
+  equivariance: SE(3)-equivariant
+  conditioning_mechanism: Fixed framework and antigen coordinates; CDR masks; complex context via
+    geometric edges
+  generation_mechanism: Iterative joint denoising of type, position and orientation
+  sampling_procedure: Diffusion trajectories over designed CDRs while clamping context
+  training_objectives: Discrete + continuous denoising objectives on SAbDab-like complexes
+  losses: Category CE for residue type; coordinate/orientation denoising losses
+  architectural_modifications: null
+  computational_complexity_drivers: Designed CDR length × complex size × denoising steps × trajectories
+  output: CDR sequence + backbone/geometry; interface proposal
+  internal_scorer: Energy/structural metrics used in evaluation — not a calibrated affinity model
+  structure_generation: Да, CDR geometry
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (NeurIPS 2022)
+workflow_components:
+  primary_generator: DiffAb
+  integrated_generators: []
+  integrated_scorers:
+  - Energy/structural metrics used in evaluation
+  integrated_structure_predictor: Generates geometry directly; not a validated complex predictor
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent complex prediction, docking/energy and experiments
+  optional_external_dependencies:
+  - No prospective validation module
+  breakdown:
+  - name: DiffAb
+    role: primary_generator
+    architecture_class: Diffusion over residue type, Cα position and orientation with equivariant
+      network
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Energy/structural metrics used in evaluation
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Generates geometry directly; not a validated complex predictor
+    role: integrated_complex_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: Independent complex prediction, docking/energy and experiments
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: Antibody–antigen complexes (SAbDab-like; exact counts NR here)
+  preprocessing: null
+  negative_examples: NR
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: NR
+  reported_training_time: NR
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: Evaluation energies not included as experimental time
+  CPU: null
+  GPU: Required (qualitative)
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: None beyond weights; repository archived
+evidence:
+  evidence_level: 1–2 in silico / retrospective
+  retrospective_validation: No prospective wet-lab validation in primary paper
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary paper
+  success_criterion: Retrospective structural and energy benchmarks only
+  independent_validation: null
+  evidence_summary: Retrospective structural and energy benchmarks only
+  prospective_flag: false
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Requires complex structural context.
+  - no prospective evidence.
+  - archived repository.
+  - energy scores are not affinity.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Research-only / retrospective
+relations:
+  related_tools:
+  - dymean
+  - flowdesign
+  - abdiffuser
+  alternatives:
+  - dymean
+  - flowdesign
+  complementary_tools:
+  - antifold
+  - iglm
+  incompatible_comparisons:
+  - antifold
+  - esm-1v-efficient-evolution
+  - esm-if1
+  - ligandmpnn
+  - proteinmpnn
+  - structural-evolution
+  paper_ids:
+  - paper-diffab
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids:
+  - dockq
+  - experimental-assays
+  - alphafold3
+  glossary_ids:
+  - diffusion
+  - equivariance
+  - cdr
+  - conditioning
+  - epitope
+detailed_architecture:
+  summary_card:
+    Base architecture: Equivariant joint diffusion
+    Model type: CDR sequence–structure co-design
+    Representation: Residue type + Cα + orientation
+    Generation unit: Joint residue state
+    Conditioning: Antigen–antibody complex, CDR mask, fixed framework
+    Output: CDR sequence and geometry
+    Sampling: Iterative denoising
+    Internal scorer: Energy/structure metrics (evaluation)
+    Structure generation: Да
+  input_representation: 'Полный complex context: antigen residues и antibody framework как observed
+    nodes; CDR nodes зашумлены. Это не sequence-only prompt.'
+  encoder: Equivariant GNN/transformer denoiser operating on 3D residues (Author-reported). Pairwise
+    geometric edges to antigen provide target conditioning.
+  latent_or_generative_state: 'Joint discrete–continuous noisy state: amino-acid category, Cα coordinate,
+    orientation frame.'
+  conditioning_mechanism: Coordinate clamping of non-designed residues; residue masks; geometric edges
+    to epitope; no classifier-guidance affinity head in the primary generator.
+  generation_mechanism: '1) Зашумляются type, Cα и orientation designed residues. 2) Forward: discrete
+    corruption + Gaussian/SO(3) noise. 3) Denoiser предсказывает cleaner type/geometry. 4) Sampling
+    steps — paper/code default, exact number NR here. 5) Framework/antigen фиксированы. 6) Sequence
+    и structure обновляются совместно. 7) Кандидат — decoded CDR on the given framework.'
+  training_objectives: Combined diffusion losses. No experimental ddG labels required. Training on
+    SAbDab-like complexes implies dataset bias.
+  integrated_evaluation: Primary paper is retrospective/in silico. Energy scores are evaluation, not
+    measured affinity. Repository archived/read-only.
+  architectural_limitations:
+  - feature: Requires complex structural context
+    limitation: Не стартует от одной antigen sequence.
+  - feature: Diffusion with many steps
+    limitation: Высокая inference cost.
+  - feature: SAbDab training
+    limitation: Смещение по solved complexes и обычным formats.
+  - feature: No prospective wet-lab in primary paper
+    limitation: Нельзя считать therapeutic generator proven.
+review_queue: []

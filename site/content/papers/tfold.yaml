@@ -1,0 +1,53 @@
+id: paper-tfold
+slug: tfold
+title: 'tFold: epitope-specific de novo antibody design'
+authors: null
+year: 2025/2026
+venue: Peer-reviewed journal; Nature Communications (Q1); issue 2026
+publication_status: Peer-reviewed journal; Nature Communications (Q1); issue 2026
+doi: 10.1038/s41467-025-67361-9
+url: https://doi.org/10.1038/s41467-025-67361-9
+preprint_url: null
+tool_ids:
+- tfold
+main_task: Epitope-specific de novo mAb CDR generation with integrated complex modeling and
+  virtual screening
+claimed_novelty: null
+model_architecture: Sequence generator + tFold-Ab/tFold-Ag structure/complex models + structure-aware
+  filters
+input_representation: null
+encoder_decoder: null
+generative_state: CDR sequences, candidate antibody structures and antibody–antigen complexes
+conditioning: Fixed framework family, epitope, CDR length combinations
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: 'Best reported Kd: 3.22 nM Flu A, 81.6 nM PD-1, 0.045
+  nM PD-L1, 2.0 nM SC2RBD; after phage display screening'
+tested_designs: Four therapeutic targets; ten Fc-fusion antibodies characterized in reported
+  campaign
+success_criterion: 'Best reported Kd: 3.22 nM Flu A, 81.6 nM PD-1, 0.045 nM PD-L1, 2.0 nM
+  SC2RBD; after phage display screening'
+main_results: 'Best reported Kd: 3.22 nM Flu A, 81.6 nM PD-1, 0.045 nM PD-L1, 2.0 nM SC2RBD;
+  after phage display screening'
+limitations: Generation, ranking and display selection are intertwined; reported affinities
+  cannot be attributed to generator alone; framework/design space constrained.
+demonstrates:
+- 'Best reported Kd: 3.22 nM Flu A, 81.6 nM PD-1, 0.045 nM PD-L1, 2.0 nM SC2RBD; after phage
+  display screening'
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'tFold: epitope-specific de novo antibody design'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Communications (Q1); issue 2026'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

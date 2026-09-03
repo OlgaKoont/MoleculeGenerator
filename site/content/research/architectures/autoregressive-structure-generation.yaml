@@ -1,0 +1,342 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Autoregressive structure generation — это <strong>факторизация распределения геометрического состояния белка</strong> (torsions, residue frames, C\(\alpha\), или дискретные structure tokens) как произведения условных шагов. Генератор семплирует геометрию последовательно. Это не sequence LM, не inverse folding и не predictor вроде AlphaFold2/IgFold.
+  - type: p
+    text: 'По роли: generator backbone (иногда all-atom после decoder VQ). Sequence обычно отсутствует или ставится отдельно (ProteinMPNN, RosettaDesign). Internal scores: model NLL, reconstruction RMSD tokenizer''а, self-consistency TM/RMSD после IF+fold. Ни один из них не есть experimental fold или affinity.'
+  - type: p
+    text: В текущем каталоге <strong>нет инструмента</strong> с architecture id <code>autoregressive-structure-generation</code>. De novo backbone в каталоге идёт через <a href="/architectures/frame-diffusion.html">frame diffusion</a> / <a href="/architectures/coordinate-diffusion.html">coordinate diffusion</a> (<a href="/tools/rfdiffusion.html">RFdiffusion</a>, <a href="/tools/framediff.html">FrameDiff</a>, <a href="/tools/chroma.html">Chroma</a>). Эта страница описывает класс методов, который в литературе существует, но не является default antibody pipeline каталога.
+  - type: p
+    text: 'Задача, к которой класс относится: <a href="/tasks/de-novo-backbone-generation.html">de novo backbone generation</a>. Не humanization и не CDR sequence infilling. Не путать с <a href="/architectures/autoregressive-generation.html">AR sequence</a> (токен = аминокислота) и с <a href="/architectures/torsion-diffusion.html">torsion diffusion</a> (FoldingDiff — joint denoising углов, не next-angle product как генератор).'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Белок задаётся упорядоченным геометрическим состоянием. Модель читает уже размещённый префикс (или более грубый scale) и ставит распределение на следующий кусок: residue angles, frame, Cα-облако данного масштаба, или VQ-token. Кандидат — sequential sample + кинематическая реконструкция (torsions → Cartesian) или learned decoder (VQ codebook → coords).'
+  - type: p
+    text: 'Порядок — часть модели. N→C по residues конфликтует с дальними контактами: residual i и j могут быть соседями в 3D при большом |i−j|. FoldingDiff явно показывает failure mode residual-wise AR на углах — коллапс в одиночные α-спирали. [PAPER] Wu et al. Nat. Commun. 2024. PAR обходит это next-scale prediction: сначала грубая topology, потом детали. [PAPER preprint] Qu et al. 2026.'
+  - type: warn
+    text: scTM / scRMSD / FPSD / pLDDT — in silico self-consistency или distributional metrics. Они не заменяют crystal/NMR и не равны Kd. FastRelax после RamaNet — внешний energy minimizer, не часть AR likelihood.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Ниже — три subtype факторизации. Не смешивать их уравнения.
+  - title: Residue-wise geometric AR (класс; RamaNet / FoldingDiff AR baseline)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        T_i &= (\phi_i,\psi_i)\ \text{или}\ (\phi_i,\psi_i,\omega_i,\theta_i^{(1)},\theta_i^{(2)},\theta_i^{(3)}),\\
+
+        p_\theta(T)&=\prod_{i=1}^{L} p_\theta(T_i\mid T_{<i},c).
+
+        \end{aligned}'
+      caption: '\(T_i\) — внутренние углы residue \(i\); \(c\) — optional length / prompt prefix. RamaNet: \(\phi,\psi\) + MDN. FoldingDiff AR baseline: шесть углов, wrapped smooth L1, causal transformer 14.41M. Порядок обычно N→C.'
+      source: '[PAPER] Sabban & Markovsky RamaNet; Wu et al. FoldingDiff Methods AR baseline'
+    - type: p
+      text: 'Символы: \(L\) — число residues; \(\phi,\psi\) — backbone dihedrals; FoldingDiff additionally \(\omega\) and three bond angles. Реконструкция: применить углы к цепочке N–Cα–C (RamaNet: 150 valines). Глобальный SE(3) не параметризуется: углы инвариантны к трансляции/ротации всего белка.'
+  - title: Discrete structure-token AR (Gaujac 2024)
+    level: 3
+    blocks:
+    - type: math
+      latex: z=\mathrm{VQ}(x),\qquad p_\theta(z)=\prod_{k=1}^{K} p_\theta(z_k\mid z_{<k}),\qquad \hat x=D_\phi(z)
+      caption: \(x\) — backbone coords; encoder+quantizer даёт discrete codes \(z\) (codebook \(K\in[4096,64000]\), downsampling \(r\)); GPT учит next-token; decoder \(D_\phi\) возвращает Cartesian. Reconstruction RMSD tokenizer'а ~1–5 Å — это не designability generated samples.
+      source: '[PAPER preprint] Gaujac et al. arXiv 2405.15840'
+    - type: p
+      text: 'Gaujac generation GPT: 20 слоёв, 16 голов, d=1024, 344M, next-token на codes с r=1, codebook 4096. [PAPER preprint]'
+  - title: Next-scale continuous AR (PAR)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        q_{\mathrm{decompose}}&: x\mapsto X=\{x^1,\ldots,x^n\},\quad x^n=x\in\mathbb{R}^{L\times 3},\\
+
+        p_\theta(x)&=\prod_{i=1}^{n} p_\theta\bigl(x^i\mid z^i=\mathcal{T}_\theta(X^{<i})\bigr),\\
+
+        \mathcal{L}(\theta)&=\mathbb{E}_{x,t,\epsilon}\Bigl[\tfrac{1}{n}\sum_i \tfrac{1}{\mathrm{size}(i)}\|v_\theta(x_t^i,t^i,z^i)-(x^i-\epsilon^i)\|^2\Bigr].
+
+        \end{aligned}'
+      caption: \(x^i=\mathrm{Down}(x,\mathrm{size}(i))\) — C\(\alpha\) centroids масштаба \(i\). \(\mathcal{T}_\theta\) — non-equivariant AR transformer, выдаёт \(z^i\). \(v_\theta\) — shared flow decoder; \(x_t^i=t^i x^i+(1-t^i)\epsilon^i\). Default scales by length, e.g. \(\{64,128,256\}\). Один scale ⇒ обычный flow (Proteina-like).
+      source: '[PAPER preprint] Qu et al. arXiv 2602.04883 Eq. 1–5'
+    - type: p
+      text: 'Inference: \(z^1=\mathcal{T}_\theta(\texttt{bos})\) → sample \(x^1\) ODE/SDE → upsample → \(z^2\) → … до полного \(x\). SDE PAR Eq. 6: \(\mathrm{d}x_t=v_\theta\mathrm{d}t+g(t)s_\theta\mathrm{d}t+\sqrt{2g(t)\gamma}\,\mathrm{d}\mathcal{W}_t\). [PAPER preprint]'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Что генерируется
+      - Порядок / процесс
+      - Каталог
+      rows:
+      - - AR structure (эта страница)
+        - геометрия
+        - next residue / next token / next scale
+        - нет tool id
+      - - <a href="/architectures/autoregressive-generation.html">AR sequence</a>
+        - AA tokens
+        - causal LM
+        - ProGen, IgLM, IF decoder
+      - - <a href="/architectures/frame-diffusion.html">Frame diffusion</a>
+        - все frames сразу
+        - reverse SE(3) SDE/DDPM
+        - RFdiffusion, FrameDiff, RFantibody
+      - - <a href="/architectures/torsion-diffusion.html">Torsion diffusion</a>
+        - все углы сразу
+        - wrapped DDPM T=1000
+        - FoldingDiff (не в каталоге tools)
+      - - <a href="/architectures/inverse-folding.html">Inverse folding</a>
+        - sequence при фиксированном backbone
+        - AR decode residues
+        - ProteinMPNN, ESM-IF1, AntiFold
+      - - AF2 / IgFold / ESMFold
+        - coords given sequence
+        - recycling predictor, не sampler p(x)
+        - evaluators
+      - - ProstT5 AA→3Di
+        - Foldseek 3Di string given sequence
+        - T5 decoder AR, но это folding-as-translation
+        - нет в каталоге; не de novo backbone
+    - type: warn
+      text: 'FAPE — типичный loss AF2 structure prediction, не default loss этого класса. RamaNet: RMSE/MDN на углах. FoldingDiff AR: wrapped smooth L1. PAR: flow-matching MSE. Gaujac GPT: discrete CE. Не подставляйте UCB или sequence NLL ProGen сюда.'
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Internal angles: RamaNet \(\phi,\psi\) на \([0,360^\circ]\) в таблице (Ramachandran обычно \(\pm 180^\circ\)). FoldingDiff / AR baseline: 6 angles in \([-\pi,\pi)\).'
+    - 'Cartesian C\(\alpha\): PAR \(x\in\mathbb{R}^{L\times 3}\), hierarchical downsample along sequence (interpolation centroids).'
+    - 'Residue frames SE(3): естественный объект для next-frame AR, но в разобранных papers этого прохода next-frame product не реализован как released generator; RFdiffusion диффундирует frames jointly.'
+    - 'Discrete codes: Gaujac VQ/FSQ, codebook 4096–64000, downsampling r; r=1 для generation GPT. 3Di (Foldseek, 20 letters) — локальный structural alphabet, не полный backbone codebook.'
+    - 'Conditioning tensors: length embedding (FoldingDiff AR: random Fourier features of \(L\)); PAR bos \(\in\mathbb{R}^{\mathrm{size}(1)\times 3}\); motif coords teacher-forced per scale (PAR scaffolding); 4-residue angle prompt (FoldingDiff AR).'
+  - type: p
+    text: 'Hidden widths: RamaNet LSTM 64 / MLP 32+12 — [PAPER]. FoldingDiff AR 14.41M — [PAPER]. Gaujac GPT d=1024 — [PAPER preprint]. PAR decoder 60/200/400M; scaling AR transformer «minimal impact» — [PAPER preprint]. Не выдумывать остальные dim.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generated state — остов: N, C\(\alpha\), C (часто O восстановлен coplanar trans). Side chains нет, пока внешний packer/IF не назначен. RamaNet физически применяет dihedrals к valine chain: secondary structure появляется из углов, tertiary compactification — FastRelax REF2015, не LSTM.'
+  - type: p
+    text: 'Трансляция/ротация всего белка: angle-based модели инвариантны по представлению. PAR работает в абсолютных Cα; transformer non-equivariant — глобальный pose не гарантирован inductive bias''ом SE(3). Перестановка residues ломает chain connectivity. Цепи: разобранные методы — в основном monomers/domains (CATH crops, helical single chains), не paired Fv.'
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - \(\phi/\psi\) tokens
+      - локальная backbone kinematics, Ramachandran
+      - explicit angles
+      - нет дальних H-bonds как термов
+    - - 6 internal angles (FoldingDiff set)
+      - полная локальная геометрия N–Cα–C
+      - explicit
+      - closure/loop errors накапливаются вдоль цепи
+    - - Cα centroids per scale
+      - грубая fold topology → atomic detail
+      - interpolation along chain
+      - не secondary-structure labels
+    - - VQ structure token
+      - learned patch of backbone geometry
+      - quantized latent
+      - codebook collapse / recon RMSD 1–5 Å
+    - - SE(3) equivariance
+      - тот же fold в любой ориентации
+      - absent in PAR transformer; implicit in angles
+      - не гарантия стабильности
+    - - FastRelax / REF2015
+      - стерическая упаковка и H-bonds по energy function
+      - external after AR
+      - меняет геометрию относительно сырого sample
+    - - ProteinMPNN + ESMFold/OmegaFold scTM
+      - совместимость backbone с IF+predictor
+      - external evaluator
+      - ≠ crystal, ≠ binding
+    - - H-bonds, electrostatics, solvent, glycans, epitope
+      - —
+      - absent in generator
+      - antibody CDR/interface не представлены
+    source: '[INTERPRETATION] класс; tool rows — cited papers'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Trainable зависит от subtype. RamaNet: LSTM+MDN weights; loss RMSE между predicted и target angle sequence (teacher forcing). [PAPER] FoldingDiff AR: causal transformer + regression head; wrapped smooth L1; AdamW wd=0.01, batch 256, best val epoch 1446 / 10000. [PAPER]'
+  - type: p
+    text: 'Gaujac: (i) quantized autoencoder recon; (ii) GPT CE next-token на frozen codes. Negative examples — неправильный code в softmax, не docking decoys. [PAPER preprint]'
+  - type: p
+    text: 'PAR: совместно \(\mathcal{T}_\theta\) и \(v_\theta\) под FM loss Eq. 5; self-conditioning; noisy context + scheduled sampling против exposure bias (teacher forcing sc-RMSD 2.20 → NCL+SS 1.48 на 60M/100k). Auxiliary FAPE/sequence CE нет. [PAPER preprint]'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - noise / bos / angle prompt / coarse point prompt
+    - AR step (next angles | next VQ token | next scale embedding)
+    - sample geometric chunk
+    - reconstruct coords (kinematics or VQ decoder or flow ODE/SDE)
+    - optional FastRelax / IF+fold filter
+    note: Схема класса. Не копия figure RamaNet/PAR/Gaujac.
+  - type: p
+    text: 'PAR: KV cache по scales; SDE на coarse scale обязателен (ODE-only designability 28% в Table 2), ODE на fine scales даёт 2.5× speedup vs 400-step single-scale. [PAPER preprint] RamaNet: latent noise → MDN chain of 150 (φ,ψ) → valine kinematics → FastRelax → hand-crafted filter.'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'RamaNet: PDB snapshot 28 Jun 2018; single chains 80–150 aa, continuous, helix+sheet > loops, Rg filter, manual fold diversity → 607 natives × 500 FastRelax = 303 500 helical-augmented examples. Train 18 000 epochs, batch 4, lr 3e−4; further training collapsed to identical outputs. [PAPER]'
+  - type: p
+    text: 'FoldingDiff AR: same CATH domains 40–128 residues, 30 395 unique, 80/10/10 split; crops >128. [PAPER] Gaujac: PDB tokenized; exact split — appendix A.4.1, не разбирался постранично (NR).'
+  - type: p
+    text: 'PAR: two-stage following Proteina/Geffner: 200k steps on AFDB representatives, then 5k FT on PDB subset of 21k designable samples. Pair/triangle modules отключены для alignment с Proteina. [PAPER preprint] Leakage: AFDB/PDB redundancy; designability set для FT уже отобран по той же in silico метрике, что и test — риск круговой оценки. [INTERPRETATION]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'RamaNet: random seed [0,1) → MDN ancestral sample length 150 → trim C-terminal loop → FastRelax → filter (<80 aa, loop>helix, core<20%, max Cα1 distance >88 Å). Повтор, пока filter не пройден. [PAPER]'
+  - type: p
+    text: 'FoldingDiff AR: seed 4 native angle-sets; fixed L; greedy next-6-angles (Methods не описывают temperature). [PAPER] Gaujac: temperature sampling GPT codes → pretrained decoder; appendix A.4.3: temperature 0.2–0.8 step 0.2 на 2000 samples; top-k / nucleus «little improvement». [PAPER preprint]'
+  - type: p
+    text: 'PAR: n AR steps (default 3 scales); per scale ODE or SDE (γ=0.3 vs 0.45 меняет designability 96.0% vs 88.0% для 400M). Motif scaffolding: teacher-force motif coords at each scale + superimpose to avoid clashes — zero-shot, без mask fine-tune. [PAPER preprint] Stopping: фиксированный L / последний scale. Ranking: sc-RMSD, FPSD, TM vs prompt — всё in silico.'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Length (FoldingDiff AR Fourier feature). Prefix angles (4 residues). PAR: coarse point prompt (16/32 centroids) без FT; motif atomic coords per scale; bos learned. Нет epitope/hotspot tensor как у RFantibody. Нет species/chain tokens. Нет experimental labels.'
+  - type: p
+    text: 'Математически PAR prompt: заменить \(x^1\) (или несколько coarse scales) на user points, дальше ancestral upsample. Это не cross-attention на antigen graph.'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: 'Residue-wise AR: \(L\) sequential steps, Transformer \(O(L^2)\) на шаг если пересчитывать без cache; с KV cache decode линейно по шагам × cost layer. Gaujac: 344M GPT + VQ decode. PAR: n≪L AR steps, но каждый scale — flow с сотнями ODE/SDE steps на \(\mathrm{size}(i)\) points; fine scale \(O(L^2)\). Table 2: Proteina 400 SDE steps length 200 → 170 s; PAR S/O/O 400/2/2 → 68 s, designability 94%. [PAPER preprint] RamaNet: CPU generation + Rosetta relax. Параметр count ≠ качество: 14M AR baseline хуже 17M FrameDiff по diversity, несмотря на сопоставимый размер.'
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Явная (или scale-wise) likelihood / ancestral sampling — можно prompt'ить префиксом без переобучения diffusion на masks (PAR zero-shot motif/point prompts). [PAPER preprint]
+    - Angle parameterization автоматически SE(3)-invariant; не нужен equivariant stack (RamaNet, FoldingDiff family).
+    - Discrete tokens позволяют взять обычный GPT (Gaujac 344M ~ FrameDiff designability scTM 76.6% vs 75.8%). [PAPER preprint]
+    - Next-scale AR сохраняет bidirectional contacts внутри scale, в отличие от N→C residue AR. [PAPER preprint]
+  - type: p
+    text: Это не гарантия foldable-in-wet-lab белка и не преимущество перед RFdiffusion на antibody CDR. Equivariance angles ≠ physically correct tertiary pack.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: exposure bias; FoldingDiff AR и PAR teacher-forcing это демонстрируют. N→C порядок ломает 3D locality.'
+    - 'Представление: нет side chains, нет VH–VL pairing, нет epitope.'
+    - 'Физика/химия: нет растворителя, протонирования, гликанов, \(\Delta G\).'
+    - 'Данные: RamaNet только helices 80–150 aa; FoldingDiff crops ≤128; PAR AFDB+PDB designable subset.'
+    - 'Обобщение: нет antibody-specific evidence в разобранных papers.'
+    - 'Deployment: ни один метод не подключён к каталогу tools; PAR/Gaujac — preprints; RamaNet требует PyRosetta filter.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Helix mode collapse residual-wise AR (FoldingDiff AR: exclusively singular α-helices; 89% scTM≥0.5 при нулевом diversity). [PAPER]'
+    - 'RamaNet: open (non-compact) helices until FastRelax; identical outputs after too many epochs. [PAPER]'
+    - Error accumulation при >3 PAR scales (4–5 scales хуже designability, чем 3). [PAPER preprint]
+    - 'ODE-only PAR: designability 28% без SDE на coarse scale. [PAPER preprint]'
+    - VQ recon RMSD 1–5 Å может маскировать tokenizer error как «generated fold». [PAPER preprint Gaujac]
+    - 'Gaujac novelty ниже RFdiffusion (35.8% vs 86.1%): mode-seeking sampling. [PAPER preprint]'
+    - 'Self-consistency pipeline хрупка: 87% натуральных структур FoldingDiff test имеют scTM≥0.5 — даже natives «не designable». [PAPER]'
+    - Считать AF/ESMFold pLDDT generated backbone experimental structure. [INTERPRETATION]
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool / method
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - RamaNet (не в каталоге)
+      - residue-wise angle AR
+      - LSTM 64 + MDN; 150 (φ,ψ); FastRelax filter
+      - только helices; proof of concept; нет wet-lab
+    - - FoldingDiff AR baseline (не в каталоге)
+      - causal transformer on 6 angles
+      - 14.41M, absolute PE, seed 4 native residues
+      - авторы показывают, что residual AR не даёт diverse SS; сам FoldingDiff — torsion diffusion
+    - - Gaujac GPT (не в каталоге)
+      - VQ tokens + decoder-only LM
+      - 20L×16H d=1024 344M; K=4096 r=1
+      - preprint; scTM 76.6% vs RFdiffusion 97.1%
+    - - PAR (не в каталоге)
+      - next-scale AR + flow Cα decoder
+      - 60–400M decoder; scales {64,128,256}; NCL+SS
+      - preprint 2026; in silico designability 96.6% after PDB FT; не antibody
+    - - <a href="/tools/rfdiffusion.html">RFdiffusion</a>
+      - не этот класс
+      - SE(3) frame diffusion
+      - joint denoising всех residues
+    - - <a href="/tools/framediff.html">FrameDiff</a>
+      - не этот класс
+      - frame diffusion 17M
+      - PAR Table 1 comparator
+    - - <a href="/tools/proteinmpnn.html">ProteinMPNN</a>
+      - AR sequence given backbone
+      - IF decoder
+      - геометрия фиксирована — inverse folding
+    - - <a href="/tools/esm3.html">ESM3</a>
+      - masked multimodal tokens
+      - MLM sequence+structure+function
+      - не causal structure AR; PAR Table 1 designability 22%
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо концептуально к <a href="/tasks/de-novo-backbone-generation.html">de novo backbone</a>, когда нужна явная sequential likelihood или coarse prompt. Практический workflow каталога: <a href="/workflows/de-novo-backbone-then-mpnn.html">backbone diffusion → MPNN</a>.'
+  - type: p
+    text: Не применимо как замена epitope-conditioned antibody design (<a href="/tools/rfantibody.html">RFantibody</a>), sequence-only libraries (<a href="/tools/iglm.html">IgLM</a>), или few-shot ELISA loops (<a href="/tools/evolvepro.html">EVOLVEpro</a>). Не сравнивать RamaNet FastRelax «compact helix» с RFantibody wet-lab binders.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Bengio et al., Scheduled Sampling for Sequence Prediction (exposure bias).
+      url: https://arxiv.org/abs/1506.03099
+    - text: Sabban & Markovsky, RamaNet, F1000Research / bioRxiv 10.1101/671552
+      url: https://doi.org/10.1101/671552
+    - text: Wu et al., FoldingDiff, Nat. Commun. 2024, 10.1038/s41467-024-45051-2 (torsion diffusion + AR baseline)
+      url: https://doi.org/10.1038/s41467-024-45051-2
+    - text: Gaujac et al., Learning the language of protein structure, arXiv 2405.15840 (preprint)
+      url: https://arxiv.org/abs/2405.15840
+    - text: 'Qu et al., PAR: Protein Autoregressive Modeling via Multiscale Structure Generation, arXiv 2602.04883 (preprint, 2026)'
+      url: https://arxiv.org/abs/2602.04883
+    - text: van den Oord et al., VQ-VAE (structure tokenization).
+      url: https://arxiv.org/abs/1711.00937
+    - text: Tian et al., VAR next-scale prediction (image AR; cited by PAR).
+      url: https://arxiv.org/abs/2404.02905
+    - text: Yim et al., FrameDiff (diffusion comparator, not this class).
+      url: https://arxiv.org/abs/2302.02277
+    - text: Watson et al., RFdiffusion, Nature 2023 (diffusion comparator).
+      url: https://doi.org/10.1038/s41586-023-06432-7
+    - text: Heinzinger et al., ProstT5, NAR Genom. Bioinform. 2024 (3Di translation; not de novo backbone).
+      url: https://doi.org/10.1093/nargab/lqae150
+    - text: Architecture AR sequence (distinct class)
+      url: /architectures/autoregressive-generation.html
+    - text: Architecture frame diffusion (distinct class)
+      url: /architectures/frame-diffusion.html
+inaccessible:
+- PAR (Qu et al., arXiv 2602.04883, 3 Feb 2026) — preprint; official repo/commit в этом проходе не инспектировались; уравнения и Table 1–3 сверены с arXiv HTML.
+- Gaujac et al. arXiv 2405.15840 — preprint; github.com/instadeepai/protein-structure-tokenizer не разбирался по commit; GPT 20L/344M и Table 2 — из arXiv HTML; appendix A.4.1 split NR, A.4.3 temperature sampling сверен.
+- 'RamaNet SI/F1000 versions: methods сверены с F1000Research HTML (LSTM+MDN). Заголовок одной версии пишет LSTM-GAN — не переносим GAN в архитектуру без сверки той версии.'
+- FoldingDiff SI PDF (16.4 MB) не разбирался постранично; AR baseline — Methods Nature Communications 2024 PMC10844308.
+- В каталоге нет tool с architecture_ids содержащим autoregressive-structure-generation.

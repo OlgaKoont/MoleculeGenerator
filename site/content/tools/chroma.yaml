@@ -1,0 +1,193 @@
+identity:
+  id: chroma
+  name: Chroma
+  slug: chroma
+  aliases:
+  - Chroma
+  version: null
+  release_year: '2023'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/generatebio/chroma
+  official_documentation: null
+  official_service: null
+  license: Apache-2.0 code; model download requires API key/terms
+  commercial_use_status: Code + gated model access
+  publication_status: Peer-reviewed journal; Nature (Q1)
+classification:
+  task_ids:
+  - de-novo-backbone-generation
+  - joint-sequence-structure-generation
+  - full-3d-structure-generation
+  workflow_ids:
+  - joint-multimodal-generation
+  architecture_ids:
+  - coordinate-diffusion
+  - graph-neural-networks
+  - joint-sequence-structure-generation
+  generator_classes:
+  - backbone-structure-generator
+  - joint-sequence-structure
+  output_modalities:
+  - structure
+  - sequence
+  - joint
+  supported_formats: Monomers and large protein complexes
+  de_novo_or_optimization: Primarily de novo
+  general_protein_relevance: High
+  antibody_relevance: No antibody-specific evidence
+  VHH_relevance: 'No'
+  mutation_relevance: Low–medium
+  compatibility_group: joint-sequence-structure
+generation:
+  exact_generated_object: Backbone/all-atom structure and sequence
+  required_input: None or programmable conditioners
+  conditioning: Substructure, symmetry, shape, class/annotation and custom differentiable
+    conditioners
+  fixed_components: null
+  editable_components: null
+  generated_components: Backbone/all-atom structure and sequence
+  support_for_single_mutations: Possible through constraints, not mutation-first
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: Multiple conditioners, not an experimentally validated
+    Pareto optimizer
+  candidate_generation_mechanism: Backbone diffusion + equivariant graph networks + conditional
+    random field sequence design
+architecture:
+  base_model: null
+  model_family: Backbone diffusion + equivariant graph networks + conditional random field
+    sequence design
+  model_type: 3 + 4 Backbone and joint sequence–structure generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Substructure, symmetry, shape, class/annotation and custom differentiable
+    conditioners
+  generation_mechanism: Backbone diffusion + equivariant graph networks + conditional random
+    field sequence design
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Backbone/all-atom structure and sequence
+  internal_scorer: Conditioner energies / model likelihood
+  structure_generation: Internal structural generation; not an independent validator
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: Chroma structure diffusion + sequence module
+  integrated_generators: []
+  integrated_scorers:
+  - Conditioner energies / model likelihood
+  integrated_structure_predictor: Internal structural generation; not an independent validator
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent folding/complex and experimental validation
+  optional_external_dependencies:
+  - Programmatic conditioning framework
+  breakdown:
+  - name: Chroma structure diffusion + sequence module
+    role: primary_generator
+    architecture_class: Backbone diffusion + equivariant graph networks + conditional random
+      field sequence design
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Conditioner energies / model likelihood
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Internal structural generation; not an independent validator
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: Independent folding/complex and experimental validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–5 early prospective biophysical/structural validation
+  retrospective_validation: null
+  prospective_binding_validation: General protein evidence
+  prospective_functional_validation: General protein evidence
+  developability_validation: General protein evidence
+  tested_design_count: 'Early biophysical and crystallographic validation; exact count: NR'
+  success_criterion: General protein evidence
+  independent_validation: null
+  evidence_summary: General protein evidence
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Weights access is gated.
+  - conditioner scores are not measured function.
+  - no antibody-specific proof.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited pilot; legal/access review
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - esm-1v-efficient-evolution
+  - structural-evolution
+  paper_ids:
+  - paper-chroma
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

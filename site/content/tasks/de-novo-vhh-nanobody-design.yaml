@@ -1,0 +1,47 @@
+id: de-novo-vhh-nanobody-design
+slug: de-novo-vhh-nanobody-design
+name: De novo VHH / nanobody design
+group: Антитела и antibody-like форматы
+definition: Генерация single-domain VHH/nanobody binders.
+objective: Получить CDR-mediated VHH к epitope.
+starting_inputs:
+- target structure
+- hotspots
+- VHH framework
+generated_objects:
+- VHH CDR backbone/sequence
+generator_classes:
+- target-conditioned-binder
+strategies:
+- name: Antibody diffusion on VHH framework
+  generates: VHH CDRs
+  representation: SE(3) frames
+  examples:
+  - rfantibody
+  limitation: Не полный IgG workflow
+  sampling: Diffusion + MPNN
+  novel_topology: CDRs only
+  integrated_scoring: RF2
+  complexity_drivers: Trajectories
+consequences:
+- decision: VHH format
+  consequence: Не переносить выводы на Fv/Fab/IgG без отдельной evidence.
+compute_consequences:
+- Как у RFantibody.
+evidence_summary: 'RFantibody: direct VHH evidence. BoltzGen: nanobody claims in preprint. HuDiff-Nb
+  — humanization, не de novo binder.'
+incomparable:
+- VHH ≠ IgG.
+- Humanization of nanobody ≠ de novo nanobody.
+selection_guidance:
+- De novo VHH — RFantibody.
+- Не использовать HuDiff как binder generator.
+architecture_ids:
+- frame-diffusion
+workflow_ids:
+- de-novo-antibody-rfantibody
+paper_ids: []
+glossary_ids:
+- framework
+- cdr
+downstream: false

@@ -1,0 +1,63 @@
+id: joint-sequence-structure-generation
+slug: joint-sequence-structure-generation
+name: Joint sequence–structure generation
+name_ru: Совместная генерация sequence и structure
+intuition: 'Надкласс: один sampling process выдаёт связанную пару sequence+structure (иногда
+  function tokens), а не два независимых этапа backbone→IF. Подтипы — multimodal LM, joint
+  diffusion, sequence-space RF diffusion, flow matching, iterative GNN.'
+mathematical_formulation: 'Цель класса $p_\theta(s,x\mid c)$ (ESM3 ещё $f$). ESM3: generative
+  MLM по всем mask rates + iterative unmask. ProteinGenerator: VP на $L\times 20$ scaled one-hot
+  + CE+FAPE. DiffAb: факторизованный $q(s_t)q(x_t)q(R_t)$. Не staged $p(s\mid x)p(x)$.'
+input_representation: Tokens (AA, structure VQ, function), frames/Cα, one-hot sequence, optional
+  antigen/framework clamps, DSSP/SS/SASA prompts.
+generated_state: Coupled pair $(s,x)$; ESM3 may also emit function tokens. Not a validated experimental
+  structure.
+training_objective: Masked CE (ESM3); CE+FAPE (ProteinGenerator); discrete+geometric diffusion/FM
+  losses (DiffAb/FlowDesign). Not FAPE as ESM3 default.
+inference: Iterative unmask, reverse DDPM, ODE, or a few GNN decode iterations — subclass-specific.
+conditioning: Partial observations of either modality, motifs, function keywords, antigen/framework.
+  Not ELISA labels as class default.
+complexity_drivers:
+- Размер multimodal state / L
+- Unmask or diffusion/ODE steps
+- Pair/IPA cost on complexes
+- Model scale (ESM3 1.4B vs 98B)
+strengths:
+- Меньше inconsistency между sequence и fold
+- Programmable multimodal prompts (ESM3)
+- Sequence-level guidance and multistate (ProteinGenerator)
+limitations:
+- Нужны paired structures
+- Internal confidence часто не независим
+- Дороже staged IF, когда topology уже фиксирована
+failure_modes:
+- Считать generated structure validated structure
+- Смешивать ESM3 MLM с DiffAb DDPM
+- Считать Chroma/RFantibody simultaneous joint sampler
+applicable_task_ids:
+- joint-sequence-structure-generation
+- joint-cdr-sequence-structure-design
+- functional-site-design
+- general-protein-sequence-generation
+not_for_task_ids:
+- developability-assessment
+- few-shot-active-learning
+paper_ids:
+- paper-esm3
+- paper-protein-generator
+- paper-diffab
+- paper-flowdesign
+- paper-chroma
+subtypes:
+- Multimodal masked LM (ESM3)
+- Sequence-space RF diffusion (ProteinGenerator)
+- Joint diffusion (DiffAb / AbDiffuser / BoltzGen family)
+- Joint flow matching (FlowDesign)
+- Iterative full-atom GNN (dyMEAN)
+- Staged coords→design net (Chroma; tagged, not canonical)
+glossary_ids:
+- diffusion
+- flow-matching
+- sampling
+- backbone
+- inverse-folding

@@ -1,0 +1,8 @@
+id: framework
+slug: framework
+term: Framework
+term_ru: Каркас
+definition: Не-CDR части variable domain. Часто фиксируются при de novo CDR design и humanization.
+related_ids:
+- cdr
+- humanization

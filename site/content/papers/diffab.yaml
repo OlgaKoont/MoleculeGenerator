@@ -1,0 +1,48 @@
+id: paper-diffab
+slug: diffab
+title: Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models
+  for Protein Structures
+authors: null
+year: '2022'
+venue: NeurIPS 2022 main track (A*)
+publication_status: NeurIPS 2022 main track (A*)
+doi: null
+url: https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf
+preprint_url: null
+tool_ids:
+- diffab
+main_task: Antigen-conditioned CDR sequence–structure co-design and antibody optimization
+claimed_novelty: null
+model_architecture: Diffusion over residue type, Cα position and orientation with equivariant
+  network
+input_representation: null
+encoder_decoder: null
+generative_state: CDR sequence + backbone/geometry; interface proposal
+conditioning: CDR masks, fixed framework, antigen structure
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Retrospective structural and energy benchmarks only
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Retrospective structural and energy benchmarks only
+main_results: Retrospective structural and energy benchmarks only
+limitations: Requires complex structural context; no prospective evidence; archived repository;
+  energy scores are not affinity.
+demonstrates:
+- Retrospective structural and energy benchmarks only
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative
+    Models for Protein Structures
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: NeurIPS 2022 main track (A*)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

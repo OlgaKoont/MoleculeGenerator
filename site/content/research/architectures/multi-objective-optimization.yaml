@@ -1,0 +1,133 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Одновременно несколько свойств (affinity, specificity, yield, immunogenicity).
+  - type: p
+    text: Может быть scalarization, Pareto selection, или отдельные surrogates. Не одна архитектура сети.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Компромиссы: лучший binder может плохо экспрессироваться.'
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: \max_x\ \bigl(\mu_1(x),\ldots,\mu_m(x)\bigr)\ \text{or}\ \max_x w^\top \mu(x)
+    caption: Pareto vs linear scalarization. EVOLVEpro T7 example uses weights 20/40/40 on experimental labels, not a learned Pareto layer. [PAPER]
+    source: '[PAPER] EVOLVEpro T7 campaign; generic MOO'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - several y channels or weighted y
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Different assays — different physics (binding vs translation vs immunogenicity assay).
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - Weighted sum
+      - user preference, not physics
+      - explicit weights
+      - arbitrary trade-off
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: One surrogate on weighted y or m surrogates.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - predict m objectives
+    - scalarize or Pareto
+    - assay
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: Multi-property labels.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Rank by scalar or NSGA-like — check tool; EVOLVEpro: single activity column after weighting.'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Weights w.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: m assays dominate.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Явные компромиссы, если labels есть.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Нет универсальных весов.
+    - Makowski package NR.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Hidden collapse to one objective.
+    - Incommensurable units.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - EVOLVEpro T7
+      - weighted labels
+      - not Pareto NN
+      - weights 20/40/40
+    - - Makowski affinity–specificity
+      - experimental MOO
+      - no package
+      - do not equate to EVOLVEpro
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Несколько измеримых свойств. Не developability score из pLDDT.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: EVOLVEpro T7 multi-property campaign
+      url: https://doi.org/10.1101/2024.07.17.604015

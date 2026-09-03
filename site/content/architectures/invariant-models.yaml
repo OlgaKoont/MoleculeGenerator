@@ -1,0 +1,61 @@
+id: invariant-models
+slug: invariant-models
+name: Invariant models
+name_ru: Инвариантные модели
+intuition: 'Свойство отображения, не генератор: скаляры, типы и 2D pair features не меняются
+  при глобальном SE(3). Нужно для sequence logits / templates / energies; недостаточно,
+  чтобы семплировать абсолютные координаты без equivariant path.'
+mathematical_formulation: '$f(Rx+t)=f(x)$ для $R\in SO(3)$, $t\in\mathbb{R}^3$. Конструкции:
+  distances/angles/dihedrals; GVP scalars $s''$ (Jing); local-frame projection then Transformer
+  (Hsu $p(Y\mid TX)=p(Y\mid X)$); RF 2D template distances+dihedrals (Bennett). Не $g(Rx+t)=Rg(x)+t$.'
+input_representation: 'Инвариантные признаки: pairwise distances, angles, dihedrals, GVP scalar
+  channels, 2D templates. Векторные каналы могут жить в промежуточных слоях (GVP $V$).'
+generated_state: Скаляры или discrete labels (AA types, scores, pair features), не абсолютные
+  координаты. Pose generation, если есть, принадлежит другому классу.
+training_objective: Любая скалярная/классификационная потеря (CE sequence, MQA regression,
+  distogram CE у предикторов). Не FAPE как default IF.
+inference: Forward / AR decode для scores и sequences. 2D template conditioning для frame
+  diffusion — не sample этого класса.
+conditioning: Invariant features of target/framework (RFantibody 2D FR); fixed backbone for
+  IF. Не ELISA labels.
+complexity_drivers:
+- Pairwise distances / template track ~ L²
+- kNN degree for distance graphs
+- Downstream Transformer after invariant tokens
+strengths:
+- Не нужно учить все лабораторные ориентации
+- Позволяет задать внутренний fold, не фиксируя dock (RFantibody FR template)
+- Sequence logits сравнимы across poses
+limitations:
+- Не задают абсолютную ориентацию генерируемой структуры
+- Unsigned distances не фиксируют chirality
+- Invariance ≠ thermodynamics / affinity
+failure_modes:
+- Попытка восстановить coordinates из одних distances без extra constraints
+- Смешение invariance и equivariance
+- Считать 2D template генератором CDR
+applicable_task_ids:
+- inverse-folding
+- antibody-structure-aware-sequence-design
+- single-mutation-proposal
+- antigen-conditioned-antibody-design
+not_for_task_ids:
+- de-novo-backbone-generation
+- few-shot-active-learning
+paper_ids:
+- paper-esm-if1
+- paper-antifold
+- paper-rfantibody
+- paper-rfdiffusion
+- paper-proteinmpnn
+subtypes:
+- Scalar SE(3) heads (type, energy, MQA, IF logits)
+- Invariant geometric features (distances, angles, GVP scalars)
+- Invariant 2D templates (RF / RFantibody framework)
+- Internal-coordinate parameterizations (torsion AR/diffusion; not catalog tools)
+glossary_ids:
+- equivariance
+- backbone
+- inverse-folding
+- framework
+- conditioning

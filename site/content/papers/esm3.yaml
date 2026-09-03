@@ -1,0 +1,47 @@
+id: paper-esm3
+slug: esm3
+title: Simulating 500 million years of evolution with a language model
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Science (Q1)
+publication_status: Peer-reviewed journal; Science (Q1)
+doi: 10.1126/science.ads0018
+url: https://doi.org/10.1126/science.ads0018
+preprint_url: null
+tool_ids:
+- esm3
+main_task: Multimodal protein generation from sequence/structure/function prompts
+claimed_novelty: null
+model_architecture: Masked multimodal Transformer; iterative unmasking of sequence, structure
+  and function tracks
+input_representation: null
+encoder_decoder: null
+generative_state: Sequence, structure tokens, function annotations; can co-generate modalities
+conditioning: Residue masks, partial sequence/structure, functional keywords/motifs
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Functional fluorescent protein demonstrated; not antibody
+  evidence
+tested_designs: 'esmGFP and additional design demonstrations; exact total by modality: NR'
+success_criterion: Functional fluorescent protein demonstrated; not antibody evidence
+main_results: Functional fluorescent protein demonstrated; not antibody evidence
+limitations: Commercial-use terms differ by asset; multimodal confidence is not functional
+  evidence; complex/antibody proof is limited.
+demonstrates:
+- Functional fluorescent protein demonstrated; not antibody evidence
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Simulating 500 million years of evolution with a language model
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Science (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

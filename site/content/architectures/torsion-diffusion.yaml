@@ -1,0 +1,32 @@
+id: torsion-diffusion
+slug: torsion-diffusion
+name: Torsion diffusion
+name_ru: Диффузия торсионных углов
+intuition: Структура параметризуется φ/ψ/χ углами. Диффузия идёт на торе/гиперторе, затем восстанавливается
+  backbone.
+mathematical_formulation: Diffusion on $S^1$ or $T^n$; wrapped Gaussians or Riemannian score matching.
+input_representation: Noisy torsion angles, optionally residue types.
+generated_state: Torsion vector → Cartesian reconstruction.
+training_objective: Angular score matching / cosine losses.
+inference: Reverse process on angles with reconstruction.
+conditioning: Fixed secondary-structure angles, motif torsions.
+complexity_drivers:
+- N residues
+- T steps
+strengths:
+- Меньше степеней свободы, чем all-atom Cartesian
+- Легче сохранить локальную химию
+limitations:
+- Накопление ошибок реконструкции
+- Меньше прямых complex constraints
+failure_modes:
+- Non-physical ω angles
+- Closure errors in loops
+applicable_task_ids:
+- de-novo-backbone-generation
+not_for_task_ids:
+- target-conditioned-binder-generation
+paper_ids: []
+subtypes: []
+glossary_ids:
+- diffusion

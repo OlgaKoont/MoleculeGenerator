@@ -1,0 +1,225 @@
+identity:
+  id: proteinmpnn
+  name: ProteinMPNN
+  slug: proteinmpnn
+  aliases:
+  - ProteinMPNN
+  - MPNN
+  version: null
+  release_year: '2022'
+  last_verified: '2026-08-27'
+  official_repository: https://github.com/dauparas/ProteinMPNN
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Code + weights
+  publication_status: Peer-reviewed journal; Science (Q1)
+classification:
+  task_ids:
+  - inverse-folding
+  workflow_ids:
+  - fixed-backbone-inverse-folding
+  architecture_ids:
+  - inverse-folding
+  - graph-neural-networks
+  generator_classes:
+  - inverse-folding
+  output_modalities:
+  - sequence
+  supported_formats: Monomer, oligomer, protein complex
+  de_novo_or_optimization: Sequence design for new or existing backbone
+  general_protein_relevance: Very high; workhorse sequence stage after backbone generation
+  antibody_relevance: General model; transferable, but not antibody-specialized
+  VHH_relevance: Transferable only
+  mutation_relevance: Strong for masked combinatorial redesign around a fixed fold
+  compatibility_group: inverse-folding
+generation:
+  exact_generated_object: One or many sequences compatible with input backbone
+  required_input: Protein backbone coordinates
+  conditioning: Fixed positions, chain design masks, amino-acid bias, tied positions, multi-chain
+    context
+  fixed_components: Input backbone
+  editable_components: Positions with design mask = True
+  generated_components: Amino-acid sequences
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No built-in property Pareto loop
+  candidate_generation_mechanism: Autoregressive message-passing neural network on backbone geometry
+architecture:
+  base_model: Autoregressive message-passing neural network
+  model_family: Inverse folding GNN
+  model_type: Fixed-backbone sequence design
+  input_representation: Backbone N/Cα/C(/O) coordinates; k-nearest-neighbour residue graph; chain
+    encodings; design masks
+  node_features: Backbone geometry encodings, chain index, optional residue constraints
+  edge_or_pair_features: Distances, relative orientations, sequence-distance features between kNN
+    residues
+  encoder: Unmasked MPNN over the geometric graph
+  decoder: Autoregressive MPNN decoder with decoding order
+  latent_or_generative_state: Discrete amino-acid tokens
+  equivariance: Built from local geometric invariants/relative features rather than global coordinates
+  conditioning_mechanism: Fixed backbone, tied positions, amino-acid bias, per-position masks, multi-chain
+    context
+  generation_mechanism: Autoregressive decoding over residues in a random or specified order
+  sampling_procedure: Temperature sampling; optional native-sequence decoding
+  training_objectives: Sequence recovery cross-entropy on PDB/predicted backbones
+  losses: Per-residue categorical CE
+  architectural_modifications: null
+  computational_complexity_drivers: N residues × k neighbours × decode order; number of sequences
+    sampled
+  output: One or many sequences compatible with the backbone
+  internal_scorer: Sequence log-probability only
+  structure_generation: Нет
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (Science 2022)
+workflow_components:
+  primary_generator: ProteinMPNN
+  integrated_generators: []
+  integrated_scorers:
+  - Sequence log-probability only
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent folding/self-consistency; task-specific interface/functional validation
+  optional_external_dependencies:
+  - No docking/relaxation/developability in core tool
+  breakdown:
+  - name: ProteinMPNN
+    role: primary_generator
+    architecture_class: Autoregressive message-passing neural network on backbone geometry
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Sequence log-probability only
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Independent folding/self-consistency; task-specific interface/functional validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: PDB and related structural sets used in the ProteinMPNN paper (exact dump version
+    NR here)
+  preprocessing: null
+  negative_examples: Not used as binding negatives
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: NR in this catalogue pass
+  reported_training_time: NR in this catalogue pass
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: Excludes AF2/Rosetta/experiments
+  CPU: null
+  GPU: Optional for many protein sizes (qualitative)
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–4 prospective structural and functional validation
+  retrospective_validation: null
+  prospective_binding_validation: X-ray/cryo-EM/functional rescue and design evidence; general proteins
+  prospective_functional_validation: X-ray/cryo-EM/functional rescue and design evidence; general
+    proteins
+  developability_validation: null
+  tested_design_count: 'Multiple monomer, oligomer, nanoparticle and binder campaigns; exact aggregate:
+    NR'
+  success_criterion: X-ray/cryo-EM/functional rescue and design evidence; general proteins
+  independent_validation: null
+  evidence_summary: X-ray/cryo-EM/functional rescue and design evidence; general proteins
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Cannot invent a backbone.
+  - likelihood is not affinity.
+  - fixed backbone can lock in incorrect interface geometry.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Immediate retrospective evaluation / pilot
+relations:
+  related_tools:
+  - esm-if1
+  - ligandmpnn
+  - antifold
+  alternatives:
+  - esm-if1
+  - ligandmpnn
+  complementary_tools:
+  - rfdiffusion
+  - rfantibody
+  - bindcraft
+  incompatible_comparisons:
+  - evodiff
+  - framediff
+  - progen
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-proteinmpnn
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids:
+  - alphafold2
+  - experimental-assays
+  glossary_ids:
+  - inverse-folding
+  - backbone
+  - likelihood
+detailed_architecture:
+  summary_card:
+    Base architecture: MPNN
+    Model type: Inverse folding
+    Representation: Residue kNN graph + backbone coordinates
+    Generation unit: Amino-acid token
+    Conditioning: Backbone, masks, biases, tied residues
+    Output: Conditional sequence distribution
+    Sampling: Autoregressive temperature sampling
+    Internal scorer: Log-probability
+    Structure generation: Нет
+  input_representation: Только backbone geometry, не full-atom side chains (side chains are not generated
+    as the primary object). Ligand atoms are not native — see LigandMPNN.
+  encoder: Message passing on a geometric kNN graph constructed from backbone atoms.
+  latent_or_generative_state: Discrete sequence; coordinates remain user-supplied.
+  conditioning_mechanism: Masks, amino-acid composition bias, tied positions across symmetric subunits,
+    multi-chain edges.
+  generation_mechanism: Random decoding order autoregression. Runtime grows with chain length, not
+    with diffusion steps.
+  training_objectives: CE on native sequences given backbone. Not an affinity or ddG loss.
+  integrated_evaluation: No structure predictor inside. Self-consistency folding is external. Likelihood
+    is fold compatibility, not binding.
+  architectural_limitations:
+  - feature: Fixed backbone
+    limitation: Не изобретает fold/interface geometry.
+  - feature: General PDB prior
+    limitation: Не antibody-specialized; CDR loops may be off-distribution.
+  - feature: Autoregressive decoding
+    limitation: Ошибки ранних residues влияют на последующие.
+review_queue: []

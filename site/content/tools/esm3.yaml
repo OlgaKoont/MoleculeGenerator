@@ -1,0 +1,201 @@
+identity:
+  id: esm3
+  name: ESM3
+  slug: esm3
+  aliases:
+  - ESM-3
+  - ESM 3
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/Biohub/esm
+  official_documentation: null
+  official_service: null
+  license: Code/model-specific terms; open small model is non-commercial
+  commercial_use_status: Small model local; larger models/API access vary
+  publication_status: Peer-reviewed journal; Science (Q1)
+classification:
+  task_ids:
+  - general-protein-sequence-generation
+  - joint-sequence-structure-generation
+  - functional-site-design
+  workflow_ids:
+  - sequence-first-de-novo
+  - joint-multimodal-generation
+  architecture_ids:
+  - protein-language-models
+  - masked-token-infilling
+  - joint-sequence-structure-generation
+  generator_classes:
+  - sequence-generator
+  - joint-sequence-structure
+  output_modalities:
+  - sequence
+  - structure
+  - joint
+  supported_formats: Primarily proteins/monomers; complex design evidence is limited
+  de_novo_or_optimization: Both de novo and local completion/redesign
+  general_protein_relevance: High strategic relevance
+  antibody_relevance: Transferable in principle; no primary antibody-specific therapeutic
+    evidence
+  VHH_relevance: Transferable in principle
+  mutation_relevance: Masked redesign possible; not a validated mutation campaign engine
+  compatibility_group: joint-sequence-structure
+generation:
+  exact_generated_object: Sequence, structure tokens, function annotations; can co-generate
+    modalities
+  required_input: Any partial combination of sequence, structure and function prompts
+  conditioning: Residue masks, partial sequence/structure, functional keywords/motifs
+  fixed_components: null
+  editable_components: null
+  generated_components: Sequence, structure tokens, function annotations; can co-generate
+    modalities
+  support_for_single_mutations: Yes via masks
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: Prompt-level multi-conditioning, not validated
+    Pareto optimization
+  candidate_generation_mechanism: Masked multimodal Transformer; iterative unmasking of sequence,
+    structure and function tracks
+architecture:
+  base_model: null
+  model_family: Masked multimodal Transformer; iterative unmasking of sequence, structure
+    and function tracks
+  model_type: 1 + 4 Joint sequence–structure generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Residue masks, partial sequence/structure, functional keywords/motifs
+  generation_mechanism: Masked multimodal Transformer; iterative unmasking of sequence, structure
+    and function tracks
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Sequence, structure tokens, function annotations; can co-generate modalities
+  internal_scorer: Model likelihood/confidence; no experimentally calibrated universal fitness
+    ranker
+  structure_generation: Structure decoding is part of the same multimodal model
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: ESM3 multimodal LM
+  integrated_generators: []
+  integrated_scorers:
+  - Model likelihood/confidence; no experimentally calibrated universal fitness ranker
+  integrated_structure_predictor: Structure decoding is part of the same multimodal model
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent folding/complex prediction and experimental assays
+  optional_external_dependencies:
+  - No general docking/MD/developability loop
+  breakdown:
+  - name: ESM3 multimodal LM
+    role: primary_generator
+    architecture_class: Masked multimodal Transformer; iterative unmasking of sequence, structure
+      and function tracks
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Model likelihood/confidence; no experimentally calibrated universal fitness ranker
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Structure decoding is part of the same multimodal model
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: Independent folding/complex prediction and experimental assays
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 4 prospective functional validation
+  retrospective_validation: 'esmGFP and additional design demonstrations; exact total by modality:
+    NR'
+  prospective_binding_validation: Functional fluorescent protein demonstrated; not antibody
+    evidence
+  prospective_functional_validation: Functional fluorescent protein demonstrated; not antibody
+    evidence
+  developability_validation: null
+  tested_design_count: 'esmGFP and additional design demonstrations; exact total by modality:
+    NR'
+  success_criterion: Functional fluorescent protein demonstrated; not antibody evidence
+  independent_validation: null
+  evidence_summary: Functional fluorescent protein demonstrated; not antibody evidence
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Commercial-use terms differ by asset.
+  - multimodal confidence is not functional evidence.
+  - complex/antibody proof is limited.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited pilot; legal review required
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - esm-1v-efficient-evolution
+  - structural-evolution
+  paper_ids:
+  - paper-esm3
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

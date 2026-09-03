@@ -1,0 +1,80 @@
+id: de-novo-backbone-then-mpnn
+slug: de-novo-backbone-then-mpnn
+name: De novo backbone → inverse folding
+use_case: Нужна новая topology или motif scaffold, затем sequence.
+required_input:
+- length or contig/motif
+- optional target/hotspots
+stages:
+- name: Backbone generation
+  architecture_class: SE(3)-equivariant diffusion
+  what_happens: Генерируются backbone coordinates
+  generation_or_evaluation: generation
+  generator: rfdiffusion
+  intermediate_object: Backbones
+  alternatives:
+  - framediff
+  - rfdiffusion-aa
+  node_links:
+  - rfdiffusion
+  - frame-diffusion
+- name: Sequence design
+  architecture_class: Graph inverse folding
+  what_happens: Подбирается sequence
+  generation_or_evaluation: generation
+  generator: proteinmpnn
+  intermediate_object: Sequence–backbone pairs
+  alternatives:
+  - esm-if1
+  node_links:
+  - proteinmpnn
+  - inverse-folding
+- name: Self-consistency
+  architecture_class: Structure predictor
+  what_happens: AF2/RF проверяет designability
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Filtered designs
+  alternatives:
+  - alphafold2
+  node_links:
+  - alphafold2
+- name: Experimental tests
+  architecture_class: null
+  what_happens: Binding/function/structure
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Hits
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: 'GPU practically required for diffusion. Runtime boundary: generation vs AF2
+  filter must be separated. Exact hours NR.'
+evidence_level: 'RFdiffusion: prospective general protein evidence. Vanilla model fails on antibody
+  loops.'
+failure_points:
+- Hotspot mis-specification.
+- Using vanilla RFdiffusion for antibodies.
+- Treating pLDDT as affinity.
+decision_criteria:
+- Antibody? Переходите на RFantibody.
+- Ligand atoms? RFdiffusionAA + LigandMPNN.
+task_ids:
+- de-novo-backbone-generation
+- motif-scaffolding
+- inverse-folding
+tool_ids:
+- rfdiffusion
+- proteinmpnn
+- framediff
+- rfdiffusion-aa
+architecture_ids:
+- frame-diffusion
+- inverse-folding
+- se3-equivariant-models
+paper_ids:
+- paper-rfdiffusion
+- paper-proteinmpnn
+mermaid: "flowchart TD\n    A[Motif or length or target] --> B[3D diffusion generator]\n    B\
+  \ --> C[Backbone proposals]\n    C --> D[Inverse-folding model]\n    D --> E[Sequence-structure\
+  \ candidates]\n    E --> F[Independent folding]\n    F --> G[Experimental validation]"

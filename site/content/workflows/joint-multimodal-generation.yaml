@@ -1,0 +1,64 @@
+id: joint-multimodal-generation
+slug: joint-multimodal-generation
+name: Joint / multimodal sequence–structure generation
+use_case: Нужно coupled generation sequence и structure, возможно с function prompts.
+required_input:
+- partial sequence/structure/function prompts
+stages:
+- name: Multimodal generation
+  architecture_class: Masked multimodal LM or diffusion
+  what_happens: Co-generation tracks
+  generation_or_evaluation: generation
+  generator: esm3
+  intermediate_object: Sequence–structure pairs
+  alternatives:
+  - chroma
+  - protein-generator
+  node_links:
+  - esm3
+  - joint-sequence-structure-generation
+- name: Model confidence
+  architecture_class: Internal likelihood/confidence
+  what_happens: In-loop ranking
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked pairs
+  alternatives: []
+  node_links: []
+- name: Independent validation
+  architecture_class: External predictor + assays
+  what_happens: Проверка вне модели
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Shortlist
+  alternatives:
+  - alphafold2
+  node_links:
+  - alphafold2
+  - experimental-assays
+hardware_runtime: Large multimodal models may be API-gated. ESM3 small model non-commercial. Exact
+  runtime NR.
+evidence_level: ESM3/Chroma/ProteinGenerator have prospective general-protein examples, not antibody-specific.
+failure_points:
+- License/API limits.
+- Confidence as function.
+- Antibody claims without evidence.
+decision_criteria:
+- Legal review of weights?
+- Need antibody evidence? Choose another workflow.
+task_ids:
+- joint-sequence-structure-generation
+- full-3d-structure-generation
+tool_ids:
+- esm3
+- chroma
+- protein-generator
+architecture_ids:
+- joint-sequence-structure-generation
+- protein-language-models
+paper_ids:
+- paper-esm3
+- paper-chroma
+- paper-protein-generator
+mermaid: "flowchart TD\n    A[Partial multimodal prompt] --> B[Joint generator]\n    B --> C[Sequence-structure\
+  \ pair]\n    C --> D[Internal confidence]\n    D --> E[Independent folding and assays]"

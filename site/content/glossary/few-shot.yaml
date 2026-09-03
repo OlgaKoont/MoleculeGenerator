@@ -1,0 +1,7 @@
+id: few-shot
+slug: few-shot
+term: Few-shot
+term_ru: Малопримерный режим
+definition: Оптимизация по малому числу experimental labels, обычно десятки на раунд.
+related_ids:
+- active-learning

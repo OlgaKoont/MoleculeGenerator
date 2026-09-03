@@ -1,0 +1,42 @@
+id: active-learning
+slug: active-learning
+name: Active learning
+name_ru: Активное обучение
+intuition: Sequential experimental design — surrogate ranks or proposes a batch, an assay
+  labels it, the labelled set is updated. Released EVOLVEpro uses top-N by predicted mean,
+  not UCB.
+mathematical_formulation: Generic pool-based AL is $D_{t+1}=D_t\cup\{(x,y):x\in B_t\}$ with
+  $B_t=\arg\max A_t(B)$. UCB $a=\mu+\kappa\sigma$ is a subtype that requires $\sigma$; it is
+  not the released EVOLVEpro rule (top-N $\hat y$).
+input_representation: PLM embeddings of variants plus measured labels.
+generated_state: Proposed mutants for the next assay round.
+training_objective: Regression/classification on accumulated labels.
+inference: Maximize acquisition over a designed library.
+conditioning: Parent, allowed positions, experimental budget.
+complexity_drivers:
+- Library size
+- Number of rounds
+- Assay latency
+strengths:
+- Экономит wet-lab бюджет
+- Работает при малом числе labels
+limitations:
+- Не zero-shot
+- Чувствителен к шуму assay
+failure_modes:
+- Exploitation collapse
+- Distribution shift of library
+applicable_task_ids:
+- few-shot-active-learning
+- ml-guided-directed-evolution
+not_for_task_ids:
+- de-novo-antibody-design
+paper_ids:
+- paper-evolvepro
+subtypes:
+- UCB
+- Expected improvement
+- Batch BALD
+glossary_ids:
+- active-learning
+- few-shot

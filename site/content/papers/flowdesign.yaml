@@ -1,0 +1,51 @@
+id: paper-flowdesign
+slug: flowdesign
+title: Flow matching for antibody CDR sequence–structure co-design
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Cell Systems (Q1)
+publication_status: Peer-reviewed journal; Cell Systems (Q1)
+doi: 10.1016/j.cels.2025.101270
+url: https://doi.org/10.1016/j.cels.2025.101270
+preprint_url: null
+tool_ids:
+- flowdesign
+main_task: Antibody CDR sequence–structure co-design with flow matching
+claimed_novelty: null
+model_architecture: Flow matching with improved structural priors
+input_representation: null
+encoder_decoder: null
+generative_state: CDR sequence and structure
+conditioning: CDR design masks and structural priors
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Reported improved binding affinity and neutralizing potency
+  versus Ibalizumab; workload-specific details require paper extraction
+tested_designs: 'Ibalizumab-focused HIV design study; exact tested count: NR here'
+success_criterion: Reported improved binding affinity and neutralizing potency versus Ibalizumab;
+  workload-specific details require paper extraction
+main_results: Reported improved binding affinity and neutralizing potency versus Ibalizumab;
+  workload-specific details require paper extraction
+limitations: Narrow prospective target context; lack of verified public code blocks independent
+  pilot; must separate predicted and measured gains.
+demonstrates:
+- Reported improved binding affinity and neutralizing potency versus Ibalizumab; workload-specific
+  details require paper extraction
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Flow matching for antibody CDR sequence–structure co-design
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Cell Systems (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.
+- Official repository/service not verified.

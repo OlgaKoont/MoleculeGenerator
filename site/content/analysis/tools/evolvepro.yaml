@@ -1,0 +1,315 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Preprint bioRxiv прочитан целиком (HTML). Журнальный Science PDF/HTML не получен. Реализация `evolvepro/src/model.py` и `evolve.py` просмотрена на commit main."
+lede: "EVOLVEpro **не** генерирует de novo sequences из шума. Это few-shot **ранжировщик** вариантов в заранее заданном пуле: frozen PLM embeddings + top-layer regressor, итеративно обучаемый на experimental labels. Default acquisition released code — **top-N по $\\hat y$**, не UCB/EI/PI/BALD."
+inaccessible:
+  - source: "Science 10.1126/science.adr6006 full text"
+    reason: "Paywall"
+    workaround: "bioRxiv 10.1101/2024.07.17.604015 HTML; GitHub implementation"
+  - source: "Science Supporting Information / Data S1 полный файл"
+    reason: "Не скачан"
+    workaround: "Preprint Methods описывает grid search; детали PCA «не помог» — по preprint"
+sources:
+  - kind: PAPER
+    citation: "Jiang et al., bioRxiv 10.1101/2024.07.17.604015"
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+  - kind: PAPER
+    citation: "Jiang et al., Science 10.1126/science.adr6006 (метаданные; полный текст NR)"
+    url: "https://doi.org/10.1126/science.adr6006"
+    doi: "10.1126/science.adr6006"
+  - kind: CODE
+    citation: "https://github.com/mat10d/EvolvePro"
+    url: "https://github.com/mat10d/EvolvePro"
+    note: "commit 1c77697d0c09bf6989a1562a55da99301a12e2cd"
+repo:
+  url: "https://github.com/mat10d/EvolvePro"
+  commit: "1c77697d0c09bf6989a1562a55da99301a12e2cd"
+  ref: "main"
+  license: "NR в этом проходе (файл LICENSE не цитировался целиком)"
+  files:
+    - evolvepro/src/model.py
+    - evolvepro/src/evolve.py
+    - evolvepro/src/data.py
+    - evolvepro/src/process.py
+    - README.md
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** parent / WT FASTA, таблица experimental activity по вариантам, матрица PLM embeddings для **того же** набора variant ID. Пул $\\mathcal{X}$ задаётся пользователем (single- и/или multi-mutant файлы)."
+        source: CODE
+        locator: "evolve_experimental / load_experimental_embeddings"
+      - text: "**Выход:** таблица `y_pred` по ещё не измеренным вариантам и ranked shortlist на следующий round. Это **не** sampled FASTA из generative LM и не 3D-структура."
+        source: CODE
+      - text: "**Фиксируется:** PLM веса (не fine-tune под activity в описанном методе). **Изменяется:** набор измеренных labels и, следовательно, fit top-layer; выбранные mutants для синтеза/assay."
+        source: PAPER
+        locator: "preprint: frozen embeddings + top layer"
+      - text: "**Parent-based optimization**, не de novo topology. Generated object каталога: ranked mutation set / next-round library."
+        source: PAPER
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "Каждый вариант $s$ отображается pretrained protein language model в вектор $E(s)$ (оптимальная конфигурация preprint: ESM-2 15B, residue-pooled **average** embeddings). На накопленных парах $(E(s),y)$ обучается sklearn-регрессор; default и победитель grid search — **RandomForestRegressor**. Следующая партия — $k$ вариантов с наибольшим $\\hat y$ (`learning_strategy='topn'`). Раунд 0 в оптимальной DMS-конфигурации — **random** (не medoids). PLM **не** дообучается на fitness."
+        source: PAPER
+        locator: "preprint grid search; CODE defaults"
+  - id: math-model
+    title: "4. Математическая модель"
+    paragraphs:
+      - text: "Условная плотность fitness **не** моделируется явно в default RF. Оптимизируется регрессия $y\\approx f_\\phi(E(s))$. Selection rule released code:"
+        source: CODE
+    equations:
+      - latex: "\\hat y(s)=f_\\phi(E(s)),\\qquad B_t=\\operatorname{top}_k\\{s\\in U_t:\\hat y(s)\\}"
+        caption: "Tool-specific default. $E$ frozen; $f_\\phi$ — RF или другой `regression_type`."
+        generic_or_specific: "tool-specific [CODE]"
+        source: CODE
+        symbols:
+          - {sym: E(s), type: vector, meaning: "PLM embedding варианта"}
+          - {sym: f_phi, type: function, meaning: "top-layer regressor"}
+          - {sym: U_t, type: set, meaning: "ещё не измеренные варианты в таблице embeddings"}
+          - {sym: k, type: integer, meaning: "num_mutants_per_round (DMS sim. часто 16; experimental default number_of_variants=12 для печати top)"}
+        meaning: "Нет $\\kappa\\sigma(x)$. Переменные `std_predictions` в dataframe — нули."
+      - latex: "\\min_\\phi \\sum_{(s,y)\\in D_t} \\ell\\big(y,f_\\phi(E(s))\\big)"
+        caption: "Схема обучения top-layer. Для RF $\\ell$ — criterion деревьев (`friedman_mse`), не выписанный авторами как одна формула в preprint HTML."
+        generic_or_specific: "tool-specific schema [CODE]"
+        source: CODE
+    paragraphs:
+      - text: "Другие `learning_strategy` в симуляции: `random`, `dist` (max min-Euclidean distance в embedding к train — exploration), `topn2bottomn2`. Это **не** EI/PI. `regression_type` может быть ridge/lasso/elasticnet/linear/neuralnet/randomforest/gradientboosting/knn/gp — но experimental path **жёстко** вызывает `randomforest`."
+        source: CODE
+        locator: "evolve.py directed_evolution_simulation; evolve_experimental regression_type='randomforest'"
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Состояние цикла: множество sequences (mutation strings), их embeddings, скаляр `activity` (и производные `activity_scaled`, `activity_binary` в DMS-таблицах). Нет atom coordinates, residue frames, torsion, interface tensors. «Мутация» — идентификатор варианта в таблице, не 3D-трансформация."
+        source: CODE
+  - id: physchem
+    title: "6. Физико-химическая интерпретация"
+    paragraphs:
+      - text: "Sequence compatibility с семейством белка может присутствовать **косвенно** в ESM-2. Fold, packing, H-bonds, электростатика, гидрофобность, конформационные ограничения — **не явные**. Evolutionary prior — в frozen PLM. Функция — **только** в labels. Preprint: activity landscape часто **не коррелирует** или **отрицательно коррелирует** с ESM-2 predicted masked marginal (pMMS) «fitness» — поэтому zero-shot PLM scoring не заменяет AL-цикл."
+        source: PAPER
+        locator: "preprint Results, PLM fitness vs activity"
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "**PLM:** pretrained (ESM-2 и сравнение ESM-1, UniRep, ProtT5, ProteinBERT, Ankh, one-hot, integer). **Не** fine-tune на activity в описанном методе."
+        source: PAPER
+      - text: "**Top-layer:** каждый round fit на всех накопленных labels. Grid search на **12 DMS** datasets: победили random first round, random forest, residue-pooled average embeddings, top-N. PCA embeddings **не улучшили** (Methods / Data S1 в preprint)."
+        source: PAPER
+        locator: "preprint Methods, grid search"
+      - text: "DMS-симуляция: 16 mutants/round, порядка 10 раундов; тестировали 10–100/round. Few-shot 5×16 ≈ 80 измеренных vs упоминание порядка pretrain 160/500 в тексте preprint — точные цифры сравнения few-shot vs linear probing см. preprint; здесь не выдумывать сверх HTML."
+        source: PAPER
+      - text: "Hardware PLM embedding: NR в этом проходе. RF на CPU — лёгкий. Negative sampling как в contrastive learning — нет."
+        source: NR
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "Подготовка: посчитать embeddings для всего пула; собрать CSV раундов. Кандидаты: все rows без iteration label. Нет diffusion, recycles, temperature decoding. `number_of_variants` в `evolve_experimental` — сколько top строк **напечатать** (default 12), не обязательно бюджет синтеза. В симуляции `num_mutants_per_round` задаёт $|B_t|$."
+        source: CODE
+      - text: "Prospective preprint: REGN10987 — 11 mutants/round, 5 rounds (не 16). Не путать симуляционный default с каждой кампанией."
+        source: PAPER
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Proposed mechanism.** Frozen large PLM даёт informative features даже при десятках labels; лёгкий nonlinear surrogate ловит landscape activity, который **не** совпадает с unsupervised PLM fitness; итеративный отбор направляет бюджет на высокие $\\hat y$."
+        source: PAPER
+      - text: "**Author claim (preprint).** Few-shot learning с PLM ускоряет directed evolution across proteins, включая antibody example; multi-objective T7 RNAP. Формулировка Science «up to 100×» в матрице сайта **не** верифицирована по журнальному PDF в этом выпуске — не переносить как универсальный antibody result."
+        source: PAPER
+      - text: "**Evidence.** (i) Retrospective DMS simulations vs random и vs другими эмбеддингами/регрессорами. (ii) Prospective кампании: REGN10987 ELISA vs spike; PsaCas12f; PE2 RT; Bxb1; T7 RNAP. (iii) Ablation-like grid search по strategy/regressor/PLM."
+        source: PAPER
+      - text: "**Causal support.** Выбор RF + top-N + ESM-2 15B поддержан **grid search на DMS** (ablation-like, не prospective). Prospective gains — overall campaign success, не изолированный абляционный фактор на каждой кампании. Связь «именно average pooling причина» — из grid search, не из мокрой лаборатории."
+        source: INTERPRETATION
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "Preprint grid search на 12 DMS: варьировали first-round strategy, discriminator/regressor, embedding pooling, selection rule, PLM family. Оптимум указан выше. PCA не помог. Это **ретроспективная симуляция**, не wet-lab ablation. Статистика различий между всеми 12 DMS в этом проходе не перенесена таблично из фигур — см. preprint figures / Data S1 (SI файл не скачан)."
+        source: PAPER
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Явный растворитель, протонирование, ионы, гликозилирование, металлы"
+      - "Конформационная энтропия и MD"
+      - "Структура комплекса и epitope geometry"
+      - "Истинная $\\Delta G$ / $K_d$ (ELISA improvement ≠ thermodynamic affinity без отдельной калибровки)"
+      - "Экспрессия, агрегация, иммуногенность — кроме случаев, когда они **измерены** как $y$ (T7 multi-objective)"
+      - "De novo CDR backbone"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Prospective antibody example preprint — **REGN10987**, ELISA vs spike, 63% ELISA improvement, IC50 11.9 nM (цифры preprint HTML). Landscape-матрица сайта упоминает **C143** — возможное расхождение версий paper/matrix; Science не сверен. Не обобщать 100× property improvement на все antibodies."
+        source: PAPER
+      - text: "DMS simulation ≠ новый терапевтический антиген. Assay noise и определение library критичны. Не zero-shot."
+        source: INTERPRETATION
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "Repo https://github.com/mat10d/EvolvePro commit `1c77697d0c09bf6989a1562a55da99301a12e2cd`. Также встречается https://github.com/idmjky/EvolvePro и Zenodo 10.5281/zenodo.13899358 — не инспектировались целиком. Hardcoded output path в `evolve_experimental` указывает на внутренний кластер `/orcd/archive/...` — практический барьер воспроизведения без правки пути."
+        source: CODE
+        locator: "default output_dir in evolve.py"
+modules:
+  - module: "PLM encoder (ESM-2 и др.)"
+    model_class: "pretrained protein LM"
+    input: "amino-acid sequence"
+    output: "per-residue or pooled embedding"
+    trained_or_frozen: "frozen для activity-цикла"
+    generator_or_evaluator: "feature extractor, не generator"
+  - module: "Top-layer surrogate"
+    model_class: "sklearn RF / optional other regressors"
+    input: "embedding matrix + labels"
+    output: "y_pred (std не используется)"
+    trained_or_frozen: "обучается каждый раунд"
+    generator_or_evaluator: "evaluator / ranker"
+  - module: "Acquisition / batch picker"
+    model_class: "rule-based sort (topn, dist, random, topn2bottomn2)"
+    input: "y_pred или dist_metric"
+    output: "список variant ID"
+    trained_or_frozen: "необучаемое правило"
+    generator_or_evaluator: "selection (не generative sampler)"
+  - module: "Assay"
+    model_class: "эксперимент"
+    input: "синтезированные варианты"
+    output: "новые y"
+    trained_or_frozen: "n/a"
+    generator_or_evaluator: "experimental validation"
+gen_vs_eval:
+  - component: "PLM embeddings"
+    role: "представление x"
+    integrated_or_external: "integrated (скрипты plm/)"
+    required_or_optional: "required"
+    influences: "косвенно: features для ranking, не sampling tokens"
+  - component: "Random forest y_pred"
+    role: "integrated scorer"
+    integrated_or_external: "integrated"
+    required_or_optional: "required в experimental path"
+    influences: "определяет, кто попадёт в следующий round (generation of the batch), не последовательность de novo"
+  - component: "top-N rule"
+    role: "batch selector"
+    integrated_or_external: "integrated"
+    required_or_optional: "required (default)"
+    influences: "generation of experimental batch"
+  - component: "ELISA / activity assay"
+    role: "experimental_validation"
+    integrated_or_external: "external"
+    required_or_optional: "required для AL"
+    influences: "labels only after the fact"
+claim_evidence:
+  - claim: "Few-shot PLM+surrogate превосходит случайный отбор на DMS-симуляциях"
+    mechanism: "итеративный top-N на RF(ESM-2)"
+    evidence_type: "retrospective benchmark"
+    dataset: "12 DMS datasets (preprint)"
+    comparator: "random screening; другие PLM и regressors"
+    metric: "top activity / enrichment vs round (см. preprint figures)"
+    source: PAPER
+    locator: "bioRxiv Results, grid search"
+    caveat: "Симуляция по уже измеренному DMS; не новый белок"
+  - claim: "Оптимальны RF, average pooling, random round 1, top-N, ESM-2 15B"
+    mechanism: "grid search hyperparameters"
+    evidence_type: "ablation evidence"
+    dataset: "те же 12 DMS"
+    comparator: "ESM-2 smaller, ESM-1, UniRep, ProtT5, ProteinBERT, Ankh, one-hot; PCA; other strategies"
+    metric: "aggregate simulation performance"
+    source: PAPER
+    locator: "preprint Methods"
+    caveat: "Не wet-lab ablation; SI Data S1 не скачан"
+  - claim: "Метод улучшает свойства белков в prospective кампаниях"
+    mechanism: "closed-loop assay + ranking"
+    evidence_type: "prospective functional validation"
+    dataset: "PsaCas12f, PE2, Bxb1, T7 RNAP (preprint)"
+    comparator: "parent / starting activity (детали в preprint)"
+    metric: "activity / function assays (не единая Kd)"
+    source: PAPER
+    locator: "preprint prospective sections"
+    caveat: "Не переносить величину улучшения на все задачи"
+  - claim: "Antibody binding можно улучшить few-shot циклом"
+    mechanism: "тот же surrogate на Ab variants"
+    evidence_type: "prospective binding validation"
+    dataset: "REGN10987 vs spike ELISA (preprint)"
+    comparator: "parent mAb"
+    metric: "ELISA improvement 63%; IC50 11.9 nM (preprint HTML)"
+    source: PAPER
+    locator: "preprint antibody campaign"
+    caveat: "Science vs preprint (C143?) не сверены; ELISA ≠ полная developability"
+  - claim: "Released code implements UCB active learning"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "опровергнуто кодом"
+    source: CODE
+    locator: "learning_strategy=='topn'"
+    caveat: "Утверждение ложно для released implementation"
+diagrams:
+  - code: |
+      flowchart LR
+        subgraph gen["Выбор партии"]
+          R["top-N по yhat"]
+        end
+        subgraph scorer["Integrated scorer"]
+          RF["Random forest"]
+        end
+        subgraph ext["External"]
+          PLM["Frozen ESM-2 embed"]
+          Assay["Wet-lab assay"]
+        end
+        PLM --> RF
+        Assay --> RF
+        RF --> R
+        R --> Assay
+    caption: "Generator vs evaluator. Партия — результат ranking, не token sampling. Схема оригинальная."
+    source_note: "EvolvePro evolve.py / model.py"
+  - code: |
+      flowchart TB
+        S["Sequence variant s"] --> E["E(s) PLM embedding"]
+        Y["Assay y"] --> F["RF fit"]
+        E --> F
+        F --> Yh["yhat"]
+        Yh --> Rank["Sort descending"]
+    caption: "Состояние: sequence + scalar label + vector embedding. Нет 3D."
+    source_note: "preprint + code"
+paper_vs_code:
+  - paper_version: "bioRxiv HTML 10.1101/2024.07.17.604015"
+    repo_commit: "1c77697d0c09bf6989a1562a55da99301a12e2cd"
+    model_version: "experimental path always randomforest"
+    file: "evolvepro/src/evolve.py evolve_experimental"
+    difference: "Симуляция позволяет ridge/GP/и др.; live helper фиксирует RF."
+    consequence: "Пользователь experimental API не получит GP-UCB, даже если GP выбран в grid-search скрипте."
+  - paper_version: "preprint antibody = REGN10987"
+    repo_commit: "README / landscape matrix may mention C143"
+    model_version: "n/a"
+    file: "site landscape vs preprint"
+    difference: "Идентичность кампании C143 vs REGN10987 не подтверждена без Science PDF"
+    consequence: "Не смешивать названия antibody examples без сверки журнала"
+  - paper_version: "литература AL (UCB)"
+    repo_commit: "1c77697d"
+    model_version: "n/a"
+    file: "model.py y_std_* = 0"
+    difference: "Нет predictive std в selection"
+    consequence: "Страницы, где у EVOLVEpro написан UCB, были бы фактической ошибкой"
+citations:
+  - id: 1
+    text: "Jiang et al. bioRxiv 10.1101/2024.07.17.604015 — primary source this pass."
+    doi: "10.1101/2024.07.17.604015"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.17.604015"
+  - id: 2
+    text: "Jiang et al. Science 10.1126/science.adr6006 — peer-reviewed; full text NR this pass."
+    doi: "10.1126/science.adr6006"
+    url: "https://doi.org/10.1126/science.adr6006"
+  - id: 3
+    text: "EvolvePro GitHub mat10d/EvolvePro"
+    url: "https://github.com/mat10d/EvolvePro"
+unresolved:
+  - "Science vs preprint: C143, 100× claim wording, SI tables"
+  - "License SPDX"
+  - "Точный pooling код ESM-2 15B в evolvepro/plm (директория не читалась построчно)"
+physchem_table:
+  - feature: "PLM embedding"
+    interpretation: "evolutionary sequence statistics"
+    encoded: "косвенно, pretrained"
+    limitation: "не энергия и не affinity"
+  - feature: "RF y_pred"
+    interpretation: "эмпирический fit к assay"
+    encoded: "прямо к y, не к физике"
+    limitation: "extrapolation вне library опасен"
+  - feature: "top-N"
+    interpretation: "exploitation"
+    encoded: "правило отбора"
+    limitation: "нет exploration через σ"

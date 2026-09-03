@@ -1,0 +1,407 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Autoregressive generation (AR) — это <strong>факторизация совместного распределения дискретной последовательности</strong>, а не отдельная «белковая физика» и не predictor аффинности. Модель задаёт порядок токенов и учит условные \(p(x_i\mid x_{<i},c)\). Генератор — ancestral sampler из этих условных. Likelihood / perplexity — внутренний scorer той же факторизации, не assay.
+  - type: p
+    text: По роли в пайплайне AR — <em>механизм generation и density estimation</em>. Это не active learning, не diffusion по frames, не docking и не MD. Protein language model — семейство моделей и корпусов; AR — один из механизмов внутри части PLM (decoder-only). Masked LM (ESM-1v, AntiBERTy) использует двусторонний контекст без обязательного causal порядка.
+  - type: p
+    text: 'Объекты: amino-acid tokens и special tokens (control tags, species/chain, MASK/SEP/ANS/EOS). Чистый sequence AR не оперирует координатами, frames или \(\Delta G\). Structure-conditioned AR (ProteinMPNN, ESM-IF1, AntiFold) — тот же класс факторизации, но conditioner — backbone; геометрия разобрана на <a href="/architectures/inverse-folding.html">inverse folding</a>.'
+  - type: p
+    text: 'Задачи каталога: <a href="/tasks/general-protein-sequence-generation.html">sequence generation</a>, <a href="/tasks/cdr-sequence-generation.html">CDR sequence</a>, infilling. Инструменты: <a href="/tools/progen.html">ProGen/ProGen2</a>, <a href="/tools/iglm.html">IgLM</a>, AR-decode <a href="/tools/proteinmpnn.html">ProteinMPNN</a> / <a href="/tools/esm-if1.html">ESM-IF1</a> / <a href="/tools/antifold.html">AntiFold</a>. <a href="/tools/palm-h3.html">PALM-H3</a> заявлен как antigen encoder + AR antibody decoder (methods NR в этом запуске). <a href="/tools/hudiff.html">HuDiff</a> в каталоге имеет architecture id AR — не заполнять GPT-уравнением без paper/code.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Модель читает уже выбранные символы (и conditioner) и ставит categorical на следующий. Кандидат — последовательный выбор: greedy, temperature, nucleus, top-k или beam. Ранняя ошибка не исправляется самой факторизацией, если нет отдельного infill/rescoring pass.'
+  - type: p
+    text: 'IgLM остаётся decoder-only GPT-2, но <em>переставляет</em> masked span в конец токен-ленты (infilling by language modeling). При left-to-right чтении модель видит и N-, и C-контекст петли до генерации span. Это не BERT: внимание каузальное по переставленной ленте. [PAPER] Shuai et al.; Donahue et al. ILM.'
+  - type: p
+    text: ProteinMPNN учит тот же next-residue product, но порядок decode — случайная перестановка residues, чтобы фиксированный контекст (binder target, tied positions) мог быть «уже известен» в любой позиции цепи. [PAPER] Dauparas et al.
+  - type: warn
+    text: Temperature, nucleus и beam управляют энтропией tokenizer-level distribution. Они не моделируют термодинамический ансамбль и не равны affinity. pLDDT / TMscore предсказанных структур сгенерированных sequences — внешний evaluator (AlphaFold2, IgFold, AF-Multimer в фигурах ProGen2/IgLM).
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Ниже — generic causal language model. Это не уравнение одного инструмента. Tool-specific отклонения — в подразделах и на страницах инструментов.
+  - type: math
+    latex: '\begin{aligned}
+
+      p_\theta(x\mid c)&=\prod_{i=1}^{n} p_\theta(x_i\mid x_{<i},c),\\
+
+      \mathcal{L}(\theta)&=-\frac{1}{|\mathcal{D}|}\sum_{x\in\mathcal{D}}\frac{1}{n_x}\sum_{i=1}^{n_x}\log p_\theta(x_i\mid x_{<i},c).
+
+      \end{aligned}'
+    caption: \(x=(x_1,\ldots,x_n)\) — токены (AA и special); \(c\) — conditioner, который либо препендится в \(x\) (ProGen control tags, IgLM chain/species), либо подаётся encoder'ом (IF). Порядок \(i\) — часть модели, не обязательно N→C. ProGen пишет среднее по токенам внутри примера (Eq. 1).
+    source: '[PAPER] Madani et al. Nat. Biotechnol. Eq. 1; Nijkamp et al. next-token objective; generic Bengio/Vaswani LM'
+  - type: p
+    text: 'Символы: \(n\) — длина токен-строки; \(\mathcal{D}\) — корпус; \(p_\theta(x_i\mid\cdot)=\mathrm{softmax}(W h_i)\); \(h_i\) — hidden state causal Transformer (или MPNN decoder). Teacher forcing: при обучении \(x_{<i}\) — ground truth. Inference: \(x_{<i}\) — уже сэмплированные токены (exposure bias).'
+  - title: Temperature и nucleus (inference, не loss)
+    level: 3
+    blocks:
+    - type: math
+      latex: p_T(x_i)=\frac{\exp(z_i/T)}{\sum_j\exp(z_j/T)}
+      caption: IgLM STAR Eq. 6. \(z\) — logits последнего слоя; \(T\) — temperature. \(T\to 0\) приближает greedy; большое \(T\) сглаживает categorical. Это не \(kT\) растворителя.
+      source: '[PAPER] Shuai et al. STAR Methods Eq. 6'
+    - type: p
+      text: 'Nucleus / top-\(p\) (Holtzman et al.): оставить наименьшее множество токенов, чья кумулятивная вероятность \(\ge P\), обнулить хвост, перенормировать. IgLM therapeutic libraries: \(T\in\{0.8,1.0,1.2\}\), \(P\in\{0.5,0.75,1.0\}\). ProGen lysozyme: \(p\in\{0.25,0.50,0.75\}\) при генерации 1M sequences. [PAPER]'
+  - title: Perplexity как метрика той же факторизации
+    level: 3
+    blocks:
+    - type: math
+      latex: \mathrm{ppl}(x)=\exp\Bigl(-\frac{1}{n}\sum_{i=1}^{n}\log p_\theta(x_i\mid x_{<i})\Bigr)
+      caption: 'ProGen2: held-out natural sequences, Table 2 (test-max90 / test-max50). IgLM infilling perplexity — только токены после SEP (span+[ANS]), STAR Eq. 4, не вся VH/VL.'
+      source: '[PAPER] Nijkamp et al.; Shuai et al. STAR Eq. 3–4'
+  - title: ProGen control tags
+    level: 3
+    blocks:
+    - type: math
+      latex: x=(c_1,\ldots,c_{n_c},a_1,\ldots,a_{n_a}),\qquad a_{n_a}=\mathrm{EOS}
+      caption: 'Контрольные теги \(c\) (Pfam family, GO/keywords, taxonomy) препендятся к аминокислотам \(a\). Generation: задать \(c\), семплировать \(a\) слева направо. Средняя длина тегов при pretrain ≈ 8 токенов. Truncation 512. [PAPER]'
+      source: '[PAPER] Madani et al. 2023 Methods'
+    - type: p
+      text: ProGen также включает reverse каждой sequence в train set — это всё ещё AR product по перевёрнутой ленте, не masked LM. Всегда есть пример без тегов, чтобы модель умела продолжать sequence-only prefix. [PAPER]
+  - title: IgLM infilling by language modeling
+    level: 3
+    blocks:
+    - type: math
+      latex: X=(c_c,c_s,a_1,\ldots,a_{j-1},[\mathrm{MASK}],a_{j+m},\ldots,a_n,[\mathrm{SEP}],a_j,\ldots,a_{j+m-1},[\mathrm{ANS}])
+      caption: Span \(S=(a_j,\ldots,a_{j+m-1})\) длины \(m\sim\mathrm{Unif}\{10,\ldots,20\}\) заменяется одним MASK; сам span дописывается после SEP. Обучение — AR product по \(X\) (STAR Eq. 1–2). Infilling perplexity — только после SEP.
+      source: '[PAPER] Shuai, Ruffolo, Gray, Cell Systems 2023'
+    - type: p
+      text: 'Full-length generation: старт \((c_c,c_s)\) (+ optional 3-residue prompt против OAS N-terminal truncation), семплировать до ANS, вставить span на место MASK, выбросить special tokens. VH и VL независимы. [PAPER]'
+  - title: Structure-conditioned AR (не путать с sequence-only и не дублировать IF-страницу)
+    level: 3
+    blocks:
+    - type: math
+      latex: p_\theta(s\mid x_{\mathrm{bb}})=\prod_{i=1}^{L} p_\theta\bigl(s_{\pi(i)}\mid s_{\pi(<i)}, x_{\mathrm{bb}}\bigr)
+      caption: 'ProteinMPNN: \(\pi\) при обучении — случайная перестановка (order-agnostic AR); фиксированные позиции можно «декодировать первыми». ESM-IF1/AntiFold: обычно N→C / concatenated H+L. Геометрия encoder''а — inverse folding.'
+      source: '[PAPER] Dauparas et al. 2022; Hsu et al. 2022'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Факторизация
+      - Контекст токена
+      - Generated object
+      - Типичный инструмент
+      rows:
+      - - Causal AR LM
+        - \(\prod p(x_i\mid x_{<i},c)\)
+        - только слева (или после ILM-shuffle)
+        - sequence
+        - <a href="/tools/progen.html">ProGen2</a>, <a href="/tools/iglm.html">IgLM</a>
+      - - Masked LM
+        - \(p(s_i\mid s_{\setminus i})\)
+        - оба фланга, нет обязательного порядка
+        - logits / optional iterative fill
+        - ESM-1v, AntiBERTy (IgLM baseline, не этот класс)
+      - - ILM rearrangement
+        - всё ещё causal AR
+        - двусторонний контекст петли на ленте
+        - variable-length span
+        - IgLM
+      - - Inverse folding AR
+        - AR decode given backbone
+        - structure encoder + partial sequence
+        - sequence, backbone fixed
+        - ProteinMPNN, ESM-IF1, AntiFold
+      - - Frame / seq-structure diffusion
+        - нет next-token product как генератор
+        - шум по координатам/типам
+        - backbone или joint state
+        - RFdiffusion, DiffAb
+      - - AR structure generation
+        - next frame/fragment
+        - частичный backbone
+        - координаты/frames
+        - <a href="/architectures/autoregressive-structure-generation.html">отдельная страница</a>
+    - type: warn
+      text: 'Не переносите UCB, DDPM reverse SDE или flow-matching ODE на эту страницу. Не пишите, что AR likelihood есть \(p^\infty\) эволюционного стационарного распределения: ProGen2 явно разделяет \(p_0\) (данные) и \(p^\infty\) (fitness). [PAPER] Nijkamp et al., citing Weinstein et al. 2022.'
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Amino-acid alphabet. ProGen Methods: «standard 25 amino acids designations in IUPAC» — не выдумываем 20-only, если paper пишет 25. IgLM: BertTokenizerFast на vocab.txt; AA token ids \(<25\), conditioning tokens \(\ge 25\) [CODE utils.py].'
+    - 'Special tokens: EOS (ProGen); IgLM MASK, SEP, ANS (в коде ANS = HuggingFace CLS / eos_token); chain \(c_c\) и species \(c_s\) (human/mouse/rat/rabbit/rhesus/camel × heavy/light).'
+    - Causal attention mask (lower triangular) по токен-ленте. «Двусторонний контекст петли» у IgLM — только после перестановки span, не как BERT.
+    - 'Positional encoding: ProGen2 — RoPE [PAPER]. IgLM — GPT-2 learned positions в HuggingFace GPT2LMHeadModel [CODE]. ProGen-1: Transformer decoder, d=1028, f=512 [PAPER Methods]; не путать с ProGen2 head dim 64–256.'
+    - 'Context window: ProGen truncate 512; ProGen2 1024 (base: 2048) [PAPER Table 1]; IgLM generate max_length=150 [CODE].'
+    - 'IF subtype: residue graph / GVP features как conditioner, не как generated state.'
+  - type: p
+    text: 'Тензорные hidden widths, не названные paper/code, остаются NR. Не переносить ESM-2 15B \(d=5120\) на эту страницу: это embedder EVOLVEpro, не AR generator.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generated state — первичная структура: идентичности residues в порядке полипептида или в ILM-перестановке. Нет атомов, rotamers, интерфейса как динамического объекта, жёсткого тела. Глобальные 3D-движения не действуют: эквивариантности нет, пока conditioner сам не построен invariant/equivariant (IF encoder).'
+  - type: p
+    text: 'Перестановка residues в биологической последовательности ломает смысл, кроме явно заданного ILM shuffle или MPNN random order. Цепи VH и VL в IgLM генерируются независимо: парный Fv не является одним AR-фактором. [PAPER] ProGen reverse-sequence train — отдельный AR проход по реверсу, не физический C→N folding pathway.'
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - AA tokens
+      - ковалентная первичная структура
+      - explicit
+      - без геометрии side chain
+    - - Causal self-attention
+      - статистические дальние зависимости в корпусе
+      - learned co-occurrence
+      - не Potts energy и не H-bond term
+    - - Control tags / species+chain
+      - грубый prior семейства или иммунного репертуара
+      - explicit discrete conditioner
+      - не epitope, не MHC, не affinity
+    - - ILM span move
+      - петля видит framework с обеих сторон на токен-ленте
+      - data rearrangement
+      - всё ещё 1D; нет canonical cluster geometry
+    - - Random decode order (MPNN)
+      - любой residue может использовать уже выбранные соседей по цепи
+      - permutation of AR mask
+      - порядок ≠ folding pathway
+    - - Temperature / nucleus
+      - энтропия categorical sampler
+      - inference hyperparameter
+      - не kT растворителя
+    - - In silico developability (SAP, CamSol, OASis)
+      - суррогаты агрегации/растворимости/humanness
+      - external scores after generation
+      - не wet-lab manufacturability; IgLM primary paper — in silico
+    - - pLDDT / IgFold / AF-Multimer / trRosetta on generated seq
+      - confidence structure predictor
+      - external evaluator
+      - ≠ binding, ≠ correct epitope
+    - - Discriminator (ProGen lysozyme)
+      - классификатор natural vs generated
+      - fine-tuned TAPE-BERT, geometric mean of 3 seeds
+      - фильтр перед wet-lab, не kcat
+    - - Protonation, glycans, metals, Fc, solvent
+      - —
+      - absent
+      - relevant for antibodies and enzymes
+    source: '[INTERPRETATION] для класса; tool rows — cited papers'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Trainable: decoder-only Transformer (ProGen, ProGen2, IgLM) или decoder поверх geometric encoder (IF). Target: next token. Loss: token cross-entropy / NLL (ProGen Eq. 1 — среднее по токенам примера). Negative examples — все неправильные токены softmax, не docking decoys. Regularization: ProGen2 weight decay 0.1, grad clip 0.8–1.0; ProGen lysozyme FT dropout 0.1, clip 0.25. [PAPER]'
+  - type: p
+    text: 'ProGen: 36 слоёв, 8 голов, d=1028, f=512, 1.2B параметров; init from CTRL English LM; Adagrad, warmup 40k до 1e−2, batch 2048, 1e6 итераций, 256 TPU v3 cores, ~2 недели. [PAPER Methods]'
+  - type: p
+    text: 'ProGen2: 151M–6.4B (Table 1: small 12L/16H, medium+base 27L 764M, large 32L 2.7B, xlarge 32L 6.4B); causal decoder, RoPE; parallel attn+MLP \(x\leftarrow x+\mathrm{attn}(\mathrm{ln}(x))+\mathrm{mlp}(\mathrm{ln}(x))\); Adam, cosine LR. Fine-tune: ≤2 эпохи, LR/5, Adam moments reset. [PAPER]'
+  - type: p
+    text: 'IgLM: 4 слоя / d=512 / 8 голов / FFN 2048 / 12 889 600 параметров; IgLM-S: 3 слоя / 192 / 6 голов / FFN 768 / 1 439 616. Batch 512 × 2 accum, ~3 дня на 4×A100, DeepSpeed. [PAPER Table 1 + STAR]'
+  - type: p
+    text: 'IgLM code log_likelihood: mean CE на shift_logits после eval_start (индекс SEP для infill, иначе с позиции 1), return \(-nll\). [CODE iglm/model/IgLM.py]'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - conditioner (tags / species+chain / backbone)
+    - token embeddings + positions
+    - causal Transformer (or MPNN decoder)
+    - softmax next-token
+    - sample or teacher-force
+    - optional external structure / developability / discriminator filter
+    note: 'Схема класса AR. Источник логики: Madani Eq. 1, Shuai STAR, Dauparas Fig. 1 narrative. Не копия copyrighted figure.'
+  - type: p
+    text: 'IgLM infill [CODE]: mask_span → prefix [chain, species]+masked seq+[SEP] → generate until CLS → iglm_to_infilled (вставить tokens между SEP и CLS на место MASK). Full-length: generate from tags, validate MASK < SEP < CLS, затем reorder.'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'ProGen: 280M train (из >281M annotated); >19k Pfam families; UniParc/UniProtKB/Pfam/NCBI taxonomy; keyword tags ~1100, taxonomic ~100k; SwissProt tags семплируются чаще; OOD-test 100k / ID-test 1M. Fine-tune lysozyme: 55 948 unaligned sequences, 5 семейств без дисульфидов (PF00959, PF16754, PF01832, PF05838, PF06737); cluster 80% ID, 10% clusters held-out; 4 epochs Adam 1e−4, batch 2. [PAPER]'
+  - type: p
+    text: 'ProGen2: Uniref90 + BFD30 (и BFD90 variant); ProGen2-OAS: OAS unpaired, Linclust 85% ID, cov-mode 1 → 554M. Sequences as-is and flipped. Perplexity held-out падает с масштабом (xlarge test-max90 ppl 9.9 vs small 12.9); zero-shot fitness на narrow DMS — нет (пик ProGen2-base 764M, avg ρ 0.505). [PAPER Tables 1–3]'
+  - type: p
+    text: 'IgLM: OAS unpaired VH/VL, 6 видов. После фильтра ошибок 809M unique → LinClust 95% → 588M non-redundant; 5% test (~30M в Figure 1D); 558M train + 1M val. Mask length m~Uniform{10..20}, start j uniform. Human heavy ~70%. N-terminal OAS truncations: >50% missing first ≥15 residues (ProGen2 OAS discussion; IgLM использует 3-residue prompts, Table S2 NR as file). [PAPER]'
+  - type: p
+    text: 'Leakage: antibody cluster split не гарантирует отсутствие близких germlines в train vs test; IgLM авторы это признают (conserved germline regions must stay in train). [PAPER]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Старт: tags/prefix/EOS-prompt (ProGen2-OAS: EVQ для human VH; IgLM — chain+species ± 3-mer). Шаги: \(O(n)\) sequential. Stopping: EOS / ANS(CLS) / max_length. IgLM code: HuggingFace generate, max_length=150, do_sample=True, eos/forced_eos=cls_token, top_p default 1, temperature default 1, duplicates через set, validate MASK/SEP/CLS order. [CODE]'
+  - type: p
+    text: 'Ranking отделён от sampling. ProGen lysozyme: 1M samples → adversarial discriminator (3× TAPE-BERT, geometric mean) + per-token log-likelihood Eq. 2 → 100 sequences spanning maxID 40–90%, pairwise ID cap 80%. Это post-hoc filter, не часть AR loss. [PAPER]'
+  - type: p
+    text: 'Отделить: (i) AR decode; (ii) discriminator / NLL rank; (iii) внешний IgFold/AF/trRosetta; (iv) CamSol/SAP/OASis; (v) ELISA / enzymatic assay. Likelihood ≠ Kd и ≠ kcat.'
+  - title: Различия между статьёй и реализацией (IgLM)
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Item
+      - Paper
+      - Code @de819b5
+      - Consequence
+      rows:
+      - - End-of-span token
+        - '[ANS] in Eq. 1'
+        - tokenizer.cls_token as eos_token_id / forced_eos
+        - та же роль, другое имя в HF API
+      - - max length
+        - Fv-scale; exact cap NR in STAR
+        - hardcoded max_length=150
+        - не IgG; длинные CDR3 могут упираться в cap
+      - - Default T, P
+        - library grid T/P reported in results
+        - generate() defaults top_p=1, temperature=1
+        - CLI defaults ≠ therapeutic-library grid
+      - - Tokenizer
+        - GPT-2-style decoder
+        - BertTokenizerFast + GPT2LMHeadModel
+        - смешанный HF stack; vocab split AA vs tags
+      - - log_likelihood range
+        - infill PPL after SEP
+        - eval_start = SEP index or 1
+        - full-chain NLL не считает chain token (index 0)
+      source: '[CODE] vs [PAPER] STAR'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Prefix tokens: ProGen control tags (family, GO, taxonomy) или sequence-only; IgLM chain+species; optional AA prompt. ILM: MASK позиция задаёт где infill; длина span при inference не обязана равняться train Unif{10..20} — модель семплирует до ANS. IF: backbone encoder, optional antigen coords (AntiFold), tied residues (MPNN).'
+  - type: p
+    text: 'Нет нативного epitope tensor у ProGen/IgLM. PALM-H3 заявляет antigen-conditioned AR decoder — проверить на странице инструмента, не обобщать на класс. ProGen2 zero-shot antibody Kd: «corresponding antigen is not provided to the model for likelihood calculation». [PAPER]'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: 'Обучение: Transformer \(O(n^2)\) на токен-окно (ProGen 512; ProGen2 1024 / 2048 для base). Decode: \(n\) последовательных шагов; полный parallel decode невозможен без speculative decoding. IgLM max_length=150 ограничивает Fv. Library wall-clock доминирует samples × \(n\) (IgLM: 9000 infills × 49 mAbs; часть T/P не набрала 1000 unique за 10k attempts). Параметр count ≠ latency: IgLM 13M vs ProGen2 6.4B. ProteinMPNN decode линейно по residues на CPU (авторы: ~0.6 s / 100 residues — LigandMPNN paper comparison; не переносить как benchmark этой страницы без повторного замера).'
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Нормализованный likelihood и ancestral sampling из одной факторизации — можно и генерировать, и rank'ать naturalness.
+    - 'Control tags / species tokens сужают семейство без 3D: ProGen задаёт Pfam, IgLM — chain и species без HMM-prompting на всю FW1.'
+    - ILM даёт переменную длину CDR при фиксированном framework-контексте, чего нет у чистого N→C ProGen2-OAS (IgLM vs ProGen2-OAS CDR-H3 benchmark). [PAPER]
+    - Order-agnostic AR (ProteinMPNN) позволяет фиксировать произвольный subset residues — binder design, symmetry tying. [PAPER]
+    - Scale ProGen2 снижает perplexity held-out natural sequences. [PAPER Table 2]
+  - type: p
+    text: Это не гарантия foldability, expression или binding. Equivariance здесь не при чём для sequence-only AR.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: exposure bias (train teacher forcing vs sampled prefix); нет principled correction внутри softmax.'
+    - 'Представление: 1D tokens; нет clashes, канонических CDR кластеров, VH–VL pairing (IgLM).'
+    - 'Физика/химия: нет растворителя, протонирования, гликанов, Fc, явной \(\Delta G\).'
+    - 'Данные: OAS truncation и species skew; metagenomic vs UniRef меняет alignment \(p_0\) vs fitness (ProGen2).'
+    - 'Обобщение: ProGen авторы не ждут нового fold / unnatural reaction от sequence-only LM. [PAPER discussion]'
+    - 'Deployment: IgLM JHU Academic license, commercial license required; sequential GPU decode; ProGen2 checkpoints BSD-3 на salesforce/progen.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Низкая T → germline copy (IgLM T=0.6 для human/mouse/rhesus). [PAPER]
+    - Высокая T → несворачиваемые seq; падение pLDDT внешних предикторов — авторы трактуют как diversity, не affinity. [PAPER]
+    - N-terminal deletions, зеркалящие OAS; без prompt модель копирует truncated distribution. [PAPER ProGen2 + IgLM]
+    - Ранний неверный CDR residue каскадом портит петлю (стандартный AR; [INTERPRETATION]).
+    - Mode collapse к частым V-генам при restrictive nucleus.
+    - 'Zero-shot NLL как «лучший binder»: ProGen2-OAS binding avg \(\rho=0.37\) хуже universal small \(0.44\); antigen не в likelihood. [PAPER Table 5]'
+    - Большая модель лучше perplexity, но хуже average narrow-landscape fitness (пик 764M base). [PAPER]; это про \(p_0\neq p^\infty\), не про «overfitting в обычном смысле».
+    - 'ProGen twilight-zone D4 (31.4% ID): kcat/KM 20.2 M⁻¹s⁻¹, ~200× ниже HEWL — function ≠ native-like catalysis. [PAPER]'
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/progen.html">ProGen</a>
+      - causal decoder LM + control tags
+      - 1.2B, 36L×8H, d=1028, f=512, CTRL init, reverse-seq train, lysozyme FT 4 epochs
+      - prospective enzyme assays + crystal L056 PDB 7RGR; не antibody
+    - - ProGen2 (тот же catalog id)
+      - causal decoder + RoPE + parallel attn/MLP
+      - 151M–6.4B; OAS 764M variant; Uniref90+BFD30
+      - zero-shot fitness ≠ generation quality; largest ≠ best narrow DMS
+    - - <a href="/tools/iglm.html">IgLM</a>
+      - causal decoder + ILM shuffle
+      - GPT2LMHeadModel 12 889 600 params, OAS 558M train
+      - нет wet-lab; VH/VL unpaired; developability in silico
+    - - <a href="/tools/proteinmpnn.html">ProteinMPNN</a>
+      - AR decode given backbone
+      - random decode order at train; tied positions
+      - геометрия фиксирована; sequence stage inside RFantibody
+    - - <a href="/tools/esm-if1.html">ESM-IF1</a> / <a href="/tools/antifold.html">AntiFold</a>
+      - AR Transformer decoder + GVP
+      - N-to-C / H+L concat + gaps
+      - см. inverse folding; не sequence-only PLM
+    - - <a href="/tools/palm-h3.html">PALM-H3</a>
+      - claimed antigen encoder + AR decoder
+      - CDR-H3; A2binder ranker
+      - methods NR this run; ranker ≠ generator
+    - - <a href="/tools/hudiff.html">HuDiff</a>
+      - catalog lists AR among architecture ids
+      - NR this run
+      - не заполнять GPT уравнением без paper/code
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо: ideation sequences, family-conditioned libraries, CDR span redesign без структуры, scoring naturalness. Workflow: <a href="/workflows/sequence-first-de-novo.html">sequence-first de novo</a>, <a href="/workflows/antibody-sequence-infilling.html">antibody infilling</a>.'
+  - type: p
+    text: 'Не применимо как замена epitope-conditioned structure design (<a href="/tools/rfantibody.html">RFantibody</a>), few-shot AL с вашим ELISA (<a href="/tools/evolvepro.html">EVOLVEpro</a>), docking или backbone invention. Не сравнивать lysozyme kcat/KM ProGen с IgLM CamSol или с AntiFold AAR: разные generated objects и evidence classes.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Bengio et al., A Neural Probabilistic Language Model, JMLR 2003 (AR factorization).
+      url: https://www.jmlr.org/papers/volume3/bengio03a/bengio03a.pdf
+    - text: Vaswani et al., Attention Is All You Need, NeurIPS 2017.
+      url: https://arxiv.org/abs/1706.03762
+    - text: Radford et al., GPT-2 (IgLM backbone).
+      url: https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf
+    - text: Holtzman et al., The Curious Case of Neural Text Degeneration (nucleus sampling).
+      url: https://arxiv.org/abs/1904.09751
+    - text: Donahue, Lee, Liang, ILM infilling (IgLM formulation).
+      url: https://arxiv.org/abs/2005.05339
+    - text: Keskar et al., CTRL (ProGen initialization / control codes).
+      url: https://arxiv.org/abs/1909.05858
+    - text: Madani et al., ProGen, Nat. Biotechnol. 2023, 10.1038/s41587-022-01618-2
+      url: https://doi.org/10.1038/s41587-022-01618-2
+    - text: Nijkamp et al., ProGen2, Cell Systems 2023 / arXiv 2206.13517
+      url: https://arxiv.org/abs/2206.13517
+    - text: Shuai, Ruffolo, Gray, IgLM, Cell Systems 2023, 10.1016/j.cels.2023.10.001
+      url: https://doi.org/10.1016/j.cels.2023.10.001
+    - text: Dauparas et al., ProteinMPNN, Science 2022 (structure-conditioned AR).
+      url: https://doi.org/10.1126/science.add2187
+    - text: Hsu et al., ESM-IF1, ICLR 2022.
+      url: https://arxiv.org/abs/2206.12094
+    - text: Weinstein, Amin, Frazer, Marks, 2022 (p0 vs p∞; cited by ProGen2).
+      url: https://arxiv.org/abs/2206.02216
+    - text: IgLM repo commit de819b5
+      url: https://github.com/Graylab/IgLM/tree/de819b56238b5cb9c23d7a6fec4c55d7fc0395e4
+    - text: ProGen2 tree salesforce/progen
+      url: https://github.com/salesforce/progen
+commit: Graylab/IgLM@de819b56238b5cb9c23d7a6fec4c55d7fc0395e4 (iglm/model/IgLM.py, utils.py); salesforce/progen tip c27a419c234a0997923761e1fe7daffcebf0eaf5 — на этом commit видны LICENSE/SECURITY, не повторный audit progen2/*.py
+inaccessible:
+- ProGen Nature Biotechnology SI PDF не разбирался постранично; methods, Eq. 1–2, d=1028/f=512, lysozyme campaign и crystal L056 сверены с PMC HTML 10.1038/s41587-022-01618-2 (PMC10400306).
+- IgLM Table S1 (counts по species/chain) и Table S2 (prompt motifs) не извлечены как отдельные файлы; гиперпараметры — Table 1 main text; 70% human heavy — STAR Methods.
+- ProteinMPNN official repo в этом проходе не аудировался по commit; random/order-agnostic decode — [PAPER] Dauparas et al. Science 2022.
+- 'PALM-H3 и HuDiff: AR-декодер заявлен карточками каталога; primary methods в этом запуске не перечитаны — NR на уровне тензоров.'

@@ -1,0 +1,245 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "bioRxiv HTML 10.1101/2022.04.10.487779 прочитан (Methods, architecture, Tables 1–3, ablations). PMLR 162:8946–8970 — peer-reviewed версия; PDF Table A.1 гиперпараметры упомянуты, но сама таблица в HTML не развёрнута. facebookresearch/esm commit `2b369911` зафиксирован; line-by-line ESM-IF1 module в этом выпуске не аудировался (отдельный InverseFoldingModel)."
+lede: "ESM-IF1 (GVP-Transformer) — **inverse-folding generator** $p(Y\\mid X)$ по координатам N/Cα/C. Sequence recovery и zero-shot likelihood ratio **не** равны experimental $K_d$. Released модель — гибрид 4 GVP-GNN + 8+8 Transformer (~142M), обученный на CATH + 12M AF2-предсказанных структур."
+inaccessible:
+  - source: "PMLR PDF Table A.1 полная сетка гиперпараметров"
+    reason: "В bioRxiv HTML таблица A.1 не развёрнута численно"
+    workaround: "Текст Appendix: 8 enc/8 dec Transformer, 8 heads, d=512, 142M; GVP k=30 в маскированном режиме"
+  - source: "Line-by-line esm/inverse_folding/* на указанном commit"
+    reason: "В этом выпуске читался paper + repo SHA, не каждый .py"
+    workaround: "Архитектура из Hsu §2 / Appendix A.3"
+sources:
+  - kind: PAPER
+    citation: "Hsu et al., ICML 2022 / PMLR 162:8946–8970; bioRxiv 10.1101/2022.04.10.487779"
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2204.07148"
+    note: "Детали Methods — по bioRxiv HTML"
+  - kind: PAPER
+    citation: "Jing et al., ICLR 2021 — GVP layers"
+    url: "https://openreview.net/forum?id=1YLJDvSx6J4"
+  - kind: CODE
+    citation: "facebookresearch/esm (ESM-IF1 weights live here historically)"
+    url: "https://github.com/facebookresearch/esm"
+    note: "commit 2b369911bb5b4b0dda914521b9475cad1656b2ac"
+repo:
+  url: "https://github.com/facebookresearch/esm"
+  commit: "2b369911bb5b4b0dda914521b9475cad1656b2ac"
+  ref: "main"
+  license: "MIT (esm repository; verify COPYING)"
+  files:
+    - README.md (IF1 usage)
+    - esm/inverse_folding (не построчно в этом выпуске)
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** backbone N, Cα, C coordinates (не side chains). Комплексы: цепи конкатенируются с **10 mask tokens** между цепями. Частично masked backbone допустим (span mask train)."
+        source: PAPER
+        locator: "bioRxiv: complexes; span masking up to 30 AA until 15% coords masked"
+      - text: "**Выход:** авторегрессивная последовательность $Y$ (sampling или argmax при $T=10^{-6}$ для recovery). Backbone не генерируется."
+        source: PAPER
+      - text: "Fixed-backbone inverse folding, не de novo fold. Zero-shot mutation scoring через likelihood ratio — **evaluator mode** той же сети, не отдельный affinity head."
+        source: PAPER
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "GVP-GNN encoder извлекает геометрию (rotation-equivariant vectors + invariant scalars). Затем change of basis в **локальные residue frames** → invariant scalars → generic Transformer encoder–decoder (learned positional embeddings, pre-LN). Лучшая модель: **4 GVP-GNN encoder layers, 8 Transformer encoder, 8 decoder, 8 heads, $d=512$, 142M**. Инвариантность $p(Y\\mid X)=p(Y\\mid TX)$ для $T\\in\\mathrm{SE}(3)$ (Appendix A.3)."
+        source: PAPER
+        locator: "§GVP-Transformer; Appendix A.3"
+  - id: math-model
+    title: "4. Математическая модель"
+    equations:
+      - latex: "p_\\theta(Y\\mid X)=\\prod_{i=1}^{n} p_\\theta(y_i\\mid y_{<i}, X),\\qquad \\mathcal{L}=-\\sum_i\\log p_\\theta(y_i^\\star\\mid y_{<i}^\\star,X)"
+        caption: "AR encoder–decoder. $X=(x_1,\\ldots,x_{3n})$ — координаты N, Cα, C; $Y$ — native sequence. Порядок — последовательность цепи (не random MPNN order)."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+        symbols:
+          - {sym: "X", type: "coordinates", meaning: "backbone atom xyz, 3 atoms × n residues"}
+          - {sym: "Y", type: "token sequence", meaning: "amino acids"}
+          - {sym: "T", type: "SE(3) transform", meaning: "глобальный поворот/сдвиг входа"}
+      - latex: "p(Y\\mid X)=p(Y\\mid TX)\\qquad \\forall T\\in\\mathrm{SE}(3)"
+        caption: "Инвариантность выхода. Transformer сам по себе не SE(3)-equivariant: инвариантность обеспечивается GVP + local frames."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+      - latex: "\\mathrm{score}(m)=\\log p(Y^{m}\\mid X^{\\mathrm{WT}})-\\log p(Y^{\\mathrm{WT}}\\mid X^{\\mathrm{WT}})"
+        caption: "Zero-shot mutational score (likelihood ratio). $X^{WT}$ — экспериментальная WT-структура. Это **не** $\\Delta\\Delta G$ расчёт."
+        generic_or_specific: "tool-specific [PAPER] zero-shot section"
+        source: PAPER
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Атомы остова в $\\mathbb{R}^3$; GVP vectors — геометрические направления; scalars — invariant. Sequence — AA identity. pLDDT AF2 — **входной признак** (RBF) для predicted structures, не выход ESM-IF1. 10 gap tokens — цепной разделитель, не физический линкер."
+        source: PAPER
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "CATH topology 80/10/10: 16153 / 1457 / 1797. Плюс 12M UniRef50 AF2 structures (Amber-relaxed; sequences ≤500; ranked by MSA Transformer distogram lDDT). Mix per epoch: experimental set + 10% random sample of 12M → ~1:80 experimental:predicted. pLDDT < 90 маскируется (~25% predicted coords). Binary token experimental vs predicted. Span masking: spans ≤30 AA until 15% coords masked."
+        source: PAPER
+      - text: "Small GVP-GNN (1M, 3+3) **деградирует** на predicted data. Large GVP-GNN (21M, 8+8) и GVP-Transformer **выигрывают**. Overfit CATH-only при scaling 1M→21M (42.2% → 39.2% recovery)."
+        source: PAPER
+        locator: "Table 1; Fig. 6"
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "Sampling из $p(Y\\mid X)$; для max recovery $T=10^{-6}$. Partial backbone: masked nodes excluded from GVP then zeros into Transformer (Appendix A.2). Multi-state: geometric mean of likelihoods $p(Y\\mid A)$ and $p(Y\\mid B)$ как proxy $p(Y\\mid A,B)$."
+        source: PAPER
+      - text: "Default CLI temperature / batch в этом выпуске: NR (код IF1 не построчно). Не путать с ESM-2 masked LM."
+        source: NR
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Mechanism.** Predicted structures ×3 orders of magnitude снимают data bottleneck; GVP даёт геометрию, Transformer — long-range / masked spans, которые чистый GVP-GNN не держит (Fig. 4)."
+        source: PAPER
+      - text: "**Author claim.** 51% native recovery (72% buried) on structurally held-out backbones; ~10 pp over prior GVP-GNN on CATH-only; generalization to complexes, partial masks, multi-state, zero-shot mutation."
+        source: PAPER
+      - text: "**Evidence.** Retrospective CATH topology split; ablations Fig. 6 / Table 1 / C.1; zero-shot Rocklin stability, SKEMPI, Starr ACE2–RBD Spearman 0.69 when given RBD+ACE2 coords. **No prospective designed-and-tested binders in this paper.**"
+        source: PAPER
+      - text: "**Causal support.** Predicted-structure mix — ablation Fig. 6a–b (directly supported). Spearman 0.69 — retrospective correlation, **не** affinity maturation campaign."
+        source: INTERPRETATION
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "CATH-only vs +AF2: GVP-Transformer recovery 38.3% → 51.6%; GVP-GNN-large 39.2% → 50.8%; tiny GVP-GNN 42.2% → 38.6% (деградация). Span vs independent masking: span лучше на длинных масках (Fig. 4). Число GVP layers перед Transformer помогает (Fig. C.1). Complex coords vs single chain: substantial perplexity gain (Table 2). RBM coords / ACE2 coords necessary for RBD affinity correlation (Table 3)."
+        source: PAPER
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Растворитель, протонирование, гликозилирование, кофакторы"
+      - "Side-chain packing как отдельный decoder"
+      - "Настоящая $\\Delta G$; Spearman на Starr scan ≠ designed antibody Kd"
+      - "De novo backbone"
+      - "Antibody-specific fine-tune (это ESM-IF1; AntiFold — отдельный FT)"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Авторы честно показывают, что IF likelihoods коррелируют с некоторыми mutational assays. Это **не** prospective design evidence. AntiFold позже FT эту архитектуру на SAbDab+OAS — см. /tools/antifold.html. Structural evolution (Shanker/Hie Science) использует IF1-complex scoring — отдельный инструмент каталога."
+        source: INTERPRETATION
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "Weights historically `esm_if1_gvp4_t16_142M_UR50`. Репозиторий esm на 2023-06-27 (commit выше) — maintenance; Meta перемещала модели. Точный inference example в этом выпуске не прогонялся."
+        source: CODE
+        locator: "repo SHA only"
+physchem_table:
+  - feature: "N/Cα/C coordinates"
+    interpretation: "остов полипептида"
+    encoded: "прямо"
+    limitation: "нет side chain / solvent"
+  - feature: "GVP vector channels"
+    interpretation: "локальные геометрические направления"
+    encoded: "equivariant inductive bias"
+    limitation: "не сила взаимодействия"
+  - feature: "Transformer over invariant scalars"
+    interpretation: "sequence-structure long-range stats"
+    encoded: "learned"
+    limitation: "не SE(3) внутри attention"
+  - feature: "AF2 pLDDT as input RBF"
+    interpretation: "confidence predicted structure"
+    encoded: "прямо как feature predicted examples"
+    limitation: "не выход IF1 и не affinity"
+modules:
+  - module: "GVP-GNN encoder (4 layers)"
+    model_class: "geometric GNN"
+    input: "backbone graph"
+    output: "scalar+vector features → local-frame invariant scalars"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "encoder of generator"
+  - module: "Transformer enc/dec 8+8"
+    model_class: "AR seq2seq"
+    input: "invariant tokens + partial Y"
+    output: "next-AA logits"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "generator"
+  - module: "likelihood ratio"
+    model_class: "same AR model"
+    input: "WT structure + mutant sequence"
+    output: "scalar score"
+    trained_or_frozen: "frozen"
+    generator_or_evaluator: "evaluator only"
+gen_vs_eval:
+  - component: "GVP-Transformer decoder"
+    role: "primary_generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "log p / likelihood ratio"
+    role: "integrated_scorer"
+    integrated_or_external: "integrated"
+    required_or_optional: "optional"
+    influences: "post_hoc (zero-shot); не меняет sample path unless used as objective externally"
+  - component: "AlphaFold2 (training data only)"
+    role: "structure predictor for pretraining corpus"
+    integrated_or_external: "external"
+    required_or_optional: "required for the 12M set, not at IF1 inference"
+    influences: "training distribution, not inference coords unless user supplies predicted backbone"
+claim_evidence:
+  - claim: "Predicted structures improve IF recovery for large models"
+    mechanism: "12M AF2 UniRef50 mix 1:80"
+    evidence_type: "ablation evidence"
+    dataset: "CATH 4.3 topology test"
+    comparator: "same architecture, CATH-only"
+    metric: "GVP-Transformer 38.3% → 51.6% recovery"
+    source: PAPER
+    locator: "Table 1"
+    caveat: "Recovery ≠ experimental fold of designed sequences in this paper"
+  - claim: "GVP-Transformer держит masked spans лучше GVP-GNN"
+    mechanism: "Transformer after local GVP"
+    evidence_type: "ablation evidence"
+    dataset: "variable mask lengths"
+    comparator: "GVP-GNN-large"
+    metric: "GVP-GNN → background perplexity for masks >5; Transformer remains moderate"
+    source: PAPER
+    locator: "Fig. 4"
+    caveat: "in silico"
+  - claim: "Zero-shot IF likelihood correlates with ACE2–RBD binding"
+    mechanism: "log p on RBM given complex coords"
+    evidence_type: "retrospective benchmark"
+    dataset: "Starr et al. 2020 deep mutational scan"
+    comparator: "ESM-1v / sequence-only; ablate ACE2 or RBM coords"
+    metric: "Spearman 0.69 with full RBD+ACE2; weaker without ACE2; none if RBM masked"
+    source: PAPER
+    locator: "Table 3"
+    caveat: "Корреляция на мутациях WT, не designed antibodies; не Kd новых молекул"
+  - claim: "Model is generally better at protein design"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "нет prospective designs в Hsu 2022"
+    source: INTERPRETATION
+    locator: "experimental evaluation is in silico / zero-shot DMS"
+    caveat: "Не утверждать wet-lab success ESM-IF1 как generator"
+paper_vs_code:
+  - paper_version: "ICML 2022 / bioRxiv v1 HTML"
+    repo_commit: "2b369911bb5b4b0dda914521b9475cad1656b2ac"
+    model_version: "esm_if1_gvp4_t16_142M_UR50 (name from ESM docs; not re-opened this pass)"
+    file: "esm/inverse_folding (not line-audited)"
+    difference: "Paper describes three architectures; released ESM-IF1 is the GVP-Transformer. Exact CLI defaults NR this pass."
+    consequence: "Не описывать released IF1 как чистый GVP-GNN Jing."
+diagrams:
+  - code: |
+      flowchart LR
+        X["Backbone N/CA/C"] --> GVP["4× GVP-GNN"]
+        GVP --> F["Local frames → invariant tokens"]
+        F --> TE["8× Transformer encoder"]
+        TE --> TD["8× Transformer decoder AR"]
+        TD --> Y["Sequence Y"]
+        Y -.->|"optional"| LR["likelihood ratio vs WT"]
+    caption: "ESM-IF1 information flow. Likelihood ratio — evaluator, не generator."
+    source_note: "Hsu et al. ICML 2022; схема оригинальная"
+citations:
+  - id: "1"
+    text: "Hsu C. et al. Learning inverse folding from millions of predicted structures. PMLR 162:8946–8970 (2022)."
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+    doi: "10.48550/arXiv.2204.07148"
+  - id: "2"
+    text: "Jing B. et al. Learning from protein structure with geometric vector perceptrons. ICLR 2021."
+    url: "https://openreview.net/forum?id=1YLJDvSx6J4"
+  - id: "3"
+    text: "facebookresearch/esm commit 2b369911."
+    url: "https://github.com/facebookresearch/esm"
+unresolved:
+  - "Table A.1 optimizer / batch / lr — NR numerically in HTML"
+  - "Построчный audit InverseFoldingModel.forward"
+  - "Совпадение checkpoint name с 142M GVP-Transformer — по документации ESM, не по hash файла весов"

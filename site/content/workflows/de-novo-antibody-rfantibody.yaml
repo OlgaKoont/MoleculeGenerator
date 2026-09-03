@@ -1,0 +1,94 @@
+id: de-novo-antibody-rfantibody
+slug: de-novo-antibody-rfantibody
+name: Target-conditioned de novo antibody (RFantibody)
+use_case: Есть target structure и epitope hotspots; нужен de novo VHH или scFv на фиксированном
+  framework.
+required_input:
+- target structure
+- epitope hotspots
+- fixed antibody framework
+- CDR lengths
+stages:
+- name: CDR/backbone generation
+  architecture_class: SE(3)-equivariant diffusion
+  what_happens: Генерируются CDR/backbone coordinates
+  generation_or_evaluation: generation
+  generator: rfantibody
+  intermediate_object: CDR backbone proposals
+  alternatives: []
+  node_links:
+  - rfantibody
+  - frame-diffusion
+- name: CDR sequence design
+  architecture_class: Graph-based inverse folding
+  what_happens: ProteinMPNN подбирает CDR sequences
+  generation_or_evaluation: generation
+  generator: proteinmpnn
+  intermediate_object: Sequence–structure candidates
+  alternatives:
+  - antifold
+  node_links:
+  - proteinmpnn
+  - inverse-folding
+- name: Complex prediction filter
+  architecture_class: Fine-tuned RoseTTAFold2
+  what_happens: Self-consistency/confidence фильтрация
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked antibody–target complexes
+  alternatives:
+  - alphafold3
+  node_links:
+  - rf2
+  - alphafold3
+- name: External validation
+  architecture_class: Docking/relaxation optional
+  what_happens: Независимая оценка plausibility
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Shortlist
+  alternatives:
+  - pyrosetta
+  node_links:
+  - pyrosetta
+- name: Experimental binding
+  architecture_class: null
+  what_happens: SPR/display/neutralization
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Confirmed binders
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: GPU required. Runtime зависит от trajectories, MPNN samples и RF2. Exact hours
+  NR в матрице.
+evidence_level: 3–4 prospective binding/function. Target success 0–2% reported. Initial affinities
+  can be modest.
+failure_points:
+- Wrong holo conformation/hotspots.
+- Framework mismatch.
+- Treating RF2/AF3 as affinity.
+- Expecting miniprotein-like hit rates.
+decision_criteria:
+- VHH vs scFv format.
+- Готовы ли к низкому hit rate и последующей maturation?
+- Нужна ли humanization отдельно?
+task_ids:
+- de-novo-antibody-design
+- de-novo-vhh-nanobody-design
+- antigen-conditioned-antibody-design
+- cdr-backbone-generation
+tool_ids:
+- rfantibody
+- proteinmpnn
+architecture_ids:
+- frame-diffusion
+- inverse-folding
+- se3-equivariant-models
+- invariant-models
+paper_ids:
+- paper-rfantibody
+mermaid: "flowchart TD\n    A[Target structure + epitope] --> B[3D diffusion generator]\n    B\
+  \ --> C[CDR/backbone proposals]\n    C --> D[Inverse-folding model]\n    D --> E[Sequence-structure\
+  \ candidates]\n    E --> F[Integrated complex predictor]\n    F --> G[Ranked candidates]\n \
+  \   G --> H[External validation]\n    H --> I[Experimental assays]"

@@ -1,0 +1,22 @@
+id: cho-expression-engineering
+slug: cho-expression-engineering
+name: CHO expression engineering
+group: Downstream engineering (не генерация)
+definition: Инженерия экспрессии в CHO.
+objective: Manufacturing host performance.
+starting_inputs:
+- mAb construct
+generated_objects:
+- cell-line/process changes
+generator_classes: []
+strategies: []
+consequences: []
+compute_consequences: []
+evidence_summary: Вне scope.
+incomparable: []
+selection_guidance: []
+architecture_ids: []
+workflow_ids: []
+paper_ids: []
+glossary_ids: []
+downstream: true

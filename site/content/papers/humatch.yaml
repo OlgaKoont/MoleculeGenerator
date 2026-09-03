@@ -1,0 +1,49 @@
+id: paper-humatch
+slug: humatch
+title: 'Humatch: fast and accurate antibody humanization'
+authors: null
+year: '2024'
+venue: Peer-reviewed journal; mAbs; Q1 status NR
+publication_status: Peer-reviewed journal; mAbs; Q1 status NR
+doi: 10.1080/19420862.2024.2434121
+url: https://doi.org/10.1080/19420862.2024.2434121
+preprint_url: null
+tool_ids:
+- humatch
+main_task: Joint VH/VL framework humanization by mutation proposals
+claimed_novelty: null
+model_architecture: Gene-specific CNN classifiers + iterative mutation selection and VH/VL
+  pairing score
+input_representation: null
+encoder_decoder: null
+generative_state: Humanized heavy/light variable-domain sequences and mutation set
+conditioning: CDRs excluded by default; target human V-genes; paired-chain compatibility
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Retrospective similarity to experimental humanizations; no measured
+  affinity retention
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Retrospective similarity to experimental humanizations; no measured affinity
+  retention
+main_results: Retrospective similarity to experimental humanizations; no measured affinity
+  retention
+limitations: Humanness is not immunogenicity; CDR preservation does not guarantee binding
+  retention; no prospective validation.
+demonstrates:
+- Retrospective similarity to experimental humanizations; no measured affinity retention
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'Humatch: fast and accurate antibody humanization'
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; mAbs; Q1 status NR'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

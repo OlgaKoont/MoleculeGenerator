@@ -1,0 +1,38 @@
+id: geometric-transformers
+slug: geometric-transformers
+name: Geometric transformers
+name_ru: Геометрические трансформеры
+intuition: Transformer, в который встроены 3D distances, orientations или pair representations, а
+  не только sequential attention.
+mathematical_formulation: 'Attention logits модифицируются геометрическим bias: $A_{ij}=q_i^\top k_j
+  + b(d_{ij}, R_i^{-1}R_j)$ или pair track как в AF-like моделях.'
+input_representation: Residue tokens + backbone frames/coordinates + pair features.
+generated_state: Sequence tokens, frames, or pair updates.
+training_objective: CE, FAPE, distogram losses — зависит от задачи.
+inference: Autoregressive sequence decode or recycling structure modules.
+conditioning: Coordinates, templates, MSA (если есть), chain IDs.
+complexity_drivers:
+- L² attention
+- recycles
+- pair representation memory
+strengths:
+- Лучше long-range, чем чисто локальный GNN
+- Гибкий conditioner
+limitations:
+- Память quadratically растёт
+- MSA-dependent варианты требуют баз данных
+failure_modes:
+- OOM на больших комплексах
+- Игнорирование chirality, если equivariance не обеспечена
+applicable_task_ids:
+- inverse-folding
+- antigen-conditioned-antibody-design
+not_for_task_ids: []
+paper_ids:
+- paper-esm-if1
+- paper-antifold
+subtypes:
+- GVP-Transformer
+- Pair-biased transformer
+glossary_ids:
+- equivariance

@@ -1,0 +1,194 @@
+identity:
+  id: rfdiffusion-aa
+  name: RFdiffusion All-Atom (RFdiffusionAA)
+  slug: rfdiffusion-aa
+  aliases:
+  - RFdiffusionAA
+  - RFdiffusion All-Atom
+  version: null
+  release_year: '2024'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/baker-laboratory/rf_diffusion_all_atom
+  official_documentation: null
+  official_service: null
+  license: Repository license marked Other; exact commercial terms require review
+  commercial_use_status: Code + weights/container
+  publication_status: Peer-reviewed journal; Science (Q1)
+classification:
+  task_ids:
+  - de-novo-backbone-generation
+  - functional-site-design
+  workflow_ids:
+  - de-novo-backbone-then-mpnn
+  architecture_ids:
+  - coordinate-diffusion
+  - se3-equivariant-models
+  generator_classes:
+  - backbone-structure-generator
+  output_modalities:
+  - structure
+  supported_formats: Protein–small molecule / nucleic acid / metal systems
+  de_novo_or_optimization: De novo structure
+  general_protein_relevance: High for enzyme and ligand-binding therapeutics
+  antibody_relevance: No antibody-specific evidence
+  VHH_relevance: 'No'
+  mutation_relevance: Low
+  compatibility_group: backbone-generator
+generation:
+  exact_generated_object: Protein backbone positioned around non-protein atoms; sequence typically
+    downstream
+  required_input: Ligand/cofactor/metal/nucleic-acid context; optional motif
+  conditioning: Atomic motifs and heterogeneous biomolecular context
+  fixed_components: null
+  editable_components: null
+  generated_components: Protein backbone positioned around non-protein atoms; sequence typically
+    downstream
+  support_for_single_mutations: 'No'
+  support_for_combinatorial_mutations: Via downstream sequence design
+  support_for_multi_objective_optimization: No general multi-objective loop
+  candidate_generation_mechanism: All-atom RoseTTAFold-derived diffusion over biomolecular
+    context
+architecture:
+  base_model: null
+  model_family: All-atom RoseTTAFold-derived diffusion over biomolecular context
+  model_type: 3 Backbone/structure generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Atomic motifs and heterogeneous biomolecular context
+  generation_mechanism: All-atom RoseTTAFold-derived diffusion over biomolecular context
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Protein backbone positioned around non-protein atoms; sequence typically downstream
+  internal_scorer: No universal ranker
+  structure_generation: Uses all-atom learned representation; generation remains distinct
+    from validation
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: RFdiffusionAA
+  integrated_generators: []
+  integrated_scorers:
+  - No universal ranker
+  integrated_structure_predictor: Uses all-atom learned representation; generation remains
+    distinct from validation
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - LigandMPNN/ProteinMPNN, folding, pose/energy/experimental validation
+  optional_external_dependencies:
+  - Containerized inference; no complete downstream pipeline
+  breakdown:
+  - name: RFdiffusionAA
+    role: primary_generator
+    architecture_class: All-atom RoseTTAFold-derived diffusion over biomolecular context
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: No universal ranker
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Uses all-atom learned representation; generation remains distinct from validation
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: LigandMPNN/ProteinMPNN, folding, pose/energy/experimental validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–4 prospective structural/functional validation
+  retrospective_validation: null
+  prospective_binding_validation: General biomolecular design evidence
+  prospective_functional_validation: General biomolecular design evidence
+  developability_validation: null
+  tested_design_count: 'Multiple small-molecule-centered design campaigns; aggregate count:
+    NR'
+  success_criterion: General biomolecular design evidence
+  independent_validation: null
+  evidence_summary: General biomolecular design evidence
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Legacy environment/container.
+  - generates structure before sequence.
+  - ligand pose and chemistry assumptions remain critical.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited pilot; deployment friction high
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - antifold
+  - esm-1v-efficient-evolution
+  - esm-if1
+  - evodiff
+  - ligandmpnn
+  - progen
+  - proteinmpnn
+  - structural-evolution
+  paper_ids:
+  - paper-rfdiffusion-aa
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

@@ -1,0 +1,14 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Статья
+  level: 2
+  blocks:
+  - type: p
+    text: '<strong>Høie MH, Hummer AM, Olsen TH, Aguilar-Sanjuan B, Nielsen M, Deane CM.</strong> AntiFold: improved structure-based antibody design using inverse folding. <em>Bioinformatics Advances</em> 2025. DOI <a href="https://doi.org/10.1093/bioadv/vbae202">10.1093/bioadv/vbae202</a>. arXiv:2405.03370.'
+  - type: p
+    text: 'Question: улучшает ли antibody-specific fine-tune ESM-IF1 recovery и mutation ranking для Fv/VHH? Architecture: GVP-Transformer IF. Objective: CE sequence recovery with CDR weighting. Data: SAbDab + OAS/ABodyBuilder2, 90% CDR-identity split.'
+  - type: p
+    text: 'Baselines: ESM-IF1, AbMPNN. Retrospective AAR/DMS ranking. Prospective wet-lab: none. Claim «improved design» = improved IF metrics, not affinity. Authors do not prove binding. Additional limitation: refold RMSD still worse than native — self-consistency is not function.'
+inaccessible:
+- Standalone SI file not downloaded; methods read from arXiv HTML and journal record.

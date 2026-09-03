@@ -1,0 +1,7 @@
+id: inference
+slug: inference
+term: Inference
+term_ru: Инференс
+definition: Применение уже обученной модели для sampling или scoring. Не путать с training.
+related_ids:
+- sampling

@@ -1,0 +1,131 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Диффузия/генерация по внутренним торсионам φ,ψ,χ вместо Cartesian/frames.
+  - type: p
+    text: Генератор conformation. В каталоге как класс; tool-specific implementations проверить на страницах (часть tools может не использовать чистый torsion DDPM).
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Белок как дерево торсий: шум в углах сохраняет длины связей по построению.'
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: q(\chi_t\mid \chi_0)\ \text{on torus }[-\pi,\pi)^n
+    caption: Torus diffusion; exact kernel tool-specific. Не записываем, если tool использует frames.
+    source: '[PAPER] torsion/so(2) diffusion literature; protein tools vary'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - torsion angles
+    - backbone reconstruction via NeRF/kinematics
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Internal rotations. Chirality/ω peptide planarity must be constrained.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - φ/ψ
+      - backbone Ramachandran
+      - explicit angles
+      - reconstruction error accumulates along chain
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: Angle score matching / CE on binned torsions.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - noisy torsions
+    - denoise
+    - rebuild coords
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: PDB torsion lists.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Reverse on torus + reconstruct.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Fix some χ / secondary structure.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: \(n_{\mathrm{angles}} \times T\) + reconstruction.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Сохраняет bond lengths.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Error accumulation reconstruction.
+    - Hard non-local clashes.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Lever-arm effect: small ψ error → large C-terminus RMSD.'
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - Catalog tools
+      - often frames not pure torsion
+      - check tool page
+      - do not assume DiffAb is torsion diffusion
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Conformation generation. DiffAb/RFdiffusion — не этот класс.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Torsional diffusion (e.g. Jing et al. on small molecules) as methodological ancestor
+      url: https://arxiv.org/abs/2206.01729
+inaccessible:
+- No catalog tool fully re-read as pure torsion DDPM in this pass.

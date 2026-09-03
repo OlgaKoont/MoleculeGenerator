@@ -1,0 +1,47 @@
+id: paper-ligandmpnn
+slug: ligandmpnn
+title: Atomic context-conditioned protein sequence design using LigandMPNN
+authors: Justas Dauparas, Gyu Rie Lee, Robert Pecoraro, Linna An, Ivan Anishchenko, Cameron Glasscock, David Baker
+year: '2025'
+venue: Peer-reviewed journal; Nature Methods (Q1)
+publication_status: Peer-reviewed journal; Nature Methods (Q1)
+doi: 10.1038/s41592-025-02626-1
+url: https://doi.org/10.1038/s41592-025-02626-1
+preprint_url: https://doi.org/10.1101/2023.12.22.573103
+tool_ids:
+- ligandmpnn
+main_task: Atomic-context inverse folding around small molecules, nucleotides and metals
+claimed_novelty: null
+model_architecture: ProteinMPNN-family graph model with non-protein atomic context and side-chain
+  packing
+input_representation: null
+encoder_decoder: null
+generative_state: Sequence + side-chain conformations
+conditioning: Design masks; fixed residues; non-protein atoms; chain context
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Experimental structural/functional evidence for general
+  proteins
+tested_designs: 'Multiple ligand/enzyme/interface campaigns; aggregate count: NR'
+success_criterion: Experimental structural/functional evidence for general proteins
+main_results: Experimental structural/functional evidence for general proteins
+limitations: Requires a credible backbone and ligand pose; does not generate backbone or prove
+  catalysis/binding.
+demonstrates:
+- Experimental structural/functional evidence for general proteins
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Atomic context-conditioned protein sequence design using LigandMPNN
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Methods (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

@@ -1,0 +1,610 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — generator углов на торе/гиперторе с последующей кинематической реконструкцией Cartesian, не SE(3) frames и не next-angle AR. Primary: (i) Jing et al. NeurIPS/arXiv 2206.01729 HTML §§2–3, Eqs. 1–4, Tables 1–3 (small-molecule torsional diffusion; слот каталога ошибочно подписал этот DOI/URL как FoldingDiff); (ii) Wu et al. FoldingDiff Nat. Commun. 15:1059 (2024) HTML Methods+Table 1+Algorithm 1, DOI 10.1038/s41467-024-45051-2 (journal); preprint arXiv:2209.15611 HTML Appendix A (NeRF/1CRN, Fig. S1–S3) не сливать молча с journal pagination. CODE microsoft/foldingdiff и gcorso/torsional-diffusion не line-audit (commit NR). Nature SI PDF clashes Fig. S5 / Table S1 numeric cells не построчно. Protein χ-side-chain diffusion papers не читались. Ни один catalog tool не имеет architecture_id torsion-diffusion."
+lede: "Torsion diffusion — **generator** angular state на $S^1$/$\\mathbb{T}^{d}$: wrapped Gaussian или Riemannian score matching по торсионам (и, у FoldingDiff, bond angles), затем kinematics/NeRF в Cartesian. Это не Cartesian DDPM, не residue-frame SE(3) diffusion, не next-angle AR (RamaNet / FoldingDiff AR baseline) и не affinity predictor. Одна $Q_t$ / один score **не** описывает Jing (малые молекулы, $\\bm{\\tau}\\mid L$) и FoldingDiff (белковый backbone, шесть углов на residue)."
+inaccessible:
+  - source: "Wu et al. Nat. Commun. Supplementary Information PDF (lever-arm, clashes Fig. S5, Table S1 numeric)"
+    reason: "Journal HTML отсылает к SI; PDF не извлечён построчно в этом проходе"
+    workaround: "Clashes «easily remedied with relaxation» — Results prose; lever-arm — Discussion; reconstruction TM≈0.9 at L=128 — arXiv Appendix A.2 / Fig. S2"
+  - source: "microsoft/foldingdiff commit SHA + sampler / NeRF symbols"
+    reason: "репозиторий не line-audit; extra_constraints: CODE unaudited"
+    workaround: "T=1000 cosine, wrap w, Algorithm 1, d=384, 14.56M, ckpt 1488 — Nature Methods; CLI flags — NR"
+  - source: "Jing et al. torsional-diffusion appendices A–H full derivations + GEOM-QM9/XL tables"
+    reason: "читались HTML §§1–4.5 и Eqs. 1–8; не все appendix proofs"
+    workaround: "Torus kernel Eq. 3, DSM Eq. 4, 20 vs GeoDiff 5000 steps, GEOM-DRUGS Table 1 — основной HTML"
+  - source: "gcorso/torsional-diffusion commit SHA"
+    reason: "CODE unaudited"
+    workaround: "Архитектура TFN + pseudotorque, RDKit L, conformer matching — PAPER §§3.4, 4.1; hypers кода — NR"
+  - source: "Protein side-chain χ diffusion / packing-as-diffusion papers (e.g. sequential χ heads вне Jing/Wu)"
+    reason: "не close-read; seed упоминает χ, FoldingDiff χ не диффундирует"
+    workaround: "χ — «не представлена» для FoldingDiff (PAPER Table 1); не выдумывать protein-χ DDPM"
+  - source: "Sabban & Markovsky RamaNet full text"
+    reason: "pointer via Wu related work; не primary этого класса"
+    workaround: "RamaNet = AR/GAN на φ,ψ, только спирали — соседний класс autoregressive-structure-generation"
+sources:
+  - kind: PAPER
+    citation: "Jing B., Corso G., Chang J., Barzilay R., Jaakkola T. Torsional Diffusion for Molecular Conformer Generation. NeurIPS 2022 / arXiv:2206.01729"
+    url: "https://arxiv.org/abs/2206.01729"
+    doi: "10.48550/arXiv.2206.01729"
+    note: "Foundational torus score matching; GEOM-DRUGS; не белковый backbone; слот YAML ошибочно назвал URL FoldingDiff"
+  - kind: PAPER
+    citation: "Wu K.E., Yang K.K., van den Berg R., Alamdari S., Zou J.Y., Lu A.X., Amini A.P. Protein structure generation via folding diffusion. Nat. Commun. 15, 1059 (2024)"
+    url: "https://www.nature.com/articles/s41467-024-45051-2"
+    doi: "10.1038/s41467-024-45051-2"
+    note: "Journal: wrapped DDPM on (N−1)×6 angles, T=1000, CATH 40–128, scTM 177/780; не catalog tool"
+  - kind: PAPER
+    citation: "Wu et al. Protein structure generation via folding diffusion. arXiv:2209.15611"
+    url: "https://arxiv.org/abs/2209.15611"
+    doi: "10.48550/arXiv.2209.15611"
+    note: "Preprint: Appendix A NeRF/1CRN, Fig. S1–S3 reconstruction; не сливать с Nature page numbers"
+  - kind: PAPER
+    citation: "Parsons J. et al. Practical conversion from torsion space to cartesian space for in silico protein synthesis. J. Comput. Chem. 26, 1063–1068 (2005)"
+    url: "https://doi.org/10.1002/jcc.20237"
+    doi: "10.1002/jcc.20237"
+    note: "NeRF kinematics, цитируется FoldingDiff; full text не close-read (pointer)"
+  - kind: PAPER
+    citation: "Ho J., Jain A., Abbeel P. Denoising Diffusion Probabilistic Models. NeurIPS 2020"
+    url: "https://arxiv.org/abs/2006.11239"
+    doi: "10.48550/arXiv.2006.11239"
+    note: "Родовой ε-prediction DDPM; FoldingDiff адаптирует wrap"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id torsion-diffusion"
+    note: "пусто: catalog_tools []"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **generator** (density model на компактном многообразии углов). Сеть обращает wrapped noising / Riemannian Brownian motion по торсионам и выдаёт clean angular state; Cartesian появляется **после** kinematics. Это не sequential assay loop, не geometric SE(3) inductive bias как определение класса (эквивариантный GNN у Jing — модуль score, не state), не scorer аффинности."
+        source: INTERPRETATION
+      - text: "Generated state — вектор углов на торе: у FoldingDiff $x\\in[-\\pi,\\pi)^{(N-1)\\times 6}$ (три dihedral + три bond angle на шаг цепи); у Jing — $\\bm{\\tau}\\in\\mathbb{T}^{m}$ только по свободно вращаемым связям при **зафиксированной** local structure $L$ (длины, валентные углы, циклы). Intermediate $x_t$ — noisy angles, не атомы и не frames. Sequence tokens в reverse chain **не** входят."
+        source: PAPER
+        locator: "Wu Nature Table 1 / Results representation; Jing §3 p_G(τ∣L)"
+      - text: "Задача каталога, к которой seed относит класс: [de novo backbone generation](/tasks/de-novo-backbone-generation.html). Catalog workflow [de novo backbone → MPNN](/workflows/de-novo-backbone-then-mpnn.html) на практике ставит [frame diffusion](/architectures/frame-diffusion.html) / [RFdiffusion](/tools/rfdiffusion.html), не этот id. Seed явно исключает [target-conditioned binder generation](/tasks/target-conditioned-binder-generation.html): нет hotspot/target tensor в прочитанных методах."
+        source: MATRIX
+        locator: "architectures/torsion-diffusion.yaml applicable_task_ids / not_for_task_ids"
+      - text: "Это **не** [frame diffusion](/architectures/frame-diffusion.html): там state $(R_i,t_i)\\in\\mathrm{SE}(3)$, ядро IGSO(3)/Brownian на вращениях. Внутренние углы FoldingDiff **инвариантны** к глобальному SE(3), поэтому vanilla transformer достаточен; не копировать FrameDiff score сюда."
+        source: PAPER
+        locator: "Wu Nature: independent reference frame; no equivariant net"
+      - text: "Это **не** [coordinate diffusion](/architectures/coordinate-diffusion.html): Cartesian DDPM/SDE шумит $x\\in\\mathbb{R}^{N\\times 3}$. Wu ablation: тот же transformer на Cα xyz **не** учит складку (Fig. S6 journal / Fig. S4 preprint). Jing сравнивает torus vs Euclidean GeoDiff **на малых молекулах**, не на белках."
+        source: PAPER
+        locator: "Wu Nature Fig. S6; Jing Table 2 GeoDiff 5000 steps"
+      - text: "Это **не** [autoregressive structure generation](/architectures/autoregressive-structure-generation.html): next-angle product $p(T_i\\mid T_{<i})$. RamaNet и FoldingDiff **AR baseline** (causal transformer, seed 4 native angle-sets) коллапсируют в одиночные α-спирали — соседний класс, не train target диффузии."
+        source: PAPER
+        locator: "Wu Nature Fig. 3c / Methods AR baseline; related work Sabban RamaNet"
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html): ProteinMPNN/ESM-IF1 в FoldingDiff — **evaluator** designability (последовательность по уже сгенерированному backbone). Это **не** [joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html): DiffAb type+Cα+SO(3) — другой state. Не переносить categorical CDR $Q$."
+        source: INTERPRETATION
+      - text: "Catalog tools с `architecture_id: torsion-diffusion`: **нет** (reverse index пуст). Не приписывать FoldingDiff / Jing ни [RFdiffusion](/tools/rfdiffusion.html), ни [DiffAb](/tools/diffab.html), ни [Chroma](/tools/chroma.html), ни [FrameDiff](/tools/framediff.html). Часто путают с ProteinSGM (pairwise matrices → Rosetta fold — constraint generator, не прямой torsion DDPM) и с Anand–Achim sequential side-chain angles (другая факторизация, не close-read)."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Белок или молекула параметризуется внутренними вращениями. Forward process разрушает углы wrapped-шумом, пока $x_T$ неотличим от wrapped Gaussian / uniform на торе. Reverse предсказывает шум или Riemannian score и шагает по углу. При inference **меняется angular state**; Cartesian и sequence появляются отдельно (NeRF; RDKit $L$; MPNN)."
+        source: INTERPRETATION
+      - text: "Главный эмпирический рычаг **представления**: перенести SE(3) invariance в координаты (углы не меняются при глобальном повороте/сдвиге), чтобы не строить equivariant denoiser. Wu: подмена углов на Cartesian при том же transformer ломает генерацию. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Results: brittle Cartesian substitution; Fig. S6"
+      - text: "Рычаг **Jing**: не диффундировать все $3n$ координат, а только $m$ rotatable torsions; $L$ даёт RDKit ETKDG. На GEOM-DRUGS это 20 шагов vs GeoDiff 5000 — сравнение **small-molecule**, не белковый NFE. [PAPER]"
+        source: PAPER
+        locator: "Jing §1; Table 2 steps 5/10/20 vs GeoDiff 5000"
+      - text: "Рычаг **FoldingDiff**: шесть углов на шаг цепи (не только $\\phi,\\psi$). Appendix: фиксировать bond distances средними ещё даёт fold-level reconstruction; оставить только три dihedrals — около половины белков не восстанавливается (Fig. S1). [PAPER preprint SI]"
+        source: PAPER
+        locator: "arXiv:2209.15611 Appendix A.1 Fig. S1"
+      - text: "Имя FoldingDiff — метафора: авторы **прямо** пишут, что noising/denoising **не** моделирует биофизический фолдинг. $x_t$ — артефакт диффузии на торе, не MD-траектория и не энергия."
+        source: PAPER
+        locator: "Wu Nature Introduction / Designing and training: does not model biophysical folding"
+      - text: "Предостережение по метрикам. scTM, TM к train, P-SEA counts, Gauss-integral UMAP, OmegaFold/AF2 confidence, Jing AMR/Coverage и xTB $E,\\mu,\\Delta\\varepsilon$ после relaxation — **evaluator / in silico chemistry**, не experimental $K_d$ / ELISA / BLI. Wu: 87% **нативных** test структур имеют scTM $\\ge 0.5$ — пайплайн хрупок даже на natives."
+        source: PAPER
+        locator: "Wu Nature designability; Fig. S17 natives 87%"
+      - text: "AR baseline FoldingDiff: 89% scTM $\\ge 0.5$ при полном коллапсе в одну α-спираль. Высокий scTM **не** означает полезный generator. Не ставить 22.7% FoldingDiff, hit rate RFdiffusion wet-lab и Jing Coverage в одну колонку «успех»."
+        source: PAPER
+        locator: "Wu Nature AR 89% / Fig. 3c; 177/780=22.7%"
+      - text: "Chirality: FoldingDiff воспроизводит, что правые спирали чаще левых на Ramachandran. Авторы противопоставляют это E(3)-сетям, симметричным к отражению (цитируя Trippe ProtDiff). Это свойство **углового** state, не гарантия L-аминокислот в sequence (sequence нет в generator)."
+        source: PAPER
+        locator: "Wu Nature Fig. 2c Ramachandran; chirality paragraph"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовой wrapped DDPM на торе. Затем подтипы: (A) FoldingDiff — дискретный Ho на $(N-1)\\times 6$ белковых внутренних углов + wrap $w$ + smooth L1; (B) Jing — непрерывный score matching на $\\mathbb{T}^{m}$ rotatable bonds при фиксированном $L$. Не писать одну «универсальную» $Q_t$. Не подставлять seed one-liner как уравнение инструмента каталога: инструментов нет."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются уравнениями этого класса и **не** default train target: IGSO(3) FrameDiff; isotropic Cartesian VP-SDE Chroma/Genie; Lipman CFM; UCB; AR NLL / next-angle $L_w$ RamaNet; FAPE predictor; MLM $\\Delta\\ell$; DiffAb categorical type KL; ESM pMMS. AR baseline Wu использует тот же $L_w$, но **другой** sampler (causal next-6-angles) — уравнение соседнего класса."
+        source: INTERPRETATION
+      - text: "HTML FoldingDiff записывает wrapped kernel с знаменателем $2\\beta_t^2$ при ковариации $\\beta_t I$. Стандартный $\\mathcal{N}(\\mu,\\beta I)$ имеет $2\\beta$ в экспоненте. Цитируем **первую** строку (wrapped $\\mathcal{N}$ с cov $\\beta_t I$) как определение; согласование суммы по $k$ — unresolved typesetting, не «исправляем» формулу."
+        source: PAPER
+        locator: "Wu Nature/arXiv Methods wrapped N; cf. Jing Eq. 3 uses 2σ²(t)"
+      - text: "Jing energy-based Boltzmann (Alg. 1, importance weights на $e^{-E/kT}$) — вариант **того же** torus score, не третья «универсальная» формула белка. Не переносить xTB ensemble properties Jing на FoldingDiff backbones."
+        source: PAPER
+        locator: "Jing §3.6 Algorithm 1; Table 3 ensemble properties"
+    equations:
+      - latex: "x\\in\\mathbb{T}^{d},\\quad q(x_t\\mid x_{t-1})=\\mathcal{N}_{\\mathrm{wrapped}}\\bigl(x_t;\\sqrt{1-\\beta_t}\\,x_{t-1},\\,\\beta_t I\\bigr)"
+        caption: "Родовой wrapped VP-шаг на торе (Ho mean/variance + periodicity). Train target — denoising на углах. Семплируется reverse с wrap в $[-\\pi,\\pi)$ или geodesic walk. Generic: не checkpoint FoldingDiff, не GEOM-DRUGS Jing."
+        generic_or_specific: generic
+        source: PAPER
+        locator: "Wu Methods q wrapped; Jing Eq. 3 as continuous analogue"
+        symbols:
+          - {sym: x, type: "T^d", meaning: "angular state (интерпретация d — subtype)"}
+          - {sym: x_t, type: "T^d", meaning: "зашумлённые углы на шаге t"}
+          - {sym: "\\beta_t", type: "scalar in (0,1)", meaning: "variance schedule шага"}
+          - {sym: d, type: "int", meaning: "размерность тора; FoldingDiff (N−1)×6, Jing m rotatable"}
+        meaning: "Оптимизируется score/шум на торе. Семплируется траектория углов. Sequence, SE(3) frames, affinity labels в формулу не входят."
+      - latex: "X=\\mathrm{kin}(x;\\,\\ell_{\\mathrm{bond}},\\,X_{\\mathrm{seed}})"
+        caption: "Родовая реконструкция Cartesian из углов (NeRF/Parsons или relative torsion update). $\\mathrm{kin}$ — не нейросеть generator'а. Generic kinematics; конкретный seed 1CRN / RDKit $L$ — subtype."
+        generic_or_specific: generic
+        source: PAPER
+        locator: "Wu Parsons 2005; Jing Prop. 1 torsion update on point cloud"
+        symbols:
+          - {sym: X, type: "R^{n×3}/SE(3)", meaning: "Cartesian после реконструкции"}
+          - {sym: "\\ell_{bond}", type: "lengths", meaning: "фиксированные длины связей (средние или RDKit)"}
+          - {sym: "X_{seed}", type: "coords", meaning: "якорь: 1CRN N-terminus или текущий conformer Jing"}
+        meaning: "Не оптимизируется как loss по умолчанию; это decode. Ошибка угла → рычаг в координатах."
+    sections:
+      - id: math-foldingdiff
+        level: 3
+        title: "Подтип A — wrapped DDPM белкового backbone (FoldingDiff; не catalog tool)"
+        paragraphs:
+          - text: "State $x\\in[-\\pi,\\pi)^{(N-1)\\times 6}$. Cosine schedule Nichol, $T=1000$, $s=8\\times 10^{-3}$, clip $\\beta$ к 0.999. Сеть $\\mathrm{nn}_\\xi$ предсказывает $\\varepsilon$, не mean. Wrap $w(x)=((x+\\pi)\\bmod 2\\pi)-\\pi$. Loss — wrapped smooth L1, $\\beta_L=0.1\\pi$; авторы: слабее мотивирован, чем torsional losses Jing, но empirically достаточен. $t\\sim U(0,T)$. Углы zero-mean shift $\\mu$ по train. Literature-specific, не уравнение RFdiffusion."
+            source: PAPER
+            locator: "Wu Nature Methods; Algorithm 1; λ not used (Ho simplified)"
+        equations:
+          - latex: "d_w=w\\bigl(\\varepsilon-\\mathrm{nn}_\\xi(w(\\sqrt{\\bar\\alpha_t}x_0+\\sqrt{1-\\bar\\alpha_t}\\varepsilon),t)\\bigr),\\quad L_w=\\begin{cases}0.5 d_w^2/\\beta_L & |d_w|<\\beta_L\\\\ |d_w|-0.5\\beta_L & \\mathrm{otherwise}\\end{cases}"
+            caption: "FoldingDiff train target: wrapped smooth L1 на предсказании шума. Не Jing DSM. Не FAPE. Не catalog-tool equation."
+            generic_or_specific: "FoldingDiff [PAPER]; literature-specific"
+            source: PAPER
+            locator: "Wu Nature Methods L_w; β_L=0.1π"
+            symbols:
+              - {sym: "\\varepsilon", type: "same as x", meaning: "wrapped-normal шум"}
+              - {sym: "\\mathrm{nn}_\\xi", type: "transformer", meaning: "denoiser 14.56M, d=384"}
+              - {sym: "\\bar\\alpha_t", type: "scalar", meaning: "кумулятивный cosine schedule"}
+              - {sym: "\\beta_L", type: "scalar", meaning: "порог smooth L1 = 0.1π"}
+              - {sym: w, type: "map to [-π,π)", meaning: "period wrap"}
+            meaning: "Обучается шумовой residual на шести углах. Семплируется Algorithm 1, затем NeRF."
+      - id: math-jing
+        level: 3
+        title: "Подтип B — Riemannian score matching на $\\mathbb{T}^{m}$ (Jing torsional diffusion; малые молекулы)"
+        paragraphs:
+          - text: "Forward: $f=0$, $g=\\sqrt{d\\sigma^2/dt}$, $\\sigma(t)=\\sigma_{\\min}^{1-t}\\sigma_{\\max}^{t}$, $\\sigma_{\\min}=0.01\\pi$, $\\sigma_{\\max}=\\pi$, $t\\in(0,1)$. Prior $p_T$ — **uniform** на компактном $M$, не Gaussian в $\\mathbb{R}^{3n}$. Kernel — wrapped normal на $\\mathbb{R}^m/2\\pi\\mathbb{Z}^m$. Score модель — SE(3)-invariant / parity-equivariant pseudoscalars на **экстраinsic** point cloud. Не FoldingDiff transformer-on-angles."
+            source: PAPER
+            locator: "Jing §3.1; σ_min/max; §3.3 Prop. 2 parity"
+        equations:
+          - latex: "p_{t\\mid 0}(\\bm{\\tau}'\\mid\\bm{\\tau})\\propto\\sum_{\\mathbf{d}\\in\\mathbb{Z}^m}\\exp\\bigl(-\\|\\bm{\\tau}-\\bm{\\tau}'+2\\pi\\mathbf{d}\\|^2/(2\\sigma^2(t))\\bigr)"
+            caption: "Jing perturbation kernel на гиперторе (Eq. 3). Не cosine β_t FoldingDiff. Не protein N-Cα-C angles."
+            generic_or_specific: "Jing [PAPER]; literature-specific"
+            source: PAPER
+            locator: "Jing Eq. 3"
+            symbols:
+              - {sym: "\\bm{\\tau}", type: "T^m", meaning: "torsion angles rotatable bonds"}
+              - {sym: "\\sigma(t)", type: "noise scale", meaning: "exponential schedule 0.01π…π"}
+              - {sym: m, type: "int", meaning: "число свободно вращаемых связей (~7.9 на GEOM-DRUGS)"}
+            meaning: "Семплируется geodesic/wrapped random walk по τ при фиксированном L."
+          - latex: "J_{\\mathrm{DSM}}(\\theta)=\\mathbb{E}_t\\bigl[\\lambda(t)\\,\\mathbb{E}\\|\\mathbf{s}(\\bm{\\tau}_t,t)-\\nabla_{\\bm{\\tau}_t}\\log p_{t\\mid 0}(\\bm{\\tau}_t\\mid\\bm{\\tau}_0)\\|^2\\bigr]"
+            caption: "Jing denoising score matching (Eq. 4). λ(t) precomputed. Не wrapped L1 FoldingDiff. Не energy head ΔG белка."
+            generic_or_specific: "Jing [PAPER]; literature-specific"
+            source: PAPER
+            locator: "Jing Eq. 4"
+            symbols:
+              - {sym: "\\mathbf{s}", type: "R^m", meaning: "предсказанный torsional score (pseudoscalars)"}
+              - {sym: "\\lambda(t)", type: "weight", meaning: "нормировка DSM"}
+              - {sym: "\\theta", type: "params", meaning: "веса TFN + pseudotorque"}
+            meaning: "Обучается score на торе. Likelihood через probability-flow ODE (Eq. 7) — Jing, не FoldingDiff."
+    tables:
+      - title: "Смежные постановки, которые нельзя смешивать"
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["[Torsion diffusion](/architectures/torsion-diffusion.html) (этот класс)", "wrapped DDPM / torus DSM на углах", "reverse на торе → kinematics", "tools: **нет**; FoldingDiff, Jing — не карточки"]
+          - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "ε-MSE / VP-SDE на xyz", "SDE/DDPM в R^{N×3}", "[Chroma](/tools/chroma.html), [Genie](/architectures/coordinate-diffusion.html) литература"]
+          - ["[Frame diffusion](/architectures/frame-diffusion.html)", "IGSO(3)+Gaussian translations", "reverse SE(3) frames", "[RFdiffusion](/tools/rfdiffusion.html), [FrameDiff](/tools/framediff.html)"]
+          - ["[AR structure generation](/architectures/autoregressive-structure-generation.html)", "next-angle / next-frame NLL", "N→C teacher forcing; greedy angles", "RamaNet, FoldingDiff AR baseline — не tools"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "sequence CE при фиксированном backbone", "temperature sampling AA", "[ProteinMPNN](/tools/proteinmpnn.html) — evaluator у Wu"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы FoldingDiff — позиции вдоль цепи с 6-вектором углов, не граф kNN атомов. Рёбер/pairs как у IPA **нет**: bidirectional transformer с relative positional embeddings, attention mask по длине. Размерность входа: 6, линейный upsample к $d=384$. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Methods Modeling: d=384, relative PE"
+      - text: "Time embedding FoldingDiff: random Fourier features (Tancik / Song) **складываются** с каждым token после upsample. Это не implicit mask-count EvoDiff-OADM."
+        source: PAPER
+        locator: "Wu Nature Methods timestep Fourier"
+      - text: "Jing: вход score — **3D point cloud** conformer + граф $G$; выход — $m$ pseudoscalars на rotatable bonds. Локальная структура $L$ (bond lengths/angles/rings) **не** диффундирует; её семплирует RDKit. Conditioner — молекулярный граф, не epitope tensor."
+        source: PAPER
+        locator: "Jing §3.2 extrinsic-to-intrinsic; §3 intro p(τ∣L)"
+      - text: "Внешние файлы vs тензор сети. FoldingDiff: CATH координаты → тригонометрия углов (внутренняя фича); PDB numbering не conditioner. Якорь реконструкции — координаты N–Cα–C первого residue **1CRN**, фиксированные для всех генераций (preprint Appendix A.1). Это внешний PDB, не learnable token."
+        source: PAPER
+        locator: "arXiv:2209.15611 Appendix A.1 1CRN Teeter 1984"
+      - text: "Размерности, которых нет в источниках: hidden width слоёв transformer FoldingDiff кроме $d=384$ — NR; число слоёв/голов — NR в Nature HTML Methods. Jing ширина TFN — NR без Appendix D close-read."
+        source: NR
+      - text: "Аугментации, меняющие геометрию. FoldingDiff: crop цепей $>128$ в случайное окно 128 на **каждую** эпоху (меняет какие углы видны). Global rotation **не** нужна (углы инвариантны). Jing: conformer matching на train — подмена ground-truth $C$ синтетическим $\\hat C$ с RDKit $L$ и torsions, минимизирующими RMSD (domain adaptation $p(L)$ vs $\\hat p(L)$)."
+        source: PAPER
+        locator: "Wu Nature CATH crop; Jing §4.1 conformer matching"
+      - text: "Нормализация FoldingDiff: element-wise angular mean $\\mu$ вычитается на train; val/test сдвигаются тем же $\\mu$; inference un-shift $w(x_0+\\mu)$. Не StandardScaler Cartesian."
+        source: PAPER
+        locator: "Wu Nature Methods zero-mean μ"
+      - text: "Маски: variable-length attention masking (train и generation). Нет contig map RFdiffusion, нет CDR clamp DiffAb, нет library CSV. Sequence one-hot отсутствует."
+        source: PAPER
+        locator: "Wu Nature Methods attention masking"
+      - text: "Bond distances: три длины $N_i\\!\\to\\!C\\alpha_i$, $C\\alpha_i\\!\\to\\!C_i$, $C_i\\!\\to\\!N_{i+1}$ фиксируются **средними**, не генерируются (Fig. S1). Точные ангстремы средних — NR без SI numeric."
+        source: PAPER
+        locator: "arXiv Appendix A.1; Fig. S1 qualitative"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $x_0$ FoldingDiff ↔ относительная ориентация backbone атомов следующего residue: $\\psi$ ($N_i$-$C\\alpha_i$-$C_i$-$N_{i+1}$), $\\omega$ ($C\\alpha_i$-$C_i$-$N_{i+1}$-$C\\alpha_{i+1}$), $\\phi$ ($C_i$-$N_{i+1}$-$C\\alpha_{i+1}$-$C_{i+1}$), $\\theta_{1,2,3}$ — валентные углы Table 1. Не ↔ assay label."
+        source: PAPER
+        locator: "Wu Nature Table 1"
+      - text: "SE(3): state **invariant** к глобальному повороту и трансляции. Equivariant сеть **не** требуется (FoldingDiff). Что ломает инвариантность: подмена входа на Cartesian (Wu ablation). Перестановка residues ломает цепной порядок углов (это полимер, не облако). Chain concat двух доменов без нового якоря — не описан (multi-chain Wu Discussion: не обрабатывается)."
+        source: PAPER
+        locator: "Wu Nature representation advantages; Discussion no multi-chain"
+      - text: "Jing: score **SE(3)-invariant** и **parity-equivariant** (pseudoscalar torque). Поворот молекулы не должен менять $|\\delta\\tau|$; инверсия знака при $C\\mapsto -C$. Это symmetry energy, не доказанная экспериментальная хиральность белка."
+        source: PAPER
+        locator: "Jing §3.3 Prop. 2"
+      - text: "Side chains: в FoldingDiff state **отсутствуют** (нет $\\chi$, нет R-групп). Packing — post-hoc (FASPR упоминается в refs, не часть sampler). Jing: не-белковые rotatable bonds, включая формально double bonds как rotatable (Appendix F.3 pointer)."
+        source: PAPER
+        locator: "Wu Nature: do not specify side chain; Jing footnote rotatable"
+      - text: "Промежуточный $x_t$ / noisy $\\bm{\\tau}_t$ $\\neq$ физическая траектория фолдинга и $\\neq$ потенциал энергии. Wu: процедура «inspired by» twisting, но «does not directly capture any biophysical folding processes»."
+        source: PAPER
+        locator: "Wu Nature training paragraph"
+      - text: "Реконструкция: итеративное добавление атомов (Parsons NeRF) с фиксированными длинами. Первый residue не кодируется $N-1$ углами — seed 1CRN. Кислород пептида для PyMOL вставляется coplanar trans — **визуализация**, не генерация."
+        source: PAPER
+        locator: "Wu Nature Methods 3D visualization Corey–Pauling; preprint 1CRN"
+      - text: "Clashes: самопересечения встречаются; journal — relaxation SI. Это геометрический decode failure, не ΔG."
+        source: PAPER
+        locator: "Wu Nature Results clashes; SI Fig. S5 pointer"
+      - text: "ω planarity: ω в state явно; маргинал близок к wrapped Gaussian с массой у $\\pm\\pi$ (trans peptide). Нет отдельного hard constraint cis/trans. Chirality Cα не параметризована как отдельный дискрет; она следует из комбинации углов + L-химия только после sequence design."
+        source: PAPER
+        locator: "Wu Nature Fig. 2b ω wrap; Ramachandran chirality"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head $\\Delta G$ / $K_d$. Jing Boltzmann variant матчит $e^{-E/kT}$ **малых молекул** через likelihood на торе — не белковый affinity assay. Ниже: как признаки кодируются в **этом** классе."
+        source: INTERPRETATION
+    physchem:
+      - feature: "identity AA"
+        interpretation: "последовательность / химия боковых цепей"
+        encoded: "не представлена в generator FoldingDiff; Jing — атомный граф малой молекулы (не белок)"
+        limitation: "sequence ставит inverse folding (evaluator); AA ≠ affinity"
+      - feature: "backbone φ/ψ"
+        interpretation: "Ramachandran, вторичная структура"
+        encoded: "прямо (dihedrals в 6-векторе FoldingDiff)"
+        limitation: "локально верные углы ≠ глобальный fold без корректного порядка"
+      - feature: "ω peptide planarity"
+        interpretation: "почти трансоидная пептидная связь"
+        encoded: "прямо как dihedral; маргинал низкодисперсный wrapped Gaussian"
+        limitation: "нет жёсткого cis/trans фильтра; non-physical ω — failure mode"
+      - feature: "bond angles θ1–θ3 / bond lengths"
+        interpretation: "валентная геометрия N–Cα–C"
+        encoded: "θ прямо; длины косвенно (константы средних), не генерируются"
+        limitation: "lossy reconstruction с длиной цепи (Fig. S2 TM↓)"
+      - feature: "side-chain χ / H-bonds / electrostatics / solvation"
+        interpretation: "упаковка, Н-связи, заряд, растворитель"
+        encoded: "не представлены в FoldingDiff state"
+        limitation: "нельзя утверждать, что модель «считает ΔG»"
+      - feature: "antigen / hotspot coords"
+        interpretation: "эпитопный интерфейс"
+        encoded: "не представлена (нет target conditioner в прочитанных papers)"
+        limitation: "класс не закрывает target-conditioned binder"
+      - feature: "evolutionary statistics"
+        interpretation: "CATH 40% seq-id folds; не MSA LM"
+        encoded: "косвенно через эмпирический p(angles∣CATH)"
+        limitation: "random 80/10/10 split; не DMS labels"
+      - feature: "experimental y (Kd, ELISA)"
+        interpretation: "измеренная функция"
+        encoded: "не представлена"
+        limitation: "scTM / AMR / xTB ≠ wet-lab affinity"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\xi$ / $\\theta$: denoiser углов. FoldingDiff — vanilla transformer + regression head (dense → GELU → LayerNorm → 6 outputs), 14.56M. Jing — TFN atomic convolutions + pseudotorque layer. Frozen modules: нет frozen PLM/AF в train target прочитанных методов."
+        source: PAPER
+        locator: "Wu Nature 14.56M; Jing §3.4 TFN"
+      - text: "Loss generic: denoising на торе (wrapped ε или DSM). Подтип A: $L_w$ smooth L1. Подтип B: $J_{\\mathrm{DSM}}$ с весом $\\lambda(t)$. Energy-based Jing: тот же DSM, но samples из importance-weighted Boltzmann — **не** affinity ELISA."
+        source: PAPER
+        locator: "Wu L_w; Jing Eqs. 4 and §3.6"
+      - text: "Negative / non-binder / contrastive / affinity labels в loss: **нет**. Нет classifier non-binder. Нет ΔΔG head."
+        source: PAPER
+        locator: "оба Methods: unsupervised diffusion / score matching"
+      - text: "Fine-tune vs pretrain. FoldingDiff: один проход CATH 10 000 epochs, checkpoint **1488** (val plateau ~1400; дальше diversity падает). Не reported protein fine-tune на binders. Jing: train GEOM-DRUGS splits Ganea et al.; Boltzmann variant — отдельная процедура resampling."
+        source: PAPER
+        locator: "Wu Nature checkpoint 1488; Jing §4.2 splits"
+      - text: "AR baseline Wu (14.41M, absolute PE, length Fourier, AdamW wd=0.01, batch 256, ckpt 1446) учит **другой** объект — next 6-angles. Не включать его параметры в «что обучается» диффузионного класса, кроме как контраст."
+        source: PAPER
+        locator: "Wu Nature Methods AR baseline"
+      - text: "Self-conditioning / teacher forcing: FoldingDiff diffusion — нет teacher forcing (шум независим по $t$). AR baseline — teacher forcing next-angle. Jing training — sample $t$ uniform, perturb kernel; inference geodesic walk."
+        source: PAPER
+        locator: "Wu t~U(0,T); Jing §3.1"
+      - text: "Не обучается: ProteinMPNN, OmegaFold, AF2, Rosetta, RDKit ETKDG, xTB. Это внешние evaluator / cheminformatics."
+        source: INTERPRETATION
+      - text: "Не обучается FAPE / distogram / lddt как у RF/AF. Wu прямо выбирает angular L1 вместо «лучше мотивированных» Jing torsional losses."
+        source: PAPER
+        locator: "Wu Nature: not as well-motivated as Jing 56"
+      - text: "Выход сети FoldingDiff — шесть непрерывных чисел на позицию, не категориальный AA и не rotation matrix 3×3."
+        source: PAPER
+        locator: "Wu Nature regression head six values"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    mermaid: |
+      flowchart TD
+        SRC["CATH/PDB angles x0 or RDKit L + tau"] --> FWD["Forward wrap-noise / Brownian on torus"]
+        FWD --> XT["xt noisy angles — not MD"]
+        XT --> GEN["GENERATOR: transformer nn_xi or TFN score"]
+        GEN --> REV["Reverse T steps wrap DDPM or geodesic"]
+        REV --> X0["clean angles / tau"]
+        X0 --> KIN["Kinematics NeRF or torsion update — decode"]
+        KIN --> BB["Cartesian backbone / conformer"]
+        BB --> IF["EVALUATOR: ProteinMPNN / sequence"]
+        IF --> PRED["PREDICTOR: OmegaFold or AF2"]
+        PRED --> SCTM["scTM / TM — not Kd"]
+        BB --> CHEM["EVALUATOR Jing: xTB after relax"]
+        BB -.-> EXP["EXPERIMENT: absent in Wu/Jing protein-Ab campaigns"]
+        subgraph generator ["Generator"]
+          GEN
+          REV
+        end
+        subgraph evalblk ["Evaluator / predictor"]
+          IF
+          PRED
+          SCTM
+          CHEM
+        end
+    mermaid_caption: "Оригинальная схема класса по Wu Methods и Jing §3: generator живёт на торе; kinematics — decode; MPNN/AF/xTB — не часть θ. Не копипаст Fig. 1 papers."
+    mermaid_source: INTERPRETATION
+    paragraphs:
+      - text: "Порядок FoldingDiff train: PDB→углы→zero-mean→sample $t$→wrap-noise→transformer$(x_t,t)$→$L_w$. Geometry Cartesian **не** входит в сеть. Sequence не входит."
+        source: PAPER
+        locator: "Wu Nature Methods training loop"
+      - text: "Порядок FoldingDiff inference: $x_T\\sim w(\\mathcal{N}(0,I))$ → $T$ шагов Algorithm 1 → un-shift $\\mu$ → NeRF от 1CRN seed → backbone N–Cα–C. Затем **отдельный** ProteinMPNN (8 seq, $T=0.1$ Cα mode) и OmegaFold — evaluator."
+        source: PAPER
+        locator: "Wu Nature Algorithm 1; designability pipeline"
+      - text: "Порядок Jing: RDKit $L$ → uniform randomize τ → score на 3D cloud → wrap geodesic update τ → repeat NFE. Не прятать RDKit внутрь «одной сети»."
+        source: PAPER
+        locator: "Jing §3.2 inference; Appendix C pointer"
+      - text: "Где появляется sequence: только post-hoc IF (FoldingDiff) или атомный граф уже дан (Jing molecule). Где geometry: decode после углов (FoldingDiff) или всё время в 3D при torsion updates (Jing). Где score: Jing выход — torsional score; FoldingDiff — ε на углах, не docking score."
+        source: INTERPRETATION
+      - text: "Relax / clash filter: опциональный evaluator (Wu SI). Не шаг generator'а по умолчанию в Algorithm 1."
+        source: PAPER
+        locator: "Wu Nature Results: 22.7% without post-processing"
+      - text: "Не прятать RFdiffusion / AF recycle внутрь torsion denoiser: их нет в forward pass прочитанных методов."
+        source: INTERPRETATION
+      - text: "Oxygen insertion для cartoon — post-hoc visualization, не atomistic all-atom generator."
+        source: PAPER
+        locator: "Wu Nature Methods PyMOL oxygen trans"
+      - text: "Experiment box на схеме пуст для белка: Wu/Jing не сообщают prospective wet-lab кампании антител/binders. Не заполнять ELISA."
+        source: PAPER
+        locator: "Wu in silico only; Jing computational GEOM"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Корпус FoldingDiff: CATH v4.3.0 non-redundant, ≤40% sequence identity over 60% overlap (Sillitoe). Исключают цепи $<40$ residues. $>128$ — random crop 128. Итого 30 395 доменов: 24 316 / 3 039 / 3 040 = 80/10/10 **random** split."
+        source: PAPER
+        locator: "Wu Nature Methods dataset; Data availability CATH 4.3.0"
+      - text: "Split leakage: авторы пишут, что test accuracy/reconstruction **не** primary metric, поэтому overlap train/test «не раздувает» заявленные результаты. При этом маргиналы углов и Ramachandran сравниваются с test, а novelty — max TM к **train**. Random split CATH ≠ holdout по superfamily; leakage структурно близких доменов — риск, не измеренный в paper (NR количественно)."
+        source: PAPER
+        locator: "Wu Nature Methods split caveat"
+      - text: "Batching / time-sampling FoldingDiff: $t$ uniform; variable-length mask. Batch size **NR** для основного DDPM (для AR baseline — 256). Optimizer AdamW, LR linear 0→$5\\times 10^{-5}$ за 1000 epochs, затем к 0 за 9000. 10 000 epochs. GPU type / wall-clock train — NR."
+        source: PAPER
+        locator: "Wu Nature Methods optimizer; AR batch 256 only"
+      - text: "Jing: GEOM-DRUGS 304k drug-like, mean 44 atoms, mean $m\\approx 7.9$ torsions; splits как Ganea et al. 2021. Conformer matching только на train. GEOM-XL (>100 atoms) — extrapolation test. Не белковый CATH."
+        source: PAPER
+        locator: "Jing §4.2; intro m=7.9"
+      - text: "Симуляция vs wet-lab. FoldingDiff designability: ProteinMPNN + OmegaFold/AF2 **in silico**. P-SEA, UMAP Gauss integrals — computational. Jing: CREST metadynamics как **ground-truth ensembles** GEOM (дорогое in silico), не wet-lab $K_d$. Prospective expression / SPR — нет в прочитанных текстах."
+        source: PAPER
+        locator: "Wu Fig. 4a workflow; Jing GEOM CREST"
+      - text: "Self-conditioning: не описан у FoldingDiff. Classifier-free guidance: нет. Data augmentation rotation: не нужна для углов."
+        source: NR
+        locator: "отсутствие в Methods"
+      - text: "Фильтры resolution PDB: в Nature Methods не указаны Å cutoffs сверх CATH domain set — NR, не выводить из README GitHub."
+        source: NR
+      - text: "Jing vs GeoDiff NFE — training/inference эффективность **на GEOM-DRUGS**, не «дешевле RFdiffusion»."
+        source: PAPER
+        locator: "Jing Table 2"
+      - text: "Checkpoint selection FoldingDiff: val loss plateau ~1400; 1488 выбран из‑за diversity, не минимальный train loss. Переобучение по длительности **портит** разнообразие — documented failure of long training, не early-stop по scTM."
+        source: PAPER
+        locator: "Wu Nature Methods ~1400 / 1488"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт FoldingDiff: wrapped isotropic Gaussian $x_T\\sim w(\\mathcal{N}(0,I))$, не маска AA и не PDB contig. Длина задаётся attention mask / цикл по $l\\in[50,128)$ в экспериментах (10 цепей на каждую длину → 780). [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Algorithm 1 step 1; sampling 10×[50,128)"
+      - text: "Алгоритм: $T=1000$ ancestral шагов с wrap; $\\sigma_t=\\sqrt{(1-\\bar\\alpha_{t-1})/(1-\\bar\\alpha_t)\\cdot\\beta_t}$; $z=0$ на последнем шаге. Temperature softmax / top-k / nucleus — **нет** (непрерывные углы). Beam search — нет."
+        source: PAPER
+        locator: "Wu Nature Algorithm 1; σ_t formula"
+      - text: "Старт Jing: uniform на $\\mathbb{T}^{m}$ при данном $L$ от RDKit. Geodesic random walk; на торе $\\exp_\\tau(\\delta)=\\tau+\\delta \\bmod 2\\pi$. Default quality: 20 steps; даже 5 steps бьют GeoDiff AMR-R в Table 2 (small molecules)."
+        source: PAPER
+        locator: "Jing §3.1 inference; Table 2"
+      - text: "Post-hoc FoldingDiff: NeRF decode; optional relaxation (SI); ProteinMPNN 8 sequences; OmegaFold default `release1`; AF2 без MSA, 15 recycles, model1 only — всё **evaluator/predictor**. scTM $=\\max_i \\mathrm{TMalign}(s,\\hat s_i)$, порог 0.5 как fold."
+        source: PAPER
+        locator: "Wu Nature designability Methods"
+      - text: "Чего в классе нет: assay round, recycle внутри denoiser, epitope clamp, classifier-free guidance (не найден), autoregressive order по residues в **диффузионном** sampler (порядок есть только у AR baseline)."
+        source: INTERPRETATION
+      - text: "FoldingDiff не генерирует комплексы и лиганды (Discussion). Не использовать как drop-in вместо [RFdiffusion](/tools/rfdiffusion.html) на hotspot binder."
+        source: PAPER
+        locator: "Wu Nature Discussion: no multi-chain or ligand"
+      - text: "AR baseline inference (не этот класс sampler): seed 4 native 6-angle sets + фиксированная $l$ + greedy next-6. Temperature на углах не описана; добавление шума не снимает helix collapse."
+        source: PAPER
+        locator: "Wu Nature Methods AR generation"
+      - text: "Не утверждать wall-clock FoldingDiff: Nature HTML не даёт GPU-hours sampling. Jing Table 2: 4.90 core-sec/conformer при 20 steps на CPU vs GeoDiff 305 — только small-molecule, не переносить на белки."
+        source: PAPER
+        locator: "Jing Table 2 runtime; FoldingDiff GPU NR"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "FoldingDiff в paper — **unconditional** backbone generator заданной длины (mask). Нет hotspot, antigen coords, ELISA labels, CATH class token, species, contig. Seed «fixed SS / motif torsions» — возможный рычаг **класса**, не продемонстрированный Methods Wu."
+        source: PAPER
+        locator: "Wu Nature: unconditionally generated"
+      - text: "Length: задаёт число позиций transformer. AR baseline дополнительно Fourier-эмбеддит $l$ в каждый token — это **другая** модель. Для DDPM length = длина $x$."
+        source: PAPER
+        locator: "Wu AR Methods length Fourier; DDPM mask"
+      - text: "Jing conditioner: молекулярный граф $G$ и local structure $L$. Это не epitope. Conformer generation $p_G(\\tau\\mid L)$, не protein motif scaffolding."
+        source: PAPER
+        locator: "Jing §3 intro"
+      - text: "Classifier-free guidance: в прочитанных Methods **не** описан. Не приписывать."
+        source: NR
+      - text: "Motif clamp координат (как RFdiffusion contig) **нет**: углы не зажимаются по PDB fragment в Algorithm 1. Discussion предлагает future sequence-guided / PPI-biased sampling — не реализованный conditioner paper."
+        source: PAPER
+        locator: "Wu Nature Discussion future work"
+      - text: "Не приписывать epitope tensor / measured_var / library $\\mathcal{X}$. Нет antibody FR/CDR numbering в FoldingDiff CATH domains."
+        source: INTERPRETATION
+      - text: "Partial noising reconstruction (Appendix: $t=750$ noise then denoise test) — диагностический protocol, не user-facing inpainting API в paper."
+        source: PAPER
+        locator: "arXiv Appendix A.2 t=750 reconstruction"
+      - text: "Shuffling-angles baseline сохраняет маргиналы и Ramachandran, но ломает порядок — показывает, что conditioner «просто правильные углы» недостаточен без sequential arrangement. Это анализ, не inference mode продукта."
+        source: PAPER
+        locator: "Wu Nature shuffling baseline"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы FoldingDiff: $N$ residues (до 128 в train/gen experiments), $6(N-1)$ углов, $T=1000$ NFE, transformer attention $O(N^2)$ на длину цепи, число samples (780 в бенчмарке). Reconstruction NeRF линейна по атомам backbone."
+        source: PAPER
+        locator: "Wu Nature T=1000; N≤128"
+      - text: "Драйверы Jing: $m$ torsions, NFE 5–20 (не 1000), TFN на $n$ атомах (~44 GEOM-DRUGS), не pair $O(N^2)$ белка 400 aa. Сравнение «на два порядка меньше шагов, чем GeoDiff 5000» — **Jing Table 2**, только small molecules."
+        source: PAPER
+        locator: "Jing Table 2; §4.3"
+      - text: "Не писать «дешевле protein coordinate diffusion» без NFE-сравнения на том же белке. Wu vs ProtDiff — по **доле scTM**, не по wall-clock. GPU hours FoldingDiff — NR."
+        source: INTERPRETATION
+      - text: "Post-hoc cost: 8× ProteinMPNN + 8× OmegaFold (или AF2 15 recycles model1) на каждый backbone — часто доминирует над 1000 угловых шагов. Это evaluator complexity, не generator."
+        source: PAPER
+        locator: "Wu Nature 8 sequences; AF2 15 recycles"
+      - text: "Assay latency: не применимо (нет wet-lab loop). #rounds active learning: нет."
+        source: INTERPRETATION
+      - text: "Crop 128 ограничивает применимость к typical natural lengths «several hundred residues» (Discussion) — сложность **обобщения**, не FLOPs."
+        source: PAPER
+        locator: "Wu Nature Discussion length"
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: углы автоматически SE(3)-инвариантны → достаточно transformer без equivariant stack (FoldingDiff). Это механизм, не маркетинг."
+        source: PAPER
+        locator: "Wu Nature representation advantages"
+      - text: "Chirality: Ramachandran воспроизводит RH vs LH helix frequencies; авторы связывают это с отсутствием reflection-equivariance, ломающей хиральность у части Cartesian EGNN. [PAPER] Не гарантия правильной стереохимии после packing."
+        source: PAPER
+        locator: "Wu Nature Fig. 2c"
+      - text: "Bond lengths по построению фиксированы → локальная химия длин связей не взрывается так, как у unconstrained Cartesian (интерпретация механизма; количественный clash rate — SI NR)."
+        source: INTERPRETATION
+      - text: "FoldingDiff in silico: 177/780 = 22.7% scTM≥0.5 без relax; vs ProtDiff 92/780 ($p=1.8\\times 10^{-8}$, χ²); short ≤70 aa 76/210 vs 36/210; long 87/570 vs 56/570. Oracle = ProteinMPNN+OmegaFold, split = CATH-like lengths 50–128 — **не** сравнивать с RFdiffusion wet-lab. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature designability paragraph"
+      - text: "AF2 без MSA: 163/780 = 20.9% — согласованность oracle, не независимый wet-lab. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature AlphaFold2 substitution"
+      - text: "Jing GEOM-DRUGS Table 1: Coverage recall mean 72.7% vs OMEGA 53.4% при $\\delta=0.75$ Å; AMR-R mean 0.582 vs 0.841. Это **conformer ensembles малых молекул**, не белковый designability. [PAPER]"
+        source: PAPER
+        locator: "Jing Table 1"
+      - text: "Явно: ни 22.7% scTM, ни Jing Coverage **не** гарантируют стабильность экспрессии, affinity или developability. Natives сами дают только 87% scTM — метрика не насыщает физику."
+        source: PAPER
+        locator: "Wu Nature natives 87% scTM"
+      - text: "Меньше степеней свободы, чем all-atom xyz, следует из $d\\ll 3n$ (Jing $m\\approx 7.9$ vs $3n$; FoldingDiff 6 углов vs 9 internals). Это сжатие state, не доказанный выигрыш на antibody CDR."
+        source: PAPER
+        locator: "Jing intro dimensionality; Wu Fig. S1 6 vs 9"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: wrapped L1 FoldingDiff «not as well-motivated» как Jing DSM; возможна несогласованность $\\beta$ vs $\\beta^2$ в HTML kernel. Рычаг: ошибка раннего угла меняет весь C-terminus (lever arm). [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Methods + Discussion lever arm"
+      - text: "Представление: нет side chains, нет комплексов, нет лиганда; crop 128; seed 1CRN якорит абсолютную позу decode. Multi-chain NR. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Discussion"
+      - text: "Физика/химия: нет H-bonds/electrostatics/solvation в state; clashes; ω не hard-constrained; $x_t$ ≠ folding path. Jing $E$ — xTB after relax на малых молекулах, не белковый ΔG."
+        source: INTERPRETATION
+      - text: "Данные/bias: CATH 40% identity, random split, длины 40–128. Designable samples коррелируют с TM к train (Spearman ρ=0.78) — близость к обучающей геометрии, не «магия novelty». [PAPER]"
+        source: PAPER
+        locator: "Wu Nature Fig. 4c ρ=0.78"
+      - text: "Обобщение: β-sheets редки среди designable (16/177 vs 533/603 non-designable содержат sheets, $p=4.6\\times 10^{-91}$). Длина vs scTM Spearman ρ=−0.38. β-barrels / long proteins — Discussion как open. [PAPER]"
+        source: PAPER
+        locator: "Wu Nature β-sheet paragraph; ρ=-0.38"
+      - text: "Deployment: нет catalog tool, нет antibody pipeline, нет CLI-аудита. ProteinSGM 50.5% designability **несравним** (Rosetta fold из constraints). [PAPER]"
+        source: PAPER
+        locator: "Wu Nature ProteinSGM not directly comparable"
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Конкретные режимы, не «может не сработать»."
+        source: INTERPRETATION
+    items:
+      - "Неверный класс: ждать hotspot binder от FoldingDiff (нет target conditioner) — использовать frame diffusion / BindCraft."
+      - "Смешать Jing 20 NFE с белковым T=1000 как «всегда дешёвый diffusion»."
+      - "Принять AR baseline / RamaNet за этот класс: helix mode collapse (89% scTM, нулевое diversity SS)."
+      - "Подмена метрики: scTM / OmegaFold pLDDT / Jing AMR → affinity."
+      - "Truncation sampler: остановить FoldingDiff на малом t без paper protocol (не CFG; Algorithm 1 = полный T)."
+      - "Lever-arm: локально правдоподобный ψ у N-конца, большой RMSD у C-конца."
+      - "Self-clash / chain crossing; «лечится» relax — может увести от generated angles."
+      - "Non-physical ω / cis peptide, если wrap sampler не удержал маргинал."
+      - "Chirality failure у Cartesian-equivariant соседей (ProtDiff-style) — не лечится, если пользователь подменил state на xyz."
+      - "Library misspecification Jing: плохой RDKit $L$ → distribution shift; без conformer matching train/test $L$ расходятся."
+      - "CATH length shift: генерация ≫128 без гарантии paper (reconstruction TM падает с длиной даже у lossless-ish repr)."
+      - "Over-training FoldingDiff past ~1400 epochs: val не лучше, diversity хуже."
+      - "Считать 22.7% свойством класса на антителах: train — CATH domains, не SAbDab."
+      - "Вставить DiffAb CDR categorical channel как torsion DDPM."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Reverse index `architecture_id: torsion-diffusion` **пуст**. Ниже — foundational literature, явно не карточки `/tools`. Не ставить scTM FoldingDiff и wet-lab RFdiffusion в одну колонку успеха."
+        source: MATRIX
+    tables:
+      - title: "Catalog tools с этим architecture_id"
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["— (пусто)", "torsion diffusion", "**NR**: нет catalog tool", "Architecture Guide: catalog_tools []"]
+      - title: "Литература вне каталога tools"
+        headers: ["Method", "Generic architecture", "Implementation (PAPER)", "Important difference"]
+        rows:
+          - ["FoldingDiff (Wu et al.; не карточка tools)", "wrapped DDPM on torus + NeRF", "6 углов Table 1; T=1000 cosine; transformer 14.56M; CATH 40–128; Algorithm 1; CODE microsoft/foldingdiff commit **NR**", "Белковый backbone; не Jing DSM; не IF внутри θ"]
+          - ["Torsional diffusion (Jing et al.; не карточка tools)", "Riemannian DSM on T^m", "τ∣L; RDKit L; TFN+pseudotorque; GEOM-DRUGS; 20 NFE; CODE gcorso/torsional-diffusion commit **NR**", "Малые молекулы; не protein φ/ψ chain; score на xyz cloud"]
+          - ["FoldingDiff AR baseline (не карточка tools)", "не этот класс (AR structure)", "next-6-angles, 14.41M, seed 4 residues", "helix collapse; страница [AR structure](/architectures/autoregressive-structure-generation.html)"]
+          - ["RamaNet ( Sabban; не карточка tools)", "не этот класс", "LSTM φ,ψ helices — pointer Wu related work, full text **NR**", "AR/GAN, не DDPM"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо как **литературный** backbone generator для [de novo backbone](/tasks/de-novo-backbone-generation.html) в постановке «углы → kinematics → IF → fold predictor». Catalog workflow [backbone then MPNN](/workflows/de-novo-backbone-then-mpnn.html) канонически указывает RFdiffusion/FrameDiff — не подменять без явной смены generator."
+        source: MATRIX
+      - text: "Запрет: [target-conditioned binder](/tasks/target-conditioned-binder-generation.html), de novo antibody с epitope, humanization, CDR sequence infill. Вместо этого — [frame diffusion](/architectures/frame-diffusion.html) / [RFantibody](/tools/rfantibody.html), [joint diffusion](/architectures/joint-sequence-structure-diffusion.html) / [DiffAb](/tools/diffab.html), [sequence diffusion](/architectures/sequence-diffusion.html) для FR."
+        source: MATRIX
+        locator: "seed not_for_task_ids"
+      - text: "Запрет: выдавать Jing conformer generator за белковый design tool каталога. Запрет: решать inverse folding торсионной диффузией (нет sequence head)."
+        source: INTERPRETATION
+      - text: "Условная применимость будущих motif-torsion clamps — Discussion Wu, не валидированный API. Не обещать scaffolding как у RFdiffusion."
+        source: PAPER
+        locator: "Wu Nature Discussion future PPI/sequence guidance"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational torus: Jing et al. arXiv:2206.01729 (прочитан HTML Methods/Eqs; слот каталога ошибочно лейблил URL как FoldingDiff). Foundational protein: Wu et al. Nat. Commun. 10.1038/s41467-024-45051-2 (journal HTML Methods+Table 1+Alg. 1 прочитаны); preprint 2209.15611 Appendix A (прочитан HTML). Ho DDPM — pointer. Parsons NeRF 2005 — pointer, не close-read."
+        source: PAPER
+      - text: "Catalog papers: `paper_ids: []` у seed. Нет `/papers/foldingdiff.html`. CODE repos — pointer-only, commits NR."
+        source: MATRIX
+      - text: "Не библиография «всего по теме»: Anand–Achim, ProteinSGM, GeoDiff, GeoMol, RamaNet — только границы класса. Side-chain χ diffusion — inaccessible."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Jing et al. Torsional Diffusion for Molecular Conformer Generation. arXiv:2206.01729."
+    url: "https://arxiv.org/abs/2206.01729"
+    doi: "10.48550/arXiv.2206.01729"
+  - id: 2
+    text: "Wu et al. Protein structure generation via folding diffusion. Nat. Commun. 15, 1059 (2024)."
+    url: "https://doi.org/10.1038/s41467-024-45051-2"
+    doi: "10.1038/s41467-024-45051-2"
+  - id: 3
+    text: "Wu et al. FoldingDiff preprint. arXiv:2209.15611."
+    url: "https://arxiv.org/abs/2209.15611"
+    doi: "10.48550/arXiv.2209.15611"
+  - id: 4
+    text: "Ho, Jain, Abbeel. DDPM. NeurIPS 2020."
+    url: "https://arxiv.org/abs/2006.11239"
+    doi: "10.48550/arXiv.2006.11239"
+  - id: 5
+    text: "Parsons et al. Torsion space to Cartesian (NeRF). J. Comput. Chem. 2005."
+    url: "https://doi.org/10.1002/jcc.20237"
+    doi: "10.1002/jcc.20237"
+  - id: 6
+    text: "Trippe et al. ProtDiff (Cartesian baseline cited by Wu). arXiv:2206.04119."
+    url: "https://arxiv.org/abs/2206.04119"
+    doi: null
+unresolved:
+  - "microsoft/foldingdiff commit SHA and exact NeRF/wrap function symbols"
+  - "gcorso/torsional-diffusion commit SHA; Appendix D layer widths"
+  - "Nature SI Table S1 / Fig. S5 clash counts after vs before relax"
+  - "Согласование wrapped kernel знаменателя 2β_t^2 (HTML) vs стандартного 2β_t / Jing 2σ^2"
+  - "Численные средние bond lengths Å (Fig. S1 qualitative only)"
+  - "FoldingDiff transformer depth/heads; DDPM batch size; GPU wall-clock"
+  - "Protein χ / side-chain torsion diffusion papers unread"
+  - "RamaNet full text (pointer only)"
+  - "CATH random-split structural leakage quantitative"
+  - "Journal NMI-style pagination vs preprint Appendix figure numbers already separated; remaining SI PDF pages"

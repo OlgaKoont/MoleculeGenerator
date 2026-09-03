@@ -1,0 +1,657 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс joint sequence–structure diffusion описан как семейство: один reverse process выдаёт discrete identity и непрерывную геометрию. Прочитаны: Luo et al. NeurIPS 2022 conference PDF (Methods §§3.1–3.4 Eqs. 1–16, Experiments Tables 1–4, §5 limitations); Martinkus et al. AbDiffuser arXiv 2308.05027 HTML (main §§2–5, Appendix B.2–B.3, H, M, N). Код luost26/diffab @c3e2966601bf8025025ab87717b31b08fdd4834e: FullDPM, EpsilonNet, transition.py, GAEncoder, codesign_single.yml. BioRxiv DiffAb 10.1101/2022.07.10.499510 не page-sync с NeurIPS (Cloudflare). AbDiffuser — preprint, не journal; official_repository NR. BoltzGen bioRxiv 10.1101/2025.11.20.689494 Methods unread; HannesStark/boltzgen не инспектировался. Не сливать NeurIPS Tables с AbDiffuser SPR и с catalog YAML BoltzGen."
+lede: "Joint sequence–structure diffusion — **generator** совместного state: один reverse DDPM/D3PM одновременно восстанавливает residue identity и геометрию (Cα+SO(3) или full-atom coords). Это не affinity scorer, не inverse folding при фиксированном $x$ и не staged pipeline frames→MPNN."
+inaccessible:
+  - source: "Luo et al. bioRxiv 10.1101/2022.07.10.499510 full HTML/PDF vs NeurIPS pagination"
+    reason: "В этом проходе читался NeurIPS 2022 conference PDF; bioRxiv отдан Cloudflare. Preprint упоминает curated antibody-like complement — в NeurIPS PDF этого абзаца нет как отдельной секции"
+    workaround: "Train/split/metrics — NeurIPS §§4.1–4.4; не копировать preprint-only claims без locator"
+  - source: "AbDiffuser official GitHub / training code"
+    reason: "Карточка каталога: official_repository null; line-audit невозможен"
+    workaround: "Math и hypers — arXiv HTML §§2–4, Appendices B, H, M; tool-specific commits — NR"
+  - source: "Stark et al. BoltzGen bioRxiv 10.1101/2025.11.20.689494 Methods + SI"
+    reason: "Methods unread (fetch abstract blocked); extra_constraints запрещают уравнивать с DiffAb"
+    workaround: "Строка tools: NR math; роль — catalog architecture_id only"
+  - source: "HannesStark/boltzgen commit SHA and denoiser files"
+    reason: "Репозиторий не инспектировался"
+    workaround: "Не выдумывать T, loss, tensor dims"
+  - source: "AbDiffuser Appendix F (GMRF adjacency estimation) line-by-line"
+    reason: "HTML указывает Appendix F; процедура оценки sparse A не транскрибирована"
+    workaround: "Факт learned covariance prior — §4.2; явная формула A — NR"
+  - source: "DiffAb NeurIPS SI / appendix beyond 9-page PDF"
+    reason: "Conference PDF ends at references; отдельный SI не page-read"
+    workaround: "Все цифры Tables 1–4 из основного PDF; hidden widths GABlock defaults — CODE"
+sources:
+  - kind: PAPER
+    citation: "Luo S. et al. Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models for Protein Structures. NeurIPS 2022"
+    url: "https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf"
+    note: "Conference PDF close-read: Eqs. 1–16, Prop. 1, Tables 1–4; T=100 in Table 4; 19 test complexes; no wet-lab"
+  - kind: PAPER
+    citation: "Martinkus K. et al. AbDiffuser: Full-Atom Generation of in vitro Functioning Antibodies. arXiv:2308.05027"
+    url: "https://ar5iv.labs.arxiv.org/html/2308.05027"
+    doi: "10.48550/arXiv.2308.05027"
+    note: "Preprint HTML: factored pos+res diffusion; APMixer; AHo 2×149; T=1000 App. H; HER2 SPR §5.3; no journal pagination"
+  - kind: CODE
+    citation: "luost26/diffab FullDPM / EpsilonNet / AminoacidCategoricalTransition / GAEncoder"
+    url: "https://github.com/luost26/diffab"
+    note: "commit c3e2966601bf8025025ab87717b31b08fdd4834e; archived/read-only"
+  - kind: DOC
+    citation: "luost26/diffab README design modes"
+    url: "https://github.com/luost26/diffab/blob/c3e2966601bf8025025ab87717b31b08fdd4834e/README.md"
+    note: "codesign_single/multicdrs, abopt, fixbb, strpred; optional HDOCK/PyRosetta"
+  - kind: PAPER
+    citation: "Ho J., Jain A., Abbeel P. Denoising Diffusion Probabilistic Models. NeurIPS 2020"
+    url: "https://arxiv.org/abs/2006.11239"
+    doi: "10.48550/arXiv.2006.11239"
+    note: "Родовой VP-DDPM; цитируется Luo Eq. 5–9"
+  - kind: PAPER
+    citation: "Austin J. et al. Structured Denoising Diffusion Models in Discrete State-Spaces. NeurIPS 2021"
+    url: "https://arxiv.org/abs/2107.03006"
+    note: "D3PM; канон discrete канала AbDiffuser App. B.3, не train target DiffAb multinomial Hoogeboom"
+  - kind: PAPER
+    citation: "Hoogeboom E. et al. Argmax Flows and Multinomial Diffusion. NeurIPS 2021"
+    url: "https://arxiv.org/abs/2102.05379"
+    note: "Цитируется Luo Eq. 1–2 для type channel"
+  - kind: PAPER
+    citation: "Leach A. et al. Denoising diffusion probabilistic models on SO(3). ICLR 2022 Workshop"
+    note: "Цитируется Luo Eq. 10 IGSO(3); не FrameDiff Yim как страница"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id joint-sequence-structure-diffusion"
+    note: "diffab, abdiffuser, boltzgen"
+repo:
+  url: "https://github.com/luost26/diffab"
+  commit: "c3e2966601bf8025025ab87717b31b08fdd4834e"
+  ref: "main (archived); единственный line-audit этого прохода"
+  license: "Apache-2.0 (карточка каталога DiffAb)"
+  files:
+    - diffab/models/diffab.py
+    - diffab/modules/diffusion/dpm_full.py
+    - diffab/modules/diffusion/transition.py
+    - diffab/modules/encoders/ga.py
+    - configs/train/codesign_single.yml
+    - README.md
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **generator** совместного discrete–continuous state. Один Markov reverse process обновляет residue identity и геометрию на каждом шаге $t$. Это не density model только последовательности, не sequential design loop (нет assay-round / UCB), не geometric inductive bias как отдельный класс ([SE(3)-equivariant models](/architectures/se3-equivariant-models.html) — слой внутри denoiser), не scorer аффинности."
+        source: INTERPRETATION
+      - text: "Generated state — пара $(s,g)$: $s$ — категориальные amino-acid tokens; $g$ — непрерывная геометрия. У [DiffAb](/tools/diffab.html) $g=(x,O)$ с $x\\in\\mathbb{R}^{3}$ (Cα) и $O\\in\\mathrm{SO}(3)$ (локальный кадр). У AbDiffuser $g=X^{\\mathrm{pos}}\\in\\mathbb{R}^{n\\times 3}$ (атомы, включая side-chain templates) при $X^{\\mathrm{res}}\\in\\mathbb{R}^{r\\times 21}$. Scored state на шаге $t$ — noisy $(s_t,g_t)$; выход сети — logits / $\\varepsilon$ / $\\hat g_0$, не $K_d$."
+        source: PAPER
+        locator: "Luo §3.1 (s,x,O); Martinkus §2 X^pos, X^res"
+      - text: "Задачи каталога, которые класс закрывает как **joint** generator: [joint CDR sequence–structure](/tasks/joint-cdr-sequence-structure-design.html), [antigen-conditioned antibody](/tasks/antigen-conditioned-antibody-design.html), [joint sequence–structure generation](/tasks/joint-sequence-structure-generation.html) в смысле coupled sampling (не ESM3 MLM), [target-conditioned binder](/tasks/target-conditioned-binder-generation.html) только для [BoltzGen](/tools/boltzgen.html) как карточка — methods **NR**. Workflows: [CDR co-design DiffAb](/workflows/cdr-codesign-diffab.html); [universal all-atom binder](/workflows/universal-all-atom-binder.html) для BoltzGen."
+        source: MATRIX
+        locator: "seed applicable_task_ids; tool task_ids"
+      - text: "Это **не** [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html) как надкласс целиком: там же живут multimodal MLM ([ESM3](/tools/esm3.html)) и sequence-space RF diffusion. Данная страница — **только** диффузионный подтип с факторизованным forward $q(s)q(g)$ и **общим** reverse. Не приписывать ESM3 unmask как DDPM."
+        source: INTERPRETATION
+      - text: "Это **не** [coordinate diffusion](/architectures/coordinate-diffusion.html): там train target — xyz (иногда polymer $\\Sigma$); sequence либо отсутствует, либо ставится **после** backbone. DiffAb имеет Cα Gaussian **канал**, но объект генерации — type+Cα+orientation. Называть DiffAb «только coordinate diffusion» запрещено extra_constraints."
+        source: INTERPRETATION
+      - text: "Это **не** [frame diffusion](/architectures/frame-diffusion.html) и не staged [RFantibody](/tools/rfantibody.html): frames→[ProteinMPNN](/tools/proteinmpnn.html) — два модуля. Здесь sequence tokens шумятся **в том же** reverse, что и геометрия. Это **не** [inverse folding](/architectures/inverse-folding.html): $p(s\\mid x)$ при зажатом $x$ — частный **constrained** режим DiffAb (`fixbb.yml`), не определение класса."
+        source: INTERPRETATION
+      - text: "Это **не** [sequence diffusion](/architectures/sequence-diffusion.html) (токены без 3D в state) и **не** [flow matching](/architectures/flow-matching.html) (interpolant/ODE без DDPM-шума как train target). Не переносить Lipman CFM, UCB, AR NLL, FAPE, MLM $\\Delta\\ell$ на эту страницу."
+        source: INTERPRETATION
+      - text: "Catalog tools с `architecture_id: joint-sequence-structure-diffusion`: [DiffAb](/tools/diffab.html), [AbDiffuser](/tools/abdiffuser.html), [BoltzGen](/tools/boltzgen.html). Часто путают с [dyMEAN](/tools/dymean.html) (iterative GNN, не DDPM), [FlowDesign](/tools/flowdesign.html) (FM), [Chroma](/tools/chroma.html) (coords затем design network), [RFdiffusion](/tools/rfdiffusion.html) (frames, sequence post-hoc). BoltzGen несёт также `coordinate-diffusion` в матрице — methods unread, не считать coords-only и не копировать DiffAb Eqs. 1–13."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Forward process портит **оба** канала: категориальный шум на identity и Gaussian (и, у DiffAb, IGSO(3)) на геометрию. Denoiser видит noisy $(s_t,g_t)$ плюс зажатый context $c$ (antigen + framework, или AHo-aligned full Fv) и предсказывает cleaner posterior. При inference меняется **совместный** state: на каждом шаге обновляются и токены, и coords/frames. Это не «сначала складка, потом IF»."
+        source: INTERPRETATION
+      - text: "Главный эмпирический рычаг **DiffAb** — clamp context $C$: antigen coords и antibody framework не диффундируют; generate mask только на CDR. Без bound complex модель не стартует (кроме HDOCK-инициализации, которая сама docking — **evaluator/external**). Рычаг PAPER: Luo Fig. 2 / §3.1."
+        source: PAPER
+        locator: "Luo §3.1 C vs R; Fig. 2"
+      - text: "Главный рычаг **AbDiffuser** — informative priors на aligned family: AHo numbering ($2\\times 149$), position-specific categorical $Q^{i}$, и GMRF covariance $\\Sigma$ на атомах. Paper явно: Wasserstein bound (Theorem E.1 pointer) — плохой prior увеличивает сложность denoiser. Это PAPER, не UCB."
+        source: PAPER
+        locator: "Martinkus §4; Theorem E.1 pointer"
+      - text: "Второй рычаг AbDiffuser — **projection** на idealized bonds (Kabsch backbone; generic 4-atom side chain) вместо diffusion в torsion space. Ablation «no projection»: RMSD 11.14 Å vs 0.52 Å на pOAS (Table 1) — tool-specific, не класс."
+        source: PAPER
+        locator: "Martinkus §3.4; Table 1 no projection"
+      - text: "DiffAb поддерживает частичный noise: `optimize()` / §4.3 — forward $t$ шагов от native CDR, затем reverse. Это constrained sampling того же DPM, не отдельный affinity head. При $t=T=100$ совпадает с de novo."
+        source: PAPER
+        locator: "Luo §4.3; Table 4 t vs T=100"
+      - text: "Предостережение по метрикам **этого класса**. DiffAb IMP / Rosetta InterfaceAnalyzer $\\Delta G$ — **evaluator**, тот же energy, который RAbD оптимизирует явно; Luo: «RAbD optimizes the Rosetta energy function, which is also used for evaluation». Это не $K_d$, ELISA, BLI. AAR и Cα RMSD к native CDR — recovery/diversity, не binding."
+        source: PAPER
+        locator: "Luo §4.1 metrics; paragraph after Table 1"
+      - text: "AbDiffuser: $W_1(\\Delta G)$ Rosetta, RMSD к IgFold, AntiBERTy naturalness, $p_{\\mathrm{bind}}$ APMixer-классификатора (87.8% accuracy на 3000 test) — in silico. SPR pKD §5.3 — **experiment** на 16 HER2 designs, не выход $\\phi(X_t,t)$. Не переносить 57.1% filtered binders на DiffAb или BoltzGen."
+        source: PAPER
+        locator: "Martinkus §5.1–5.3; classifier 87.8%"
+      - text: "Промежуточный $(s_t,x_t)$ / masked token / embedding **не** физическая траектория фолдинга и не энергия. Side-chain packing / OpenMM AMBER99 / Rosetta relax у DiffAb — **post-hoc**, после $t=0$ (Luo §3.4)."
+        source: PAPER
+        locator: "Luo §3.4 packing + OpenMM"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовая факторизация класса: forward независимо по identity и геометрии, reverse **совместный**. Затем подтипы: (i) DiffAb type+Cα+SO(3); (ii) AbDiffuser full-atom Gaussian + D3PM residues (без отдельного SO(3)-канала); (iii) BoltzGen — NR. Не писать одну «универсальную» формулу с $O\\in\\mathrm{SO}(3)$ на AbDiffuser."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются уравнениями default-инструмента класса и **не** train target страницы: Lipman CFM; FrameDiff IGSO(3) как **единственный** state (здесь SO(3) — канал DiffAb, не вся постановка); UCB; AR NLL; FAPE predictor; MLM $\\Delta\\ell$; ProteinMPNN CE при фиксированном $x$; seed one-liner $p_\\theta(s_{t-1},x_{t-1}\\mid s_t,x_t,c)$ как «уравнение BoltzGen»."
+        source: INTERPRETATION
+      - text: "DiffAb paper Eq. 12 — Frobenius $\\|O_0^{\\top}\\hat O-I\\|_F^{2}$; released CODE использует `cosine_embedding_loss` на столбцах $R$. Не отождествлять без оговорки. Paper §3.3 называет IPA; CODE — `GAEncoder`/`GABlock` (node + pair + spatial point logits). Не утверждать bit-identity с AF2 IPA."
+        source: CODE
+        locator: "dpm_full.py rotation_matrix_cosine_loss; ga.py GABlock"
+      - text: "Не сравнивать DiffAb Table 1 (SAbDab 19 complexes, Rosetta $\\Delta G$), AbDiffuser Table 3 ($p_{\\mathrm{bind}}$ на Mason HER2) и BoltzGen preprint campaigns как один benchmark: generated object, oracle и split разные."
+        source: INTERPRETATION
+    equations:
+      - latex: "q(s_t,g_t\\mid s_0,g_0)=q(s_t\\mid s_0)\\,q(g_t\\mid g_0),\\qquad p_\\theta(s_{t-1},g_{t-1}\\mid s_t,g_t,c)"
+        caption: "Родовая постановка класса: факторизованный forward по identity $s$ и геометрии $g$; reverse — **один** совместный kernel, conditioned on $c$. Generic: не checkpoint DiffAb и не AbDiffuser. $g$ подтип-специфичен (Cα+SO(3) vs atoms)."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        locator: "индуктивно Luo §3.2 три канала; Martinkus §2 два канала"
+        symbols:
+          - {sym: s_t, type: "categorical / one-hot", meaning: "noisy residue types на шаге t"}
+          - {sym: g_t, type: "geometry (подтип)", meaning: "noisy Cα+R или atom coords"}
+          - {sym: c, type: "conditioner", meaning: "clamped context: antigen/framework или aligned Fv; не ELISA tensor"}
+          - {sym: "\\theta", type: "params", meaning: "веса совместного denoiser"}
+        meaning: "Оптимизируется denoising evidence на $(s,g)$. Семплируется совместная траектория. Affinity labels в формулу не входят."
+    sections:
+      - id: math-diffab
+        level: 3
+        title: "Подтип A — type + Cα + SO(3) (DiffAb; Luo; catalog default)"
+        paragraphs:
+          - text: "Amino acid $i$: $s_i\\in\\{A\\ldots Y\\}$, $x_i\\in\\mathbb{R}^{3}$ (Cα), $O_i\\in\\mathrm{SO}(3)$. CDR $R=\\{(s_j,x_j,O_j)\\}_{j=l+1}^{l+m}$; context $C$ — остальные residues комплекса. Цель: $p(R\\mid C)$. Tool-specific [DiffAb](/tools/diffab.html), не уравнение AbDiffuser."
+            source: PAPER
+            locator: "Luo §3.1"
+        equations:
+          - latex: "q(s^t_j\\mid s^{t-1}_j)=\\mathrm{Mult}\\bigl((1-\\beta^t_{\\mathrm{type}})\\,\\mathrm{onehot}(s^{t-1}_j)+\\beta^t_{\\mathrm{type}}\\tfrac{1}{20}\\mathbf{1}\\bigr)"
+            caption: "Forward multinomial на типах (Hoogeboom). Luo Eq. 1. Не Austin $Q$ с AHo-specific prior."
+            generic_or_specific: "DiffAb type channel [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Luo Eq. 1"
+            symbols:
+              - {sym: "\\beta^t_{type}", type: scalar, meaning: "вероятность resample uniform over 20 AA"}
+              - {sym: "s^t_j", type: "AA type", meaning: "тип residue j на шаге t"}
+            meaning: "Зашумляется identity. Train target канала — KL к posterior Eq. 4, не CE affinity."
+          - latex: "q(x^t_j\\mid x^0_j)=\\mathcal{N}\\bigl(\\sqrt{\\bar\\alpha^t_{\\mathrm{pos}}}\\,x^0_j,\\,(1-\\bar\\alpha^t_{\\mathrm{pos}})I\\bigr),\\quad \\mathcal{L}^t_{\\mathrm{pos}}=\\mathbb{E}\\tfrac{1}{m}\\sum_j\\|\\varepsilon_j-G(R^t,C)[j]\\|^2"
+            caption: "VP-Gaussian на нормированных Cα; noise-prediction MSE (Ho). Luo Eqs. 5–9. CODE: position_scale 10 Å."
+            generic_or_specific: "DiffAb position channel [PAPER+CODE]"
+            source: PAPER
+            locator: "Luo Eqs. 5–9"
+            symbols:
+              - {sym: x_j, type: "R^3", meaning: "нормированная Cα"}
+              - {sym: G, type: "NN", meaning: "ε-head; local-frame MLP затем O_j ε̂"}
+              - {sym: m, type: int, meaning: "длина designed CDR"}
+            meaning: "Оптимизируется ε на Cα. Не Chroma polymer Σ."
+          - latex: "q(O^t_j\\mid O^0_j)=\\mathrm{IGSO}(3)\\bigl(\\mathrm{ScaleRot}(\\sqrt{\\bar\\alpha^t_{\\mathrm{ori}}},O^0_j),\\,1-\\bar\\alpha^t_{\\mathrm{ori}}\\bigr)"
+            caption: "Ориентации: isotropic Gaussian on SO(3) (Leach). Luo: «we do not use the term diffusion» строго. Eq. 10. Не FrameDiff как страница."
+            generic_or_specific: "DiffAb orientation [PAPER]"
+            source: PAPER
+            locator: "Luo Eq. 10"
+            symbols:
+              - {sym: O_j, type: "SO(3)", meaning: "локальный кадр residue (side-chain orientation)"}
+              - {sym: "\\mathrm{IGSO}(3)", type: "density on SO(3)", meaning: "isotropic Gaussian on rotations"}
+            meaning: "Семплируется ориентация кадра. Не torsion diffusion."
+          - latex: "\\mathcal{L}=\\mathbb{E}_{t\\sim U\\{1\\ldots T\\}}\\bigl[\\mathcal{L}^t_{\\mathrm{type}}+\\mathcal{L}^t_{\\mathrm{pos}}+\\mathcal{L}^t_{\\mathrm{ori}}\\bigr]"
+            caption: "Сумма KL types (Eq. 4) + ε-MSE pos (Eq. 9) + Frobenius ori (Eq. 12). Luo Eq. 13. CODE weights rot/pos/seq все 1.0. $T=100$ (Table 4; config num_steps). Affinity labels нет."
+            generic_or_specific: "DiffAb train objective [PAPER+CODE]"
+            source: PAPER
+            locator: "Luo Eq. 13; Table 4 T=100"
+            symbols:
+              - {sym: T, type: int, meaning: "число diffusion steps; 100 в paper/config"}
+              - {sym: "\\mathcal{L}_{type}", type: scalar, meaning: "ожидаемый KL multinomial posterior vs F(·)"}
+            meaning: "Оптимизируются три denoising канала. Не IMP/ΔG в loss."
+      - id: math-abdiffuser
+        level: 3
+        title: "Подтип B — full-atom coords + categorical residues (AbDiffuser; не SO(3) DPM)"
+        paragraphs:
+          - text: "Состояние: $X^{\\mathrm{pos}}\\in\\mathbb{R}^{n\\times 3}$ атомы антитела; $X^{\\mathrm{res}}\\in\\mathbb{R}^{r\\times 21}$ one-hot (20 AA + gap). Reverse joint: $(\\hat X_0^{\\mathrm{pos}},\\hat X_0^{\\mathrm{res}})=\\phi(X^{\\mathrm{pos}}_t,X^{\\mathrm{res}}_t,t)$. Equivariance — frame averaging (Puny), не local-frame ε DiffAb. Official code NR."
+            source: PAPER
+            locator: "Martinkus §2; Eqs. 1–2"
+        equations:
+          - latex: "q(X_t\\mid X_{t-1})=q(X^{\\mathrm{pos}}_t\\mid X^{\\mathrm{pos}}_{t-1})\\,q(X^{\\mathrm{res}}_t\\mid X^{\\mathrm{res}}_{t-1})"
+            caption: "Факторизация AbDiffuser: Gaussian атомы × categorical residues. Нет третьего IGSO(3)-канала. Не Luo Eq. 13."
+            generic_or_specific: "AbDiffuser [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Martinkus §2 display eq; App. B.1"
+            symbols:
+              - {sym: "X^{pos}", type: "R^{n×3}", meaning: "атомные координаты (после projection)"}
+              - {sym: "X^{res}", type: "R^{r×21}", meaning: "one-hot типы + gap"}
+            meaning: "Семплируется full-atom Fv (+ optional side chains). Не CDR-only mask DiffAb как определение."
+          - latex: "q(X^{\\mathrm{pos}}_t\\mid X^{\\mathrm{pos}}_0)=\\mathcal{N}(\\alpha_t X^{\\mathrm{pos}}_0,\\,\\sigma_t^2\\Sigma),\\quad \\mathcal{L}_t(X^{\\mathrm{pos}}_0)=\\tfrac12\\,\\mathrm{SNR}(t)\\,\\|\\hat X^{\\mathrm{pos}}_0-X^{\\mathrm{pos}}_0\\|_{\\Sigma^{-1}}^2"
+            caption: "Коррелированный VP с GMRF $\\Sigma$; train — reweighted $x_0$-prediction (App. B.2 Eq. 4), не Ho ε-MSE DiffAb. $T=1000$, cosine-like Hoogeboom (App. H)."
+            generic_or_specific: "AbDiffuser position [PAPER]"
+            source: PAPER
+            locator: "App. B.2 Eq. 4; App. H T=1000"
+            symbols:
+              - {sym: "\\Sigma", type: "cov", meaning: "GMRF covariance; precision L+aI от learned adjacency"}
+              - {sym: "\\mathrm{SNR}(t)", type: scalar, meaning: "(α_t/σ_t)^2"}
+              - {sym: T, type: int, meaning: "1000 denoising steps"}
+            meaning: "Оптимизируется reconstruction атомов в метрике $\\Sigma^{-1}$. Не FAPE."
+          - latex: "q(X^{\\mathrm{res}}_t\\mid X^{\\mathrm{res}}_0)=\\mathrm{Cat}(X^{\\mathrm{res}}_0 Q_t),\\; Q_t=\\beta_t I+(1-\\beta_t)Q^{i},\\quad \\mathcal{L}_t(X^{\\mathrm{res}}_0)=-\\beta_t\\log p_\\theta(X^{\\mathrm{res}}_0\\mid X^{\\mathrm{res}}_t)"
+            caption: "Austin D3PM; $Q^{i}$ — AHo position-specific frequencies (включая gaps). Simplified CE (App. B.3). Не Luo multinomial uniform 1/20 как prior класса."
+            generic_or_specific: "AbDiffuser discrete [PAPER]"
+            source: PAPER
+            locator: "§4.1 Q^i; App. B.3"
+            symbols:
+              - {sym: "Q^i", type: "21-simplex", meaning: "маргиналь типа на AHo-позиции i=1…298"}
+              - {sym: "\\beta_t", type: scalar, meaning: "в loss discrete: α_t^2, тот же schedule что pos"}
+            meaning: "Оптимизируется предсказание чистых типов. Не SPR labels в diffusion loss (классификатор $p_{bind}$ — отдельная сеть §5.2)."
+      - id: math-boltzgen
+        level: 3
+        title: "Подтип C — BoltzGen all-atom family (methods NR)"
+        paragraphs:
+          - text: "Карточка [BoltzGen](/tools/boltzgen.html) несёт этот `architecture_id` и формулировку «all-atom generative diffusion unified with folding». Уравнения noising, $T$, factorization sequence vs coords — **NR**. Не подставлять Luo Eqs. 1–13 и не подставлять AbDiffuser $\\Sigma$/AHo. Не FM, пока Methods не прочитаны."
+            source: NR
+            locator: "extra_constraints; inaccessible BoltzGen Methods"
+    tables:
+      - headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        source: INTERPRETATION
+        rows:
+          - ["Joint seq–struct diffusion (эта страница)", "факторизованный discrete + geometry denoising в одном reverse", "T ancestral steps; clamp context", "DiffAb (канон); AbDiffuser; BoltzGen family (math NR)"]
+          - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "ε / x0 / score на xyz (± polymer Σ)", "DDPM/SDE на точках; sequence отдельно или отсутствует", "Chroma; Cα-канал DiffAb только как канал"]
+          - ["[Frame diffusion](/architectures/frame-diffusion.html)", "score на SE(3) frames", "IGSO(3)+Brownian; sequence post-hoc IF", "RFdiffusion / FrameDiff; не joint tokens"]
+          - ["[Sequence diffusion](/architectures/sequence-diffusion.html)", "D3PM/CE на токенах без 3D state", "T discrete steps; motif clamp", "EvoDiff / HuDiff lineage"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "CE $p(s\\mid x)$ при фиксированном $x$", "AR или masked decoder", "ProteinMPNN; DiffAb fixbb — режим, не класс"]
+          - ["[Flow matching](/architectures/flow-matching.html)", "CFM vector field / interpolant", "ODE integration", "FlowDesign; не DDPM DiffAb"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы DiffAb: residues комплекса (antibody + antigen) после `merge_chains`. Designed vs context — `mask_generate` / `generate_flag`, не отдельный graph. Pair tensor `pair_feat` $(N,L,L,d_{\\mathrm{pair}})$ — полный patch, не kNN как обязательный класс."
+        source: CODE
+        locator: "EpsilonNet.forward pair_feat; codesign_single.yml"
+      - text: "Train config DiffAb: `res_feat_dim: 128`, `pair_feat_dim: 64`, `num_layers: 6`, `num_steps: 100`. Embedding текущей noisy sequence: `nn.Embedding(25, res_feat_dim)` (комментарий: 22 padding). Не выдумывать иные hidden sizes paper (IPA widths в PDF не таблицей)."
+        source: CODE
+        locator: "codesign_single.yml; EpsilonNet.__init__"
+      - text: "Геометрия DiffAb: $v$ SO(3)-vector $(N,L,3)$, $p$ Cα $(N,L,3)$ после `_normalize_position` (mean 0, scale 10 Å), $s$ Long $(N,L)$. Кадры `construct_3d_basis(CA, C, N)` в `encode()`. Time: $t_{\\mathrm{embed}}=(\\beta,\\sin\\beta,\\cos\\beta)$ к residue features."
+        source: CODE
+        locator: "diffab.py encode(); dpm_full.py t_embed"
+      - text: "Внешние файлы vs вход сети: PDB комплекса, Chothia numbering в `chothia_dir`, SAbDab summary TSV — **препроцессинг**. Contig RFdiffusion **нет**. Library CSV / DMS **нет** как вход generator. CDR mask — transform `mask_single_cdr` / `patch_around_anchor`."
+        source: CODE
+        locator: "codesign_single.yml dataset.train"
+      - text: "Paper embeddings: single $e_i$ кодирует types, torsional angles, heavy-atom coords; pairwise $z_{ij}$ — distances и dihedrals (Luo §3.3). Точные dim $e_i$ в PDF — **NR** сверх CODE 128/64."
+        source: PAPER
+        locator: "Luo §3.3 embeddings"
+      - text: "AbDiffuser: фиксированная матрица $X\\in\\mathbb{R}^{r\\times c}$ с $r=2\\times 149$ (heavy+light AHo), $c=21+4\\times 3$ (типы + C,Cα,N,Cβ). Ghost gaps — линейная интерполяция атомов соседних residues. Side-chain path добавляет generic 4-atom template. Размер APMixer $h=1920$, 8 blocks — PAPER App. M.1."
+        source: PAPER
+        locator: "Martinkus §3.2–3.3; App. M.1 h=1920"
+      - text: "AbDiffuser conditioner для SAbDab CDR redesign (App. N): bipartite graph CDR–antigen residues с $C_\\beta$–$C_\\beta\\le 10$ Å, затем one-layer FA-GNN вместо initial MLP. Это tool-specific, не default DiffAb pair IPA-style encoder."
+        source: PAPER
+        locator: "App. N 10 Å Cβ"
+      - text: "Аугментации, меняющие геометрию/токены: DiffAb — random $t$, независимый шум на generate mask; context zero-out при flags `train_structure`/`train_sequence` (CODE forward). Global rotation: сеть должна быть equivariant (Prop. 1), отдельный random-rot augment в просмотренном `FullDPM.forward` **не** виден — NR. AbDiffuser: projection на каждом шаге меняет coords к idealized bonds."
+        source: CODE
+        locator: "FullDPM.forward denoise_structure/sequence flags"
+      - text: "BoltzGen design-specification language / residue masks — pointer catalog YAML, тензорные dims **NR**."
+        source: NR
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $s$ ↔ однобуквенный код аминокислоты (20 типов DiffAb; 20+gap AbDiffuser). $x$ DiffAb ↔ Cα в Å после unnormalize. $O$ ↔ ориентация локального кадра, из которой восстанавливают N,Cα,C,O,Cβ по idealized local coords (Engh & Huber, Luo §3.4). Полные side chains — Rosetta pack **после** генерации, не в DPM state."
+        source: PAPER
+        locator: "Luo §3.4 five atoms then packing"
+      - text: "AbDiffuser $X^{\\mathrm{pos}}$ ↔ атомы в глобальном кадре с projection: backbone RMSE к original $\\sim 5\\cdot 10^{-3}$ Å; C–O distance 1.231 Å; generic side-chain C–C 1.54 Å. Recovery full-atom: dihedrals с template → idealized AA-specific side chain. Это constraining layer, не MD."
+        source: PAPER
+        locator: "Martinkus §3.4"
+      - text: "SE(3): класс **equivariant by construction** на подтипах, но механизм разный. DiffAb Prop. 1: $F$ invariant, $G$ и $H$ equivariant к $(R,r)\\in\\mathrm{SE}(3)$; реализация — $\\hat\\varepsilon_j=O^t_j\\,\\mathrm{MLP}_G(h_j)$ и $R_{\\mathrm{next}}=R U$. AbDiffuser: PCA frames $\\mathcal{F}(X^{\\mathrm{pos}})$, four frames, chirality via right-hand rule (не E(3)). BoltzGen equivariance — **NR**."
+        source: PAPER
+        locator: "Luo Prop. 1 Eqs. 14–16; Martinkus Eqs. 1–2"
+      - text: "Перестановка residues ломает pair indices и AHo позиции; это не permutation-invariant set, а цепь/alignment. Chain concat DiffAb: $N$ — сумма длин цепей комплекса (footnote 3). Global rotation: без equivariant denoiser prior на абсолютных xyz не инвариантен; DiffAb centering+local ε; AbDiffuser frame averaging."
+        source: PAPER
+        locator: "Luo footnote 3; Martinkus §3.1"
+      - text: "Side chains: DiffAb — **отсутствуют** в diffusion state; post-hoc pack. AbDiffuser — **в state** (generic 4 atoms) в варианте «side chains»; backbone-only вариант тоже обучался (Table 1). Не путать с LigandMPNN после RFdiffusion."
+        source: PAPER
+        locator: "Luo §3.4; Martinkus Table 1 side chains row"
+      - text: "Assay label $y$ (SPR pKD, phage) **не** координата state. Mason binder/non-binder used to train **отдельный** APMixer classifier, не $\\phi$ diffusion (кроме того, что generative модель училась только на binders). DiffAb loss не содержит $\\Delta G$."
+        source: PAPER
+        locator: "Martinkus §5.2 train binders only; Luo Eq. 13"
+      - text: "Промежуточный $x_t$ / noisy AA **не** folding trajectory и не энергия. OpenMM AMBER99 refine и Rosetta InterfaceAnalyzer — внешняя физика после генератора."
+        source: PAPER
+        locator: "Luo §3.4 OpenMM; §4.1 InterfaceAnalyzer"
+      - text: "Antigen hotspot как явный epitope tensor: у DiffAb — геометрические edges ко **всем** antigen residues в patch, не отдельный ELISA-conditioned embedding. AbDiffuser pOAS generation — **без** antigen; HER2 — distribution of binders, не co-crystal clamp (кроме App. N)."
+        source: PAPER
+        locator: "Luo §3.1 antigen in C; Martinkus §5.1 pOAS vs §5.2 HER2"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head: ни DiffAb, ни прочитанный AbDiffuser diffusion $\\phi$ не регрессируют $\\Delta G$. Rosetta/Amber — post-hoc evaluators. Запрещено писать, что класс «считает $\\Delta G$»."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "химический тип residue (и gap у AbDiffuser)"
+        encoded: "прямо, 20-way (DiffAb) / 21-way (AbDiffuser)"
+        limitation: "нет partial charge; AHo $Q^i$ — частота, не энергия"
+      - feature: "Backbone / frames / Cα"
+        interpretation: "peptide kinematics; ориентация side-chain stub"
+        encoded: "прямо: Cα+SO(3) (DiffAb) или projected C,Cα,N,Cβ (AbDiffuser)"
+        limitation: "ω-cis и MD не в DPM; idealized bonds"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "стерический context интерфейса"
+        encoded: "прямо как clamped nodes/pairs (DiffAb C); App. N 10 Å graph (AbDiffuser CDR task)"
+        limitation: "не epitope tensor ELISA; HDOCK pose ≠ crystal"
+      - feature: "H-bonds / electrostatics / solvation / entropy"
+        interpretation: "могут коррелировать со статистикой SAbDab/pOAS"
+        encoded: "не представлены явно в loss"
+        limitation: "Rosetta ΔG / packing score — evaluator, не train target"
+      - feature: "Evolutionary statistics"
+        interpretation: "семейные частоты Ig (AHo $Q^i$); SAbDab structural homologs"
+        encoded: "AbDiffuser — прямо как discrete prior; DiffAb — только через данные, uniform 1/20 noise"
+        limitation: "не MSA PLM; не ESM Δℓ"
+      - feature: "Experimental y (SPR / expression)"
+        interpretation: "измеренная функция"
+        encoded: "не в diffusion loss; AbDiffuser §5.3 post-hoc assay; DiffAb нет wet-lab"
+        limitation: "p_bind классификатора ≠ pKD; 16 designs ≠ класс"
+      - feature: "Side-chain rotamers"
+        interpretation: "χ-angles / packing"
+        encoded: "AbDiffuser generic 4-atom + template; DiffAb Rosetta pack post-hoc"
+        limitation: "packing score 0.624 vs 0.666 (Martinkus pOAS) — in silico"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\theta$ совместного denoiser. DiffAb: Residue/Pair embeddings + `GAEncoder` + головы `eps_crd_net`, `eps_rot_net`, `eps_seq_net` и `current_sequence_embedding`. Frozen modules в `FullDPM` нет. Surrogate $\\phi$ affinity **нет**."
+        source: CODE
+        locator: "EpsilonNet; FullDPM"
+      - text: "DiffAb loss: CODE `loss_dict` rot cosine / pos MSE-on-ε / seq KL(`posterior(s_noisy,s_0)` vs `posterior(s_noisy,c_denoised)`). Совпадает по роли с Luo Eqs. 4, 9, 12–13, но ori-метрика в CODE — cosine embedding, не Frobenius Eq. 12. Negative / non-binder / contrastive / affinity labels в loss **нет**."
+        source: CODE
+        locator: "FullDPM.forward loss_rot/pos/seq"
+      - text: "AbDiffuser $\\theta$: APMixer 8 blocks, $h=1920$, 169M params (Table 2). Frame averaging на каждом block. Readout: отдельный MLP позиций (equivariant Eq. 1) и типов (invariant Eq. 2). Projection layer non-parametric. Official weights SHA — NR."
+        source: PAPER
+        locator: "App. M.1; Table 2 169M"
+      - text: "AbDiffuser diffusion loss: SNR-weighted $x_0$ pos (Eq. 4 App. B.2) + $\\beta_t$-weighted CE types (App. B.3). HER2 **classifier** — другая сеть, CE/accuracy на binder vs non-binder, 100 epochs, batch 16; не входит в $\\mathcal{L}$ генератора."
+        source: PAPER
+        locator: "App. M.4 classifier; §5.2 87.8%"
+      - text: "Pretrain vs fine-tune DiffAb: один train на SAbDab-like complexes, 200 000 iters, Adam $10^{-4}$, batch 16 (CODE). Отдельный antigen fine-tune в PDF **не** описан. AbDiffuser: отдельные runs pOAS (50 epochs) vs HER2 binders (600 epochs), ~1.25M steps; не «pretrain PLM»."
+        source: CODE
+        locator: "codesign_single.yml max_iters 200000; Martinkus App. M.3"
+      - text: "BoltzGen $\\theta$ / frozen folding head — **NR**. Не заполнять FAPE как joint diffusion loss."
+        source: NR
+      - text: "Self-conditioning в просмотренном DiffAb `sample()` **нет** (цикл t=T…1 вызывает `eps_net` от текущего noisy state). Teacher forcing AR **нет**. Time-sampling: uniform $t$ (Luo Eq. 13; CODE `randint(0,num_steps)`)."
+        source: CODE
+        locator: "FullDPM.forward t=None randint; sample() loop"
+      - text: "Класс не учит docking score. HDOCK — внешняя программа (README optional). Не путать с train target."
+        source: DOC
+        locator: "README Optional HDOCK"
+      - text: "Fine-tune DiffAb на assay $y$ в primary paper **нет**. AbDiffuser generative train на Mason binders — sequence/structure distribution, не SPR pKD в loss."
+        source: PAPER
+        locator: "Luo §5 no wet-lab; Martinkus §5.2 binders only"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Порядок DiffAb (CODE): encode context embeddings → независимый `add_noise` rot/pos/seq на `mask_generate` → mix noisy $s_t$ в `res_feat` → `GAEncoder(R,p_t,res_feat,pair_feat)` → три MLP головы с $t_{\\mathrm{embed}}$ → `apply_rotation_to_vector(R,eps_crd)` → $R_{\\mathrm{next}}=R U$ из quaternion → categorical posterior. Sequence logits **invariant**; ε позиции **equivariant**."
+        source: CODE
+        locator: "EpsilonNet.forward; FullDPM.forward"
+      - text: "Где появляется sequence vs geometry vs score: sequence — Embedding($s_t$) на каждом шаге и 20-softmax; geometry — $p_t,R_t$ в encoder и heads; score аффинности — **нигде** в сети. Rosetta/OpenMM после `t=0`."
+        source: CODE
+        locator: "eps_seq_net Softmax 20"
+      - text: "Не прятать packing / AF / HDOCK внутрь EpsilonNet. README: HDOCK для antigen-only; PyRosetta relax — optional. Это evaluator / external docking, не generator."
+        source: DOC
+        locator: "README Optional HDOCK / PyRosetta"
+      - text: "AbDiffuser forward (PAPER): projection → embed types+atoms → APMixer row/column MLPs with per-block frame averaging → split equivariant/invariant halves → $x_0$ pos head + type head → projection. Pairwise contacts **implicit** (memory linear). Antigen в pOAS path отсутствует."
+        source: PAPER
+        locator: "§3.3; App. I Algorithms pointer"
+      - text: "AbDiffuser in vitro path: generate → in silico filters (naturalness, RMSD, …) + classifier $p_{\\mathrm{bind}}$ → **experiment** SPR. Классификатор и SPR не модули reverse diffusion."
+        source: PAPER
+        locator: "§5.3 Fig. 2 raw vs filtered"
+      - text: "BoltzGen: catalog «unified folding/ranking» — **evaluator** внутри карточки; отделять от unread generator. Не рисовать AF2 внутрь DiffAb."
+        source: MATRIX
+      - text: "DiffAb `optimize()`: сначала `add_noise` на `opt_step`, затем denoise вниз до 0 — тот же `eps_net`, не второй моделью."
+        source: CODE
+        locator: "FullDPM.optimize"
+      - text: "IPA в paper vs GAEncoder в CODE: оба orientation-aware attention на frames; bit-level совпадение с Jumper IPA **NR**. Не называть слой «AlphaFold2»."
+        source: INTERPRETATION
+        locator: "Luo §3.3 IPA; ga.py GABlock"
+    mermaid: |
+      flowchart TD
+        PDB["PDB complex / AHo Fv / design spec"] --> CTX["Clamped context c — not generated"]
+        CTX --> EMB["Residue/pair or APMixer embed"]
+        PRI["Prior: uniform 20 / AHo Q^i / GMRF Σ / NR BoltzGen"] --> NOISE["Forward: noisy s_t and g_t"]
+        NOISE --> DEN["Joint denoiser θ"]
+        EMB --> DEN
+        DEN --> SEQ["Sequence posterior / type head — generator"]
+        DEN --> GEO["ε or x0 geometry head — generator"]
+        SEQ --> STEP["Transition t-1"]
+        GEO --> STEP
+        STEP --> DEN
+        STEP --> PACK["Pack / OpenMM / IgFold / Rosetta ΔG — evaluator"]
+        PACK --> FILT["Optional p_bind classifier — evaluator"]
+        FILT --> ASSAY["SPR / expression — experiment"]
+        HD["HDOCK pose — docking, not neural reverse"] --> CTX
+        subgraph gen ["Generator"]
+          DEN
+          SEQ
+          GEO
+          STEP
+        end
+        subgraph ev ["Evaluator / external"]
+          PACK
+          FILT
+          HD
+        end
+        subgraph ex ["Experiment"]
+          ASSAY
+        end
+    mermaid_caption: "Оригинальная схема класса по Luo §§3.2–3.4 и Martinkus §§2–5, не копия Fig. 3. Generator, evaluator и experiment разведены. BoltzGen internals NR."
+    mermaid_source: "Luo Fig. 3 prose; FullDPM.sample; Martinkus §2 factorization; §5.3 assay"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого split класса нет. Не выводить split BoltzGen из README. DiffAb и AbDiffuser — разные корпуса и oracles."
+        source: INTERPRETATION
+      - text: "DiffAb: SAbDab [Dunbar 2014]. Фильтры: resolution хуже 4 Å удалены; non-protein antigens discarded. Кластеризация по CDR-H3 identity 50%. Test: **вручную** пять кластеров, 19 antibody–antigen complexes (SARS-CoV-2, MERS, influenza, …). Остальные кластеры — train. Число train structures в PDF — **NR**."
+        source: PAPER
+        locator: "Luo §4.1 dataset paragraph"
+      - text: "Leakage: clustering только по H3; Luo §4.2 сам отмечает, что другие CDRs test set могли встречаться в train («we believe this is not an issue as CDRs other than H3 are generally conserved»). Не аудировать структурные homologs здесь."
+        source: PAPER
+        locator: "Luo §4.2 Admittedly clustering"
+      - text: "CODE train: dataset type `sabdab`, `mask_single_cdr`, `merge_chains`, `patch_around_anchor`; 200 000 iters; batch 16; Adam 1e-4; seed 2022. Val: `mask_single_cdr` selection CDR3. Соотношение paper 19-complex test vs processed `split: train/val` files — точные counts processed — **NR** без повторного подсчёта данных."
+        source: CODE
+        locator: "codesign_single.yml"
+      - text: "Симуляция vs wet-lab DiffAb: IMP/RMSD/AAR после OpenMM+Rosetta — **in silico**. Prospective wet-lab в NeurIPS **нет** (§5: «unclear whether generated antibodies can be produced… and actually binds»)."
+        source: PAPER
+        locator: "Luo §5"
+      - text: "AbDiffuser pOAS: 105k paired OAS folded IgFold + Rosetta; split 1000 test + 1000 val. Metrics $W_1$ к test (n=1000 generated). Это distribution matching, не binding assay."
+        source: PAPER
+        locator: "Martinkus §5.1 105k; App. M.3 split"
+      - text: "AbDiffuser HER2: Mason et al. 2021 Trastuzumab CDR-H3; after dedup 9k binders + 25k non-binders; generator **только binders**; 1000 test / 100 val for generative metrics. Classifier split: 3000 test / 1000 val. High-throughput assay noisy — PAPER; не SPR train labels."
+        source: PAPER
+        locator: "§5.2 9k/25k; App. M.3–M.4"
+      - text: "AbDiffuser App. N: split Luo et al. 2022 SAbDab; >50% CDR-H3 identity removed from train; 19 test structures; 100 samples; all CDRs at once (не single-CDR DiffAb *). Не смешивать Table 9 AAR с Luo Table 1 как один протокол."
+        source: PAPER
+        locator: "App. N; Table 9 footnote *"
+      - text: "BoltzGen train corpus / split — **NR**. Не выводить из catalog evidence_level."
+        source: NR
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт DiffAb: на `mask_generate` — $s^T\\sim\\mathrm{Uniform}(20)$, $x^T\\sim\\mathcal{N}(0,I_3)$ в нормированных coords, $O^T\\sim\\mathrm{Uniform}(\\mathrm{SO}(3))$; context clamped. CODE: `random_uniform_so3`, `torch.randn_like(p)`, `randint(0,19)`."
+        source: PAPER
+        locator: "Luo §3.4 Sampling; dpm_full.py sample()"
+      - text: "Алгоритм: ancestral reverse $t=T\\ldots 1$, $T=100$. Не ODE Chroma, не beam LM, не AF recycle. Temperature softmax / top-k в `FullDPM.sample` **не** видны. `trans_pos.denoise` добавляет $\\sigma z$ для $t>1$ (CODE)."
+        source: CODE
+        locator: "sample() range(num_steps,0,-1); PositionTransition.denoise"
+      - text: "Режимы README (tool-specific): `codesign_single` / `codesign_multicdrs`; `abopt_singlecdr` (optimize); `fixbb` (только sequence); `strpred` (только structure). Длина CDR в §4.1 фиксируется равной native «for simplicity»; на практике «enumerate different lengths» — без численного протокола в PDF."
+        source: DOC
+        locator: "README 5 design modes; Luo §4.1 length"
+      - text: "Post-hoc DiffAb: idealized N,Cα,C,O,Cβ → Rosetta side-chain packing → OpenMM AMBER99 refine. **Evaluator/relax**, не EpsilonNet. HDOCK — старт для §4.4, не neural generator."
+        source: PAPER
+        locator: "Luo §3.4; §4.4 HDOCK"
+      - text: "AbDiffuser: $T=1000$; cosine-like $\\alpha_t$ App. H; Gaussian temperature $\\tau$ масштабирует variance reverse (App. B.2); discrete $\\tau$ — softmax temperature (App. B.3). Table 3: $\\tau=0.75$ и $0.01$ — uniqueness 100% → 91.4% (side-chain $\\tau=0.01$). Не default DiffAb."
+        source: PAPER
+        locator: "App. H; Table 3 τ rows"
+      - text: "AbDiffuser не требует CDR length a priori: gaps в AHo позволяют variable length. DiffAb задаёт $m$."
+        source: PAPER
+        locator: "Martinkus §3.2; Luo §3.1 m"
+      - text: "Чего в классе нет как канон: beam search; AlphaFold recycle; ELISA-in-the-loop; classifier-free affinity guidance (не заявлено в Luo/Martinkus main methods). AbDiffuser CFG — **NR**."
+        source: NR
+      - text: "BoltzGen sampler (ODE vs DDPM, T, top-k) — **NR**. Catalog sampling_procedure null."
+        source: NR
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "DiffAb зажимает: framework sequence и geometry, antigen coords/types/orientations, CDR length $m$, generate mask. Не зажимает ELISA / measured_var / CATH label как tensor. Classifier-free guidance в PDF **не** описан."
+        source: PAPER
+        locator: "Luo §3.1 C; §3.4 constrained sampling"
+      - text: "CODE: `mask_generate` vs context; `sample_structure`/`sample_sequence` flags для fixbb/strpred. `encode()` строит `context_mask = mask_heavyatom CA ∧ ¬generate_flag` и при `remove_structure`/`remove_sequence` передаёт его как `structure_mask`/`sequence_mask` в embeddings (комментарий: avoid data leakage). Это не classifier-free guidance."
+        source: CODE
+        locator: "diffab.py encode(); forward train_structure/train_sequence"
+      - text: "AbDiffuser pOAS: essentially unconditional on antigen; conditioner — AHo slots + chain type embedding + $t$. Length changes через gaps, не contig RFdiffusion."
+        source: PAPER
+        locator: "§3.2; App. M embeddings"
+      - text: "AbDiffuser HER2: train distribution = Mason binders (CDR-H3 mutants of Trastuzumab); не crystal HER2 clamp в generative $c$ §5.2. $p_{\\mathrm{bind}}$ — отдельный classifier, не guidance в reverse по умолчанию (temperature $\\tau$ — mode-covering, не classifier guidance Dhariwal)."
+        source: PAPER
+        locator: "§5.2; App. B.2 τ"
+      - text: "App. N: antigen residues $\\le 10$ Å $C_\\beta$; FA-GNN prefix. Epitope tensor как learned binding label — **нет**."
+        source: PAPER
+        locator: "App. N"
+      - text: "Чего нет у класса как default: hotspot residue IDs RFantibody; library $\\mathcal{X}$ EVOLVEpro; function keywords ESM3; ligand all-atom clamp RFdiffusion-AA (другой класс)."
+        source: INTERPRETATION
+      - text: "BoltzGen: catalog «residue/chain masks, modality, target context, geometry» — pointer; не расписывать как DiffAb $C$."
+        source: MATRIX
+      - text: "HDOCK-conditioned DiffAb §4.4: conditioner = **docked** template (3qhf Fv × 7wvn RBD) — ошибка dock входит в $c$. Это не crystal $C$ §4.1."
+        source: PAPER
+        locator: "Luo §4.4 PDB 7wvn / 3qhf"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы класса: $T$ reverse steps; число designed residues $m$ (CDR) или $r=298$ AHo slots; размер context $N$ (Ab+Ag patch); pair $O(L^{2})$ у DiffAb `GAEncoder`; число samples (100 в Luo §4.1); assay latency **не** часть neural reverse."
+        source: INTERPRETATION
+      - text: "DiffAb CODE: $T=100$; pair $(L,L)$ на patch; 6 GABlocks; 100 samples/CDR в paper. Wall-clock / GPU train — **NR** в NeurIPS PDF."
+        source: CODE
+        locator: "num_steps 100; Luo §4.1 100 samples"
+      - text: "AbDiffuser Table 2 (A100 80GB, **их** постановка pOAS, batch gen 10): 169M params; train mem 12GB vs EGNN 78GB; gen mem 3GB; 2.3 min / batch of 10 vs EGNN 22.6 min. Это сравнение архитектур внутри paper, **не** NFE vs DiffAb $T=100$. Не писать «дешевле DiffAb» как факт класса."
+        source: PAPER
+        locator: "Table 2"
+      - text: "Memory APMixer: linear in residues (implicit pairs) vs quadratic EGNN/FA-GNN — PAPER §3.3. Не переносить на DiffAb GAEncoder."
+        source: PAPER
+        locator: "§3.3 memory linear"
+      - text: "AbDiffuser $T=1000$ vs DiffAb $T=100$: разные NFE; paper не даёт head-to-head wall-clock на одном GPU. INTERPRETATION: больше шагов ≠ обязательно дороже, если дешевле слой — без общего бенчмарка не утверждать."
+        source: INTERPRETATION
+      - text: "BoltzGen T / NFE / VRAM — **NR**. Не копировать Table 2 AbDiffuser."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: sequence и geometry согласованы **на траектории**, а не склеены post-hoc IF. Следует из совместного $p_\\theta(s_{t-1},g_{t-1}\\mid s_t,g_t,c)$, не из маркетинга «atomic-resolution» без оговорки packing."
+        source: INTERPRETATION
+      - text: "DiffAb: явный antigen 3D в $C$ — Luo contribution list. AAR H1 65.75% vs RAbD 22.85%; H3 26.78% vs 22.14% (Table 1). Это retrospective recovery на 19 complexes, не терапевтический generator. Не обобщать на все антигены."
+        source: PAPER
+        locator: "Luo Table 1 H1/H3 AAR"
+      - text: "Luo: IMP H3 наравне с RAbD (23.63% vs 23.25%), при том что RAbD оптимизирует тот же Rosetta $\\Delta G$, которым считают IMP. Это аргумент «без energy в loss», не $K_d$."
+        source: PAPER
+        locator: "Table 1 IMP H3; text after table"
+      - text: "Один DPM покрывает co-design, fixbb и optimization (§3.4, README 5 modes) за счёт clamp каналов — механизм constrained reverse, не пять сетей."
+        source: PAPER
+        locator: "Luo §3.4; README modes"
+      - text: "AbDiffuser: side chains в генераторе; Table 1 packing 0.624 vs 0.666 optimized; pOAS RMSD 0.4962 vs IgFold individual 0.4239. In silico distribution match, не SPR."
+        source: PAPER
+        locator: "§5.1 packing; RMSD 0.4962"
+      - text: "AbDiffuser §5.3: 16 submitted, 100% expression (avg 1.25 mg/ml); 37.5% binders pKD $\\in[8.32,9.50]$ mean 8.70; filtered 57.1% vs raw 22.2%; tightest pKD 9.50 vs Trastuzumab 9.21. Это **одна** HER2 кампания preprint, не гарантия класса и не DiffAb."
+        source: PAPER
+        locator: "§5.3; Fig. 2"
+      - text: "APMixer масштабирует параметры при меньшем memory (Table 2) — следует из implicit pairs + alignment, не из joint diffusion per se."
+        source: PAPER
+        locator: "Table 2; §3.3"
+      - text: "Явно: ни AAR, ни Rosetta $\\Delta G$, ни pKD одной кампании не есть гарантия стабильности / аффинности / экспрессии на новом антигене. Luo §5 это формулирует как limitation."
+        source: PAPER
+        locator: "Luo §5"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: факторизация $q(s)q(g)$ игнорирует зависимость каналов в **forward**; вся coupling на $\\theta$. Ori-канал DiffAb «не строго DDPM» (Luo). Posterior CODE `AminoacidCategoricalTransition.posterior` использует `alpha_bars[t]` дважды — реализация может расходиться с Hoogeboom posterior; не «исправлять» формулой paper без proof."
+        source: CODE
+        locator: "transition.py posterior(); Luo §3.2 ori caveat"
+      - text: "Представление: DiffAb CDR length $m$ задаётся; full-atom side chains не в state. AbDiffuser привязан к AHo/antibody family; ghost interpolation — артефакт alignment. Не CATH-универсальный генератор (future work §6)."
+        source: PAPER
+        locator: "Luo §4.1 length; Martinkus §6 CATH/Pfam"
+      - text: "Физика/химия: нет electrostatics/solvation в loss. Idealized bonds ≠ solution ensemble. Rosetta $\\Delta G$ чувствителен к мелкой геометрии (Martinkus цитирует Raybould 2019)."
+        source: PAPER
+        locator: "Martinkus §5.1 ΔG caveat"
+      - text: "Данные/bias: SAbDab solved complexes и protein antigens only; 50% H3 cluster; 19-complex test. pOAS folded IgFold — structures не crystals. Mason library — noisy HT assay, один CDR-H3 scaffold Trastuzumab."
+        source: PAPER
+        locator: "Luo §4.1; Martinkus §5.1–5.2"
+      - text: "Обобщение: DiffAb нужен bound (или docked) framework. AbDiffuser HER2 — expansion known-binder distribution, не de novo epitope. BoltzGen modality evidence — unread Methods, не переносить."
+        source: PAPER
+        locator: "Luo §5 bound framework limitation"
+      - text: "Deployment: DiffAb repo archived/read-only; AbDiffuser public turnkey NR; BoltzGen preprint. Не production therapeutic generator."
+        source: MATRIX
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Неверный `generate_flag`: диффундирует framework → leakage; слишком узкая маска → не co-design."
+      - "HDOCK/unbound pose как $C$: ошибка dock входит в conditioner (Luo §4.4); пользователь принимает docked ΔG за crystal protocol Table 1."
+      - "Подмена метрики: Rosetta IMP / $W_1(\\Delta G)$ / $p_{\\mathrm{bind}}$ / ipLDDT принимаются за $K_d$."
+      - "Truncation sampler: мало $t$ в optimize (Table 4 t=1 IMP 18.52%) или обрыв T без paper schedule."
+      - "Смешение протоколов: AbDiffuser Table 9 (all CDRs) vs Luo Table 1 (one CDR, * baselines) как «победа над DiffAb» без footnote."
+      - "Temperature collapse: AbDiffuser $\\tau=0.01$ uniqueness 91.4% (Table 3 s.c.) — exploitation, не diversity."
+      - "AHo misspecification / wrong numbering: gaps и $Q^i$ ломают prior."
+      - "Distribution shift: новый антиген вне 19-complex / не HER2; DiffAb AAR H3 26.78% уже слаб на in-distribution H3."
+      - "Broken equivariance: отключить local-frame ε или frame averaging (AbDiffuser no projection RMSD 11 Å)."
+      - "Library misspecification: учить AbDiffuser на binders+non-binders вместе (paper учил только binders) — не проверено, не выдумывать исход."
+      - "BoltzGen unified rank как independent validation (catalog failure_points)."
+      - "fixbb mode путают с ProteinMPNN: тот же DPM, но зажатый $g$; не IF paper Hsu."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Полный reverse index `architecture_id`. Неравные объекты (Rosetta ΔG vs SPR pKD vs unread BoltzGen) не ставить в одну колонку «успех»."
+        source: MATRIX
+    tables:
+      - headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        source: INTERPRETATION
+        rows:
+          - ["[DiffAb](/tools/diffab.html)", "joint type+geometry DPM, clamp context", "Luo Eqs. 1–13; CODE FullDPM T=100, pos/10 Å, GAEncoder 6×, SAbDab 19-complex test, no wet-lab; commit `c3e2966601bf8025025ab87717b31b08fdd4834e`", "Канон класса в каталоге; Cα+SO(3)+20 AA; packing post-hoc"]
+          - ["[AbDiffuser](/tools/abdiffuser.html)", "тот же класс: один reverse pos+res", "arXiv 2308.05027: APMixer, AHo 2×149, GMRF Σ, T=1000, projection; HER2 SPR 16 designs; official repo **NR**", "Нет отдельного IGSO(3)-канала; full-atom; не копировать Luo Eq. 13"]
+          - ["[BoltzGen](/tools/boltzgen.html)", "матрица: joint seq–struct diffusion family", "Methods **NR**; не подставлять DiffAb/AbDiffuser уравнения; MIT code pointer без SHA audit", "Не уравнивать с DiffAb; folding/ranking — evaluator в карточке"]
+      - headers: ["Метод вне карточек tools", "Зачем указан", "Не делать"]
+        source: PAPER
+        rows:
+          - ["Hoogeboom multinomial / Austin D3PM", "родовые discrete kernels каналов", "не catalog tools"]
+          - ["Leach IGSO(3)", "ориентации DiffAb Eq. 10", "не страница FrameDiff"]
+          - ["Anand & Achim 2022 (concurrent protein DDPM)", "Luo Related Work", "не карточка; не antibody co-design"]
+          - ["RAbD / RefineGNN / MEAN / dyMEAN", "baselines Luo/Martinkus", "dyMEAN в каталоге — другой architecture class (GNN), не этот id"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо, когда нужен **совместный** CDR (или Fv) sequence+geometry при наличии structural context: workflow [cdr-codesign-diffab](/workflows/cdr-codesign-diffab.html), задачи [joint-cdr-sequence-structure-design](/tasks/joint-cdr-sequence-structure-design.html), [antigen-conditioned-antibody-design](/tasks/antigen-conditioned-antibody-design.html). AbDiffuser — когда есть aligned antibody family / binder set (pOAS, Mason-like), не как DiffAb antigen-IPA default."
+        source: MATRIX
+      - text: "BoltzGen workflow [universal-all-atom-binder](/workflows/universal-all-atom-binder.html) и [target-conditioned-binder-generation](/tasks/target-conditioned-binder-generation.html) / [de-novo-vhh](/tasks/de-novo-vhh-nanobody-design.html) — по матрице; внутренности unread."
+        source: MATRIX
+      - text: "Этим классом **нельзя** заменять: few-shot ELISA loop ([active learning](/architectures/active-learning.html) / [few-shot mutation](/architectures/few-shot-mutation-optimization.html)); zero-shot $\\Delta\\ell$ ([ESM-1v](/tools/esm-1v-efficient-evolution.html)); de novo miniprotein без Ab framework ([frame diffusion](/architectures/frame-diffusion.html)+IF, [RFdiffusion](/tools/rfdiffusion.html)); developability как первичная задача; IF при уже готовом backbone, если нужен дешёвый $p(s\\mid x)$ ([ProteinMPNN](/tools/proteinmpnn.html)), кроме осознанного DiffAb fixbb."
+        source: INTERPRETATION
+      - text: "Не использовать DiffAb energy ranking как prospective affinity campaign. Для открытого de novo antibody pipeline каталог указывает [RFantibody](/tools/rfantibody.html), не DiffAb (task selection_guidance)."
+        source: MATRIX
+        locator: "joint-cdr-sequence-structure-design selection_guidance"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational: Luo et al. NeurIPS 2022 (прочитан conference PDF). Ho 2020 VP-DDPM; Hoogeboom 2021 multinomial; Austin 2021 D3PM; Leach 2022 SO(3); Jumper IPA (назван в §3.3, не close-read AF2). Catalog papers: [paper-diffab](/papers/paper-diffab.html), [paper-abdiffuser](/papers/paper-abdiffuser.html), [paper-boltzgen](/papers/paper-boltzgen.html) (pointer-only Methods)."
+        source: PAPER
+      - text: "Прочитано vs pointer-only: NeurIPS DiffAb — methods+tables; AbDiffuser HTML main+key appendices B, H, M, N; CODE DiffAb listed files. Pointer-only: BoltzGen Methods, AbDiffuser Appendix F line-level, DiffAb bioRxiv sync, AbDiffuser weights repo."
+        source: INTERPRETATION
+      - text: "Не библиография «всего по antibody diffusion»: Force-guided DiffAb, RADAb, energy-based preference — соседние работы, не определения класса. Не блоги ProteinIQ/Tamarind как primary."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Luo S., Su Y., Peng X., Wang S., Peng J., Ma J. Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models for Protein Structures. NeurIPS 2022."
+    url: "https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf"
+  - id: 2
+    text: "Martinkus K. et al. AbDiffuser: Full-Atom Generation of in vitro Functioning Antibodies. arXiv:2308.05027."
+    url: "https://arxiv.org/abs/2308.05027"
+    doi: "10.48550/arXiv.2308.05027"
+  - id: 3
+    text: "luost26/diffab commit c3e2966601bf8025025ab87717b31b08fdd4834e (FullDPM, transition.py, GAEncoder, codesign_single.yml)."
+    url: "https://github.com/luost26/diffab"
+  - id: 4
+    text: "Ho J., Jain A., Abbeel P. Denoising Diffusion Probabilistic Models. NeurIPS 2020."
+    url: "https://arxiv.org/abs/2006.11239"
+  - id: 5
+    text: "Hoogeboom E. et al. Argmax Flows and Multinomial Diffusion. NeurIPS 2021. (Luo type channel.)"
+    url: "https://arxiv.org/abs/2102.05379"
+  - id: 6
+    text: "Austin J. et al. Structured Denoising Diffusion Models in Discrete State-Spaces. NeurIPS 2021. (AbDiffuser App. B.3.)"
+    url: "https://arxiv.org/abs/2107.03006"
+  - id: 7
+    text: "Leach A. et al. Denoising diffusion probabilistic models on SO(3). ICLR 2022 Workshop. (Luo Eq. 10.)"
+  - id: 8
+    text: "Dunbar J. et al. SAbDab. Nucleic Acids Res. 2014. (Luo train source.)"
+  - id: 9
+    text: "Mason D.M. et al. Optimization of therapeutic antibodies by predicting antigen specificity from antibody sequence via deep learning. Nat. Biomed. Eng. 2021. (AbDiffuser HER2 set.)"
+  - id: 10
+    text: "Stark H. et al. BoltzGen. bioRxiv 10.1101/2025.11.20.689494. Methods unread this pass."
+    url: "https://www.biorxiv.org/content/10.1101/2025.11.20.689494"
+    doi: "10.1101/2025.11.20.689494"
+unresolved:
+  - "BoltzGen Methods: factorization sequence vs coords, T/NFE, loss, split — NR"
+  - "AbDiffuser official repository / commit SHA / exact training scripts — NR"
+  - "DiffAb bioRxiv-only antibody-like complement corpus vs NeurIPS §4.1 SAbDab — не page-sync"
+  - "GAEncoder vs Jumper IPA: bit-identity weights/formulas — NR"
+  - "AminoacidCategoricalTransition.posterior uses alpha_bars twice; соответствие Luo Eq. 4 posterior — не доказано"
+  - "Точное число train SAbDab structures после фильтров Luo — NR в PDF"
+  - "AbDiffuser Appendix F learned adjacency A — не транскрибирован"
+  - "HannesStark/boltzgen file locators — NR"
+  - "Wall-clock DiffAb sampling на заявленном GPU — NR"

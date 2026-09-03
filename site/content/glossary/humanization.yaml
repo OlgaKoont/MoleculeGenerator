@@ -1,0 +1,8 @@
+id: humanization
+slug: humanization
+term: Humanization
+term_ru: Гуманизация
+definition: Перенос non-human CDRs на human-like framework. Humanness ≠ immunogenicity.
+related_ids:
+- framework
+- developability

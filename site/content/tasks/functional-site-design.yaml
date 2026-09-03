@@ -1,0 +1,48 @@
+id: functional-site-design
+slug: functional-site-design
+name: Дизайн функционального сайта
+group: Общий белковый дизайн
+definition: Генерация или redesign сайта (active site, ligand pocket, functional motif).
+objective: Совместить geometry сайта с sequence, совместимой с функцией.
+starting_inputs:
+- ligand/metal coordinates
+- pocket backbone
+- functional constraints
+generated_objects:
+- pocket sequence and/or surrounding backbone
+generator_classes:
+- inverse-folding
+- backbone-structure-generator
+- joint-sequence-structure
+strategies:
+- name: Atomic-context inverse folding
+  generates: Pocket sequence + side chains
+  representation: Protein graph + non-protein atoms
+  examples:
+  - ligandmpnn
+  limitation: Нужны credible backbone и ligand pose
+  sampling: Masked/autoregressive sequence
+  novel_topology: Нет
+  integrated_scoring: Conditional probability
+  complexity_drivers: Pocket size + ligand atoms
+consequences:
+- decision: Ligand pose as given
+  consequence: Ошибка позы почти гарантирует неверный дизайн.
+compute_consequences:
+- После generation обязательны pose/function assays.
+evidence_summary: LigandMPNN и RFdiffusionAA имеют experimental campaigns, но не antibody-specific.
+incomparable:
+- Enzyme pocket design ≠ antibody CDR design.
+selection_guidance:
+- Есть pose — LigandMPNN.
+- Нужно разместить backbone вокруг лиганда — RFdiffusionAA.
+architecture_ids:
+- inverse-folding
+- coordinate-diffusion
+workflow_ids:
+- fixed-backbone-inverse-folding
+paper_ids: []
+glossary_ids:
+- conditioning
+- backbone
+downstream: false

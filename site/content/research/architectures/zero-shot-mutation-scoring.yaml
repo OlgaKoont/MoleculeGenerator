@@ -1,0 +1,141 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Ранжирование substitutions без новых experimental labels по pretrained LM или IF likelihood.
+  - type: p
+    text: Evaluator / ranker, слабо generator (top-k list). Не AL. Не de novo.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: «Насколько мутация естественна» для модели. Естественность ≠ лучший Kd.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: \Delta \ell(i,a)=\log p(s_i=a\mid c)-\log p(s_i=s_i^{\mathrm{wt}}\mid c)
+    caption: \(c\) — sequence context or backbone. High \(\Delta\ell\) is not predicted affinity.
+    source: '[PAPER] Meier ESM-1v; Hie structural evolution / IF scoring'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - parent sequence
+    - optional backbone
+    - 19 substitutions × sites
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Identity change at a site. No complex ΔG.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - ΔLL
+      - evolutionary or fold statistical preference
+      - implicit
+      - misses assay-specific binding
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: Usually none task-specific.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - enumerate mutants
+    - score
+    - wet-lab optional
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: Pretrain only.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Forward passes / AR teacher forcing scores.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Parent, mask site.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: Sites × 19.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Нет labels.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Не epistasis.
+    - Не calibrated Kd.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Rank conservation over function.
+    - Interface-disrupting 'natural' AA.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - ESM-1v efficient evolution
+      - masked PLM ΔLL
+      - Hie et al.
+      - zero-shot
+    - - Structural evolution ESM-IF1
+      - IF ΔLL
+      - backbone-conditioned
+      - needs structure
+    - - AntiFold zero-shot tables
+      - IF logits
+      - retrospective Spearman 0.42
+      - not wet-lab
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Shortlist single mutants. Есть labels — <a href="/architectures/active-learning.html">AL</a>.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Hie et al., Efficient evolution / ESM-1v scoring
+      url: https://doi.org/10.1038/s41587-023-01763-2
+    - text: Meier ESM-1v
+      url: https://doi.org/10.1101/2021.07.09.450648

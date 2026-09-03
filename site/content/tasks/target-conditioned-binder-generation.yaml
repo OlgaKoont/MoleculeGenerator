@@ -1,0 +1,65 @@
+id: target-conditioned-binder-generation
+slug: target-conditioned-binder-generation
+name: Target-conditioned binder generation
+group: Общий белковый дизайн
+definition: Генерация binder'а к заданному target surface / epitope.
+objective: Получить sequence/structure binder'а, complementary к выбранному epitope.
+starting_inputs:
+- target structure
+- hotspots/epitope
+- optional format constraints
+generated_objects:
+- binder sequence and/or complex geometry
+generator_classes:
+- target-conditioned-binder
+strategies:
+- name: Backbone diffusion + inverse folding + complex filter
+  generates: Binder backbone then sequence
+  representation: SE(3) frames + sequence tokens
+  examples:
+  - rfdiffusion
+  - rfantibody
+  limitation: Hotspot specification сильно влияет на outcome
+  sampling: Diffusion then MPNN
+  novel_topology: Да для miniproteins; ограничено для antibody frameworks
+  integrated_scoring: Complex predictor
+  complexity_drivers: Trajectories × MPNN samples × predictor recycles
+- name: Differentiable structure hallucination
+  generates: Binder sequence–complex
+  representation: AF2-optimized sequence/structure
+  examples:
+  - bindcraft
+  limitation: AF2 bias; не antibody generator
+  sampling: Gradient-based optimization + filters
+  novel_topology: Да, в пределах AF2-designable folds
+  integrated_scoring: AF2 confidence + Rosetta
+  complexity_drivers: Optimization steps + MPNN redesign
+consequences:
+- decision: Target truncation
+  consequence: Можно потерять long-range context.
+- decision: Integrated complex predictor
+  consequence: Увеличивает cost, но даёт in-loop filtering.
+compute_consequences:
+- GPU-days возможны на кампанию.
+- Antibody и miniprotein pipelines несопоставимы по hit rate.
+evidence_summary: BindCraft/RFdiffusion — general binders; RFantibody/tFold — antibody-specific.
+incomparable:
+- General binder ≠ antibody.
+- Internal interface confidence ≠ measured Kd.
+selection_guidance:
+- Non-antibody miniprotein — BindCraft.
+- VHH/scFv de novo — RFantibody.
+- Universal all-atom, preprint — BoltzGen.
+architecture_ids:
+- frame-diffusion
+- inverse-folding
+- joint-sequence-structure-diffusion
+workflow_ids:
+- miniprotein-binder-bindcraft
+- de-novo-antibody-rfantibody
+- universal-all-atom-binder
+paper_ids: []
+glossary_ids:
+- epitope
+- conditioning
+downstream: false

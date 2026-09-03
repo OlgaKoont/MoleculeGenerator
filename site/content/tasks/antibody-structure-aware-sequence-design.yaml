@@ -1,0 +1,49 @@
+id: antibody-structure-aware-sequence-design
+slug: antibody-structure-aware-sequence-design
+name: Structure-aware дизайн antibody sequence
+group: Антитела и antibody-like форматы
+definition: Генерация antibody sequence с учётом Fv/VHH structure, но без обязательного de novo
+  backbone.
+objective: Предложить CDR/framework variants, совместимые со структурой.
+starting_inputs:
+- antibody structure
+- optional antigen
+- masks
+generated_objects:
+- Fv/VHH sequences, per-residue probabilities
+generator_classes:
+- inverse-folding
+- sequence-generator
+strategies:
+- name: Antibody inverse folding
+  generates: Sequence for antibody backbone
+  representation: Residue graph + coordinates
+  examples:
+  - antifold
+  limitation: Backbone должен быть известен
+  sampling: Masked/autoregressive
+  novel_topology: Нет
+  integrated_scoring: Conditional probabilities
+  complexity_drivers: Fv length; optional antigen
+consequences:
+- decision: Antibody-specific fine-tune
+  consequence: Лучше CDR recovery, но dataset bias SAbDab.
+compute_consequences:
+- Легче, чем full diffusion co-design.
+evidence_summary: 'AntiFold: retrospective; likelihood ≠ affinity.'
+incomparable:
+- Не сравнивать с de novo RFantibody.
+selection_guidance:
+- Есть структура — AntiFold.
+- Нет структуры — IgLM sequence prior.
+architecture_ids:
+- inverse-folding
+- invariant-models
+workflow_ids:
+- antibody-inverse-folding
+paper_ids: []
+glossary_ids:
+- cdr
+- framework
+- inverse-folding
+downstream: false

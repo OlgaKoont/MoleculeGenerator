@@ -1,0 +1,33 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Библиография и вопрос
+  level: 2
+  blocks:
+  - type: p
+    text: '<strong>Jiang K, Yan Z, Di Bernardo M, et al.</strong> Rapid in silico directed evolution by a protein language model with EVOLVEpro. <em>Science</em> (2025). DOI: <a href="https://doi.org/10.1126/science.adr6006">10.1126/science.adr6006</a>. Preprint: <a href="https://doi.org/10.1101/2024.07.17.604015">10.1101/2024.07.17.604015</a>.'
+  - type: p
+    text: 'Research question: можно ли few-shot регрессией в пространстве frozen PLM embeddings направлять directed evolution белков, включая пример antibody, за малое число experimental rounds?'
+  - type: p
+    text: 'Tool relation: primary paper для <a href="/tools/evolvepro.html">EVOLVEpro</a>. Publication status: peer-reviewed journal.'
+- title: Модель, objective, inference
+  level: 2
+  blocks:
+  - type: p
+    text: 'Архитектура: frozen PLM embeddings + tabular regressor, iterative pool-based selection. Не diffusion, не inverse folding. Training objective surrogate — regression on experimental/DMS labels. Datasets: 12 DMS in silico; prospective proteins listed on tool page. Split: sequential rounds, not a static i.i.d. test set.'
+  - type: p
+    text: 'Inference: embed library → fit → rank unlabeled. Baselines: random selection and grid of alternative embeddings/regressors. Ablations: grid search (embedding, pooling, regressor, first-round, learning strategy).'
+- title: Evidence vs claims
+  level: 2
+  blocks:
+  - type: p
+    text: 'Retrospective: DMS simulations. Prospective: several proteins including REGN10987 ELISA. Author claim «up to ~100×» — overall campaign headline, not antibody-specific. Claims not supported as general antibody affinity law. Authors acknowledge need for labels and assay constraints. Additional limitation: released code uses greedy \(\hat{y}\), so exploration–exploitation narrative must not be copied from generic UCB reviews.'
+- title: Relevant files
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - evolvepro/src/model.py, evolve.py;
+    - 'Science SI: inaccessible in this pass — if SI contains extra wet-lab tables, they are NR here.'
+inaccessible:
+- Science PDF paywall; Science SI PDF not retrieved. Full methods read from bioRxiv HTML.

@@ -1,0 +1,7 @@
+id: protein-language-model
+slug: protein-language-model
+term: Protein language model (PLM)
+term_ru: Белковая языковая модель
+definition: Модель, обученная на amino-acid sequences; даёт embeddings и/или generative distribution.
+related_ids:
+- fine-tuning

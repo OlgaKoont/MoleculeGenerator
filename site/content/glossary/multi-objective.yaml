@@ -1,0 +1,7 @@
+id: multi-objective
+slug: multi-objective
+term: Multi-objective / Pareto
+term_ru: Многокритериальность
+definition: Одновременная оптимизация нескольких свойств; компромиссы видны как Pareto-фронт.
+related_ids:
+- developability

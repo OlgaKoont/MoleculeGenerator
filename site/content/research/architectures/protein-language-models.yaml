@@ -1,0 +1,160 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Protein language models (PLM) — нейросети над токенами аминокислот, обученные self-supervised на больших корпусах sequences (UniRef и т.п.).
+  - type: p
+    text: Могут быть encoders (ESM-2), generators (ProGen2, IgLM) или masked infillers. Сами по себе не structure generators. Fitness/affinity появляются только если есть labels или если likelihood ошибочно принимают за функцию.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Модель сжимает эволюционные и синтаксические регулярности белка в скрытые состояния. Это статистика последовательностей, не расчёт электростатики.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: p_\theta(s)=\prod_i p_\theta(s_i\mid s_{<i})\quad\text{или}\quad p_\theta(s_i\mid s_{\setminus i})\ \text{(masked)}
+    caption: AR vs masked LM. \(s_i\) — AA token.
+    source: '[PAPER] generic Transformer LM; ESM-2 Lin et al. 2023; ProGen2 Nijkamp et al.'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - AA tokens
+    - optional chain/species special tokens (IgLM)
+    - 'hidden states \(h_i\in\mathbb{R}^{d}\) — d model-specific (ESM-2 15B: 5120)'
+    - no coordinates unless a separate head (ESM3 multimodal)
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Объект — первичная структура. Нет атомов. Инвариантность к 3D-движениям тривиальна (координат нет). Перестановка residues ломает биологию.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - Token identity
+      - ковалентная первичная структура
+      - explicit
+      - без rotamers
+    - - Contextual logits
+      - эволюционная «естественность»
+      - implicit statistics
+      - не ΔG
+    - - Charged/hydrophobic AA
+      - могут коррелировать с физикой
+      - via co-occurrence
+      - не кулон/сольватация
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: Next-token или masked CE. Fine-tune optional (IgLM antibody corpora; AntiFold is IF not PLM). EVOLVEpro не обучает PLM.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - sequence tokens
+    - Transformer/ESM blocks
+    - logits or embeddings
+    - sample or pool for surrogate
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: UniRef/OAS/etc. Cluster splits to reduce homolog leakage — paper-specific.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: AR decode, masked fill, or embed-only. Temperature/top-p for generators.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Prompt prefixes, species tokens, partial sequence. Not epitope coordinates unless multimodal model.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: \(L\) tokens, \(O(L^2)\) attention, parameter count не равен runtime alone (15B embed vs 150M).
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Сильный sequence prior без структуры.
+    - Embeddings — хороший feature space для few-shot (EVOLVEpro).
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Нет гарантии fold/bind.
+    - Likelihood ≠ affinity.
+    - Биасы корпуса (секретируемые Ab vs intracellular).
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Mode collapse to germline-like CDR.
+    - Hallucinated long insertions.
+    - Overtrust ΔLL as maturation score.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - <a href="/tools/progen.html">ProGen/ProGen2</a>
+      - AR PLM
+      - family-prompted generation
+      - de novo sequence, not Ab-specific
+    - - <a href="/tools/iglm.html">IgLM</a>
+      - AR PLM
+      - antibody special tokens
+      - sequence-only
+    - - <a href="/tools/esm3.html">ESM3</a>
+      - multimodal LM
+      - sequence+structure+function tokens
+      - не путать с ESM-2 embedder EVOLVEpro
+    - - <a href="/tools/evolvepro.html">EVOLVEpro</a>
+      - frozen ESM-2 features
+      - no PLM sampling
+      - PLM не генератор в этом tool
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Sequence prior, embeddings, masked scoring. Не замена structure-conditioned design. См. <a href="/architectures/zero-shot-mutation-scoring.html">zero-shot scoring</a>.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Lin et al., ESM-2 / ESMFold, Science 2023
+      url: https://doi.org/10.1126/science.ade2574
+    - text: Nijkamp et al., ProGen2
+      url: https://doi.org/10.1016/j.cels.2023.10.002
+inaccessible:
+- Полные SI всех PLM инструментов не перечитаны в этом проходе; страница класса — foundational papers.

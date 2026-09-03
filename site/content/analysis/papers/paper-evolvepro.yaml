@@ -1,0 +1,86 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "bioRxiv HTML прочитан. Science full text не прочитан. Не утверждать, что журнальная версия тождественна preprint."
+lede: "Primary question: можно ли few-shot supervised model on frozen PLM embeddings ускорить directed evolution при десятках experimental labels per round."
+inaccessible:
+  - source: "Science PDF/HTML 10.1126/science.adr6006"
+    reason: "Paywall"
+    workaround: "bioRxiv 10.1101/2024.07.17.604015"
+  - source: "Data S1 / SI files"
+    reason: "Не скачаны"
+    workaround: "Methods narrative in preprint HTML"
+sections:
+  - id: citation
+    title: "Полная библиография и статус"
+    paragraphs:
+      - text: "Jiang et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv DOI 10.1101/2024.07.17.604015. Peer-reviewed counterpart: Rapid in silico directed evolution by a protein language model with EVOLVEpro. Science DOI 10.1126/science.adr6006 (2025). Tool: [EVOLVEpro](../tools/evolvepro.html)."
+        source: PAPER
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Как выбрать следующие mutants при малом числе assay labels, используя pretrained PLM features, без fine-tune LM на fitness."
+        source: PAPER
+  - id: architecture
+    title: "Архитектура и математическая формулировка"
+    paragraphs:
+      - text: "Frozen embeddings $E(s)$ + top-layer regressor. Released code default selection $\\mathrm{top}_k \\hat y$, не UCB. См. [active learning](../architectures/active-learning.html) и tool page."
+        source: CODE
+  - id: training-obj
+    title: "Training objective и данные"
+    paragraphs:
+      - text: "Grid search: 12 DMS. Prospective: Cas12f, PE2, Bxb1, T7 RNAP, REGN10987. Splits DMS — simulation over remaining variants, не независимый белок."
+        source: PAPER
+  - id: inference-paper
+    title: "Inference"
+    paragraphs:
+      - text: "Refit RF each round; rank unlabelled embeddings. 16/round typical in DMS sim; antibody campaign 11/round × 5 (preprint)."
+        source: PAPER
+  - id: baselines
+    title: "Baselines, ablations, retrospective"
+    paragraphs:
+      - text: "Baselines: random; other PLMs; other regressors; PCA. Ablation-like grid search. Retrospective: DMS recovery of high activity."
+        source: PAPER
+  - id: prospective
+    title: "Prospective evidence"
+    paragraphs:
+      - text: "Functional campaigns + antibody ELISA/IC50 (preprint numbers). Не developability panel как главная endpoint."
+        source: PAPER
+  - id: claims-ok
+    title: "Главные утверждения авторов и что их поддерживает"
+    paragraphs:
+      - text: "Few-shot PLM+surrogate эффективен vs random на DMS (retrospective + ablation-like). Prospective property improvements на нескольких белках. Antibody example — one campaign, ELISA proxy."
+        source: PAPER
+  - id: claims-not
+    title: "Что evidence не поддерживает"
+    items:
+      - "Универсальный 100× для всех antibodies (Science wording не сверен; не обобщать)"
+      - "UCB как released algorithm"
+      - "Zero-shot без labels"
+      - "De novo structure generation"
+      - "Likelihood PLM = activity (авторы показывают расхождение)"
+  - id: author-lim
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "Зависимость от library и assay; не zero-shot. Полный список Science Discussion — NR без PDF."
+        source: NR
+  - id: extra-lim
+    title: "Дополнительные ограничения интерпретации"
+    paragraphs:
+      - text: "Hardcoded cluster paths in code; Science vs preprint antibody name; SI unread."
+        source: CODE
+  - id: si-repo
+    title: "SI и файлы репозитория"
+    paragraphs:
+      - text: "Data S1 упоминается в preprint (PCA). Repo files: evolvepro/src/model.py, evolve.py. Zenodo 10.5281/zenodo.13899358 не инспектировался."
+        source: PAPER
+citations:
+  - id: 1
+    text: "bioRxiv 10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.17.604015"
+  - id: 2
+    text: "Science 10.1126/science.adr6006"
+    doi: "10.1126/science.adr6006"
+    url: "https://doi.org/10.1126/science.adr6006"
+unresolved:
+  - "Постраничный diff Science vs preprint"

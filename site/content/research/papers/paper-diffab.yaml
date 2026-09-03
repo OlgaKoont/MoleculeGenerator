@@ -1,0 +1,10 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Статья
+  level: 2
+  blocks:
+  - type: p
+    text: '<strong>Luo S, et al.</strong> Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models for Protein Structures. NeurIPS 2022. PDF: <a href="https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf">conference PDF</a>. Preprint <a href="https://doi.org/10.1101/2022.07.10.499510">10.1101/2022.07.10.499510</a>.'
+  - type: p
+    text: 'Retrospective only. No prospective wet-lab. Do not treat Rosetta energy as affinity. Code confirms joint diffusion losses. DOI journal-style: NR (conference).'

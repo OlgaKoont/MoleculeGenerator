@@ -1,0 +1,51 @@
+id: paper-makowski-affinity-specificity
+slug: makowski-affinity-specificity
+title: Co-optimization of therapeutic antibody affinity and specificity using machine learning
+  models of sequence-activity data
+authors: null
+year: '2022'
+venue: Peer-reviewed journal; Nature Communications (Q1)
+publication_status: Peer-reviewed journal; Nature Communications (Q1)
+doi: 10.1038/s41467-022-31457-3
+url: https://doi.org/10.1038/s41467-022-31457-3
+preprint_url: null
+tool_ids:
+- makowski-affinity-specificity
+main_task: Multi-objective combinatorial mutation design for an existing therapeutic antibody
+claimed_novelty: null
+model_architecture: Supervised models on display/deep-sequencing labels + Pareto-front proposal
+input_representation: null
+encoder_decoder: null
+generative_state: Combinatorial CDR mutation sets predicted to trade affinity against nonspecific
+  binding
+conditioning: Eight positions in three heavy-chain CDRs in reported campaign
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Co-optimized variants beyond sampled library; affinity
+  gains trade against specificity
+tested_designs: ~10^7 variant library; 4,000 sequences used for modeling; 125 clones characterized
+success_criterion: Co-optimized variants beyond sampled library; affinity gains trade against
+  specificity
+main_results: Co-optimized variants beyond sampled library; affinity gains trade against specificity
+limitations: Requires campaign-specific labelled data and library construction; not a transferable
+  pretrained generator; one antibody case study.
+demonstrates:
+- Co-optimized variants beyond sampled library; affinity gains trade against specificity
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Co-optimization of therapeutic antibody affinity and specificity using machine learning
+    models of sequence-activity data
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Communications (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Official repository/service not verified.

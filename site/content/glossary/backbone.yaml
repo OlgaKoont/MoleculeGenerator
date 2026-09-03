@@ -1,0 +1,8 @@
+id: backbone
+slug: backbone
+term: Backbone
+term_ru: Остов
+definition: Геометрия основной цепи (N, Cα, C, часто O). Sequence design и diffusion часто работают
+  на этом уровне.
+related_ids:
+- inverse-folding

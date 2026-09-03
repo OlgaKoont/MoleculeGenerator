@@ -1,0 +1,194 @@
+identity:
+  id: makowski-affinity-specificity
+  name: Makowski et al. affinity–specificity co-optimization
+  slug: makowski-affinity-specificity
+  aliases:
+  - Makowski
+  - emibetuzumab co-optimization
+  version: null
+  release_year: '2022'
+  last_verified: '2026-08-13'
+  official_repository: null
+  official_documentation: null
+  official_service: null
+  license: null
+  commercial_use_status: Workflow/paper; not a packaged tool
+  publication_status: Peer-reviewed journal; Nature Communications (Q1)
+classification:
+  task_ids:
+  - combinatorial-mutation-design
+  - multi-objective-optimization
+  - specificity-optimization
+  - affinity-maturation
+  - polyspecificity-optimization
+  workflow_ids:
+  - few-shot-active-learning
+  architecture_ids:
+  - multi-objective-optimization
+  - few-shot-mutation-optimization
+  generator_classes:
+  - mutation-optimizer
+  output_modalities:
+  - sequence
+  supported_formats: Therapeutic antibody (emibetuzumab) variants
+  de_novo_or_optimization: Optimizes existing antibody
+  general_protein_relevance: Workflow concept transferable
+  antibody_relevance: Strong direct relevance
+  VHH_relevance: Not shown
+  mutation_relevance: Very high
+  compatibility_group: few-shot-mutation
+generation:
+  exact_generated_object: Combinatorial CDR mutation sets predicted to trade affinity against
+    nonspecific binding
+  required_input: Parent antibody, predefined CDR positions, sorted library/deep-sequencing
+    labels
+  conditioning: Eight positions in three heavy-chain CDRs in reported campaign
+  fixed_components: null
+  editable_components: null
+  generated_components: Combinatorial CDR mutation sets predicted to trade affinity against
+    nonspecific binding
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: Yes—affinity and specificity/nonspecific binding
+  candidate_generation_mechanism: Supervised models on display/deep-sequencing labels + Pareto-front
+    proposal
+architecture:
+  base_model: null
+  model_family: Supervised models on display/deep-sequencing labels + Pareto-front proposal
+  model_type: 6 Mutation generator / optimization workflow
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Eight positions in three heavy-chain CDRs in reported campaign
+  generation_mechanism: Supervised models on display/deep-sequencing labels + Pareto-front
+    proposal
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Combinatorial CDR mutation sets predicted to trade affinity against nonspecific
+    binding
+  internal_scorer: Affinity- and specificity-correlated supervised models
+  structure_generation: No structure predictor
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: Supervised search/proposal over mutational space
+  integrated_generators: []
+  integrated_scorers:
+  - Affinity- and specificity-correlated supervised models
+  integrated_structure_predictor: No structure predictor
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Experimental display/SPR and developability panel
+  optional_external_dependencies:
+  - Pareto selection from labelled library
+  breakdown:
+  - name: Supervised search/proposal over mutational space
+    role: primary_generator
+    architecture_class: Supervised models on display/deep-sequencing labels + Pareto-front
+      proposal
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Affinity- and specificity-correlated supervised models
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Experimental display/SPR and developability panel
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–5 prospective binding/specificity validation
+  retrospective_validation: null
+  prospective_binding_validation: Co-optimized variants beyond sampled library; affinity gains
+    trade against specificity
+  prospective_functional_validation: Co-optimized variants beyond sampled library; affinity
+    gains trade against specificity
+  developability_validation: Co-optimized variants beyond sampled library; affinity gains
+    trade against specificity
+  tested_design_count: ~10^7 variant library; 4,000 sequences used for modeling; 125 clones
+    characterized
+  success_criterion: Co-optimized variants beyond sampled library; affinity gains trade against
+    specificity
+  independent_validation: null
+  evidence_summary: Co-optimized variants beyond sampled library; affinity gains trade against
+    specificity
+  prospective_flag: true
+  direct_antibody_flag: true
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Requires campaign-specific labelled data and library construction.
+  - not a transferable pretrained generator.
+  - one antibody case study.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited custom internal pilot
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - esm-1v-efficient-evolution
+  - framediff
+  - rfdiffusion
+  - rfdiffusion-aa
+  - structural-evolution
+  paper_ids:
+  - paper-makowski-affinity-specificity
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue:
+- Official repository/service not verified.

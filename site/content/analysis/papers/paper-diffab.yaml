@@ -1,0 +1,76 @@
+research_status: code_inspected
+last_source_check: "2026-08-27"
+status_note: "NeurIPS PDF не close-read. Страница фиксирует то, что следует из official code/README, и явно помечает paper tables как NR."
+lede: "Вопрос статьи (по title/README): antigen-specific antibody CDR design/optimization диффузионной генеративной моделью структуры. Не доказанный therapeutic generator."
+inaccessible:
+  - source: "NeurIPS 2022 PDF Results/Methods fully"
+    reason: "Не постраничное чтение"
+    workaround: "luost26/diffab implementation"
+sections:
+  - id: citation
+    title: "Библиография"
+    paragraphs:
+      - text: "Luo S., Su Y., Peng X., Wang S., Peng J., Ma J. Antigen-Specific Antibody Design and Optimization with Diffusion-Based Generative Models for Protein Structures. NeurIPS 2022. PDF: proceedings.neurips.cc … 3fa7d76a…. OpenReview id=jSorGn2Tjg. Preprint bioRxiv 10.1101/2022.07.10.499510. Tool [DiffAb](../tools/diffab.html)."
+        source: DOC
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Совместно сэмплировать CDR sequence и geometry в контексте antigen–antibody complex."
+        source: DOC
+  - id: architecture
+    title: "Архитектура (из code, не из PDF)"
+    paragraphs:
+      - text: "FullDPM: type + Cα + orientation; GAEncoder; T=100; losses rot/pos/seq. См. [joint diffusion](../architectures/joint-sequence-structure-diffusion.html)."
+        source: CODE
+  - id: training-obj
+    title: "Training / split"
+    paragraphs:
+      - text: "SAbDab configs. Точные N и split criteria paper — NR."
+        source: NR
+  - id: inference-paper
+    title: "Inference"
+    paragraphs:
+      - text: "100 reverse steps; 100 samples in test yaml; optional HDOCK/PyRosetta."
+        source: CODE
+  - id: baselines
+    title: "Baselines / ablations / retrospective"
+    paragraphs:
+      - text: "NR из PDF. Режимы fixbb/strpred/codesign есть как configs."
+        source: NR
+  - id: prospective
+    title: "Prospective"
+    paragraphs:
+      - text: "Не заявлено в catalog/README как wet-lab prospective primary evidence."
+        source: MATRIX
+  - id: claims-ok
+    title: "Что можно утверждать осторожно"
+    paragraphs:
+      - text: "Существует released equivariant joint CDR diffusion. In silico design modes задокументированы. Количественные победы над baselines — только после чтения PDF."
+        source: INTERPRETATION
+  - id: claims-not
+    title: "Что не поддержано этим проходом"
+    items:
+      - "Любые конкретные AAR/RMSD/energy numbers"
+      - "Experimental affinity"
+      - "Developability"
+  - id: author-lim
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "NR без Discussion PDF. Repo later archived."
+        source: NR
+  - id: extra-lim
+    title: "Интерпретация"
+    paragraphs:
+      - text: "HDOCK и Rosetta не делать частью «нейронной архитектуры DiffAb»."
+        source: INTERPRETATION
+  - id: si-repo
+    title: "Репозиторий"
+    paragraphs:
+      - text: "diffab/models/diffab.py, modules/diffusion/dpm_full.py, configs/train/codesign_single.yml; commit c3e29666."
+        source: CODE
+citations:
+  - id: 1
+    text: "NeurIPS 2022 DiffAb PDF"
+    url: "https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf"
+unresolved:
+  - "Весь Results section PDF"

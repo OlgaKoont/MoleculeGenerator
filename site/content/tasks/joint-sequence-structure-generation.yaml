@@ -1,0 +1,60 @@
+id: joint-sequence-structure-generation
+slug: joint-sequence-structure-generation
+name: Joint sequence–structure generation
+group: Общий белковый дизайн
+definition: Одновременная или tightly coupled генерация sequence и structure.
+objective: Согласовать residue identity и геометрию в одном generative process.
+starting_inputs:
+- partial sequence/structure
+- function prompts
+- complex context
+generated_objects:
+- sequence–structure pair
+generator_classes:
+- joint-sequence-structure
+strategies:
+- name: Multimodal masked LM
+  generates: Sequence, structure tokens, function tracks
+  representation: Multimodal tokens
+  examples:
+  - esm3
+  limitation: Confidence ≠ function
+  sampling: Iterative unmasking
+  novel_topology: Возможна
+  integrated_scoring: Model likelihood/confidence
+  complexity_drivers: Число tracks × unmasking steps
+- name: Joint diffusion / flow matching
+  generates: Sequence + geometry
+  representation: Continuous geometric state + residue types
+  examples:
+  - diffab
+  - flowdesign
+  - protein-generator
+  limitation: Sampling cost; independent validation всё равно нужна
+  sampling: Denoising or flow trajectory
+  novel_topology: Зависит от модели
+  integrated_scoring: Energy/confidence
+  complexity_drivers: Steps × residues
+consequences:
+- decision: Integrated structure decoder
+  consequence: Увеличивает стоимость workflow, но даёт in-loop geometry.
+compute_consequences:
+- Обычно GPU-heavy.
+evidence_summary: Coupled generation не отменяет внешнюю validation.
+incomparable:
+- Internal confidence не сравнивать с experimental affinity.
+selection_guidance:
+- Нужны multimodal prompts — ESM3.
+- Antibody CDR co-design — DiffAb/FlowDesign.
+architecture_ids:
+- joint-sequence-structure-generation
+- joint-sequence-structure-diffusion
+- flow-matching
+workflow_ids:
+- joint-multimodal-generation
+- cdr-codesign-diffab
+paper_ids: []
+glossary_ids:
+- diffusion
+- flow-matching
+downstream: false

@@ -1,0 +1,194 @@
+identity:
+  id: esm-1v-efficient-evolution
+  name: Efficient evolution with ESM-1v
+  slug: esm-1v-efficient-evolution
+  aliases:
+  - ESM-1v
+  - efficient evolution
+  version: null
+  release_year: '2024'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/brianhie/efficient-evolution
+  official_documentation: null
+  official_service: null
+  license: Repository license NR in this pass; ESM dependencies apply
+  commercial_use_status: Scripts + model dependency
+  publication_status: Peer-reviewed journal; Nature Biotechnology (Q1)
+classification:
+  task_ids:
+  - single-mutation-proposal
+  - affinity-maturation
+  - ml-guided-directed-evolution
+  workflow_ids:
+  - zero-shot-mutation
+  architecture_ids:
+  - protein-language-models
+  - zero-shot-mutation-scoring
+  generator_classes:
+  - mutation-optimizer
+  output_modalities:
+  - sequence
+  supported_formats: Human antibodies; tested across seven antibody series
+  de_novo_or_optimization: Optimizes existing antibody
+  general_protein_relevance: General PLM principle
+  antibody_relevance: Strong antibody-specific prospective evidence
+  VHH_relevance: Not primary
+  mutation_relevance: Very high for single-mutation ideation
+  compatibility_group: zero-shot-mutation
+generation:
+  exact_generated_object: Ranked single-amino-acid substitutions
+  required_input: Parent antibody sequence
+  conditioning: Single substitutions; no antigen/structure required
+  fixed_components: null
+  editable_components: null
+  generated_components: Ranked single-amino-acid substitutions
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: No in primary workflow
+  support_for_multi_objective_optimization: No explicit multi-objective optimizer
+  candidate_generation_mechanism: Ensemble protein language-model likelihood ranking with
+    efficient experimental selection
+architecture:
+  base_model: null
+  model_family: Ensemble protein language-model likelihood ranking with efficient experimental
+    selection
+  model_type: 6 Mutation generator / optimization workflow
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Single substitutions; no antigen/structure required
+  generation_mechanism: Ensemble protein language-model likelihood ranking with efficient
+    experimental selection
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Ranked single-amino-acid substitutions
+  internal_scorer: ESM-1v ensemble likelihood
+  structure_generation: 'No'
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: ESM-1v mutation ranking/proposal workflow
+  integrated_generators: []
+  integrated_scorers:
+  - ESM-1v ensemble likelihood
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Binding/neutralization and developability checks
+  optional_external_dependencies:
+  - No docking/structure/developability
+  breakdown:
+  - name: ESM-1v mutation ranking/proposal workflow
+    role: primary_generator
+    architecture_class: Ensemble protein language-model likelihood ranking with efficient
+      experimental selection
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: ESM-1v ensemble likelihood
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Binding/neutralization and developability checks
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 4 prospective functional validation
+  retrospective_validation: Seven antibodies; roughly 10 single substitutions per parent selected
+    for testing
+  prospective_binding_validation: C143 variants included 32× Beta and 19× D614G neutralization
+    improvements; workload is single-mutation only
+  prospective_functional_validation: C143 variants included 32× Beta and 19× D614G neutralization
+    improvements; workload is single-mutation only
+  developability_validation: null
+  tested_design_count: Seven antibodies; roughly 10 single substitutions per parent selected
+    for testing
+  success_criterion: C143 variants included 32× Beta and 19× D614G neutralization improvements;
+    workload is single-mutation only
+  independent_validation: null
+  evidence_summary: C143 variants included 32× Beta and 19× D614G neutralization improvements;
+    workload is single-mutation only
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Zero-shot evolutionary plausibility, not affinity prediction.
+  - combination/epistasis not addressed.
+  - improvements are antibody/assay specific.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Limited internal pilot
+relations:
+  related_tools:
+  - structural-evolution
+  - evolvepro
+  alternatives:
+  - structural-evolution
+  complementary_tools:
+  - evolvepro
+  incompatible_comparisons:
+  - evolvepro
+  - framediff
+  - makowski-affinity-specificity
+  - rfantibody
+  - rfdiffusion
+  - rfdiffusion-aa
+  - tfold
+  paper_ids:
+  - paper-esm-1v-efficient-evolution
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

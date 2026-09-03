@@ -1,0 +1,62 @@
+id: antigen-conditioned-antibody-design
+slug: antigen-conditioned-antibody-design
+name: Antigen-conditioned antibody design
+group: Антитела и antibody-like форматы
+definition: Дизайн antibody, conditioned на antigen/epitope.
+objective: Сгенерировать paratope под конкретный antigen surface или epitope sequence.
+starting_inputs:
+- antigen structure or sequence
+- epitope/hotspots
+- framework
+generated_objects:
+- CDR sequence/structure and optional complex
+generator_classes:
+- target-conditioned-binder
+- sequence-generator
+strategies:
+- name: Structure-conditioned diffusion
+  generates: CDR sequence–structure
+  representation: 3D complex
+  examples:
+  - diffab
+  - rfantibody
+  limitation: Нужен quality complex/target structure
+  sampling: Conditional generation
+  novel_topology: CDRs
+  integrated_scoring: Complex metrics
+  complexity_drivers: Complex size × steps
+- name: Antigen sequence encoder + CDR decoder
+  generates: CDR-H3 sequence
+  representation: Tokens
+  examples:
+  - palm-h3
+  limitation: Нет native 3D generator
+  sampling: Autoregressive
+  novel_topology: Нет
+  integrated_scoring: Learned affinity predictor
+  complexity_drivers: Antigen length + CDR length
+consequences:
+- decision: Learned affinity ranker
+  consequence: Не является experimental affinity.
+compute_consequences:
+- Sequence-conditioned дешевле structure-conditioned.
+evidence_summary: 'Структурный epitope: RFantibody/tFold. Sequence epitope: PALM-H3, узкий antigen
+  family.'
+incomparable:
+- Antigen sequence conditioning ≠ antigen structure conditioning.
+selection_guidance:
+- Есть target structure — RFantibody.
+- Есть только antigen sequence — PALM-H3, с осторожностью.
+architecture_ids:
+- protein-language-models
+- joint-sequence-structure-diffusion
+- invariant-models
+workflow_ids:
+- de-novo-antibody-rfantibody
+- cdr-h3-sequence-palm
+- epitope-mab-tfold
+paper_ids: []
+glossary_ids:
+- epitope
+- conditioning
+downstream: false

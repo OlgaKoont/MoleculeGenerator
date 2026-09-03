@@ -1,0 +1,54 @@
+id: de-novo-backbone-generation
+slug: de-novo-backbone-generation
+name: De novo генерация backbone
+group: Общий белковый дизайн
+definition: Генерация новой белковой геометрии (обычно Cα/frames), без готовой topology.
+objective: Получить designable backbone, затем отдельно спроектировать sequence.
+starting_inputs:
+- длина
+- motif/contig
+- target/hotspots
+- symmetry
+generated_objects:
+- protein backbone / complex geometry
+generator_classes:
+- backbone-structure-generator
+strategies:
+- name: SE(3) frame/coordinate diffusion
+  generates: Backbone frames/coordinates
+  representation: Equivariant 3D frames
+  examples:
+  - rfdiffusion
+  - framediff
+  limitation: Sequence нужно генерировать отдельно
+  sampling: Diffusion trajectories
+  novel_topology: Да
+  integrated_scoring: Обычно нет; self-consistency downstream
+  complexity_drivers: Число residues × denoising steps × trajectories
+consequences:
+- decision: Diffusion sampling
+  consequence: Runtime зависит от числа trajectories и steps.
+- decision: Backbone-only output
+  consequence: Нужен inverse folding + independent folding.
+compute_consequences:
+- GPU practically required.
+- Vanilla RFdiffusion не заменяет antibody-specific RFantibody.
+evidence_summary: RFdiffusion имеет сильное prospective evidence для общих белков, но не является
+  antibody generator.
+incomparable:
+- Не сравнивать backbone generator с sequence-only LM.
+selection_guidance:
+- Нужна новая topology — RFdiffusion/Chroma.
+- Есть ligand context — RFdiffusionAA.
+- Antibody loops — не vanilla RFdiffusion.
+architecture_ids:
+- frame-diffusion
+- coordinate-diffusion
+- se3-equivariant-models
+workflow_ids:
+- de-novo-backbone-then-mpnn
+paper_ids: []
+glossary_ids:
+- diffusion
+- backbone
+downstream: false

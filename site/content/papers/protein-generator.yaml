@@ -1,0 +1,48 @@
+id: paper-protein-generator
+slug: protein-generator
+title: Generalized biomolecular modeling and design with sequence-space diffusion
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Nature Biotechnology (Q1)
+publication_status: Peer-reviewed journal; Nature Biotechnology (Q1)
+doi: 10.1038/s41587-024-02395-w
+url: https://doi.org/10.1038/s41587-024-02395-w
+preprint_url: null
+tool_ids:
+- protein-generator
+main_task: Sequence-space diffusion for joint sequence/structure and multistate functional
+  design
+claimed_novelty: null
+model_architecture: RoseTTAFold sequence-space diffusion with structural refinement and guidance
+  potentials
+input_representation: null
+encoder_decoder: null
+generative_state: Coupled sequence–structure proposals
+conditioning: Sequence/structure motifs, DSSP/hotspots, multistate potentials
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Prospective general protein evidence
+tested_designs: 'Multiple multistate/functional designs; exact aggregate: NR'
+success_criterion: Prospective general protein evidence
+main_results: Prospective general protein evidence
+limitations: RoseTTAFold-derived confidence is not independent validation; environment is
+  nontrivial; no antibody-specific proof.
+demonstrates:
+- Prospective general protein evidence
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Generalized biomolecular modeling and design with sequence-space diffusion
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Biotechnology (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

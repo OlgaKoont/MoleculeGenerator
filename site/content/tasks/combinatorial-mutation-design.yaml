@@ -1,0 +1,45 @@
+id: combinatorial-mutation-design
+slug: combinatorial-mutation-design
+name: Combinatorial mutation design
+group: Оптимизация существующих белков
+definition: Совместный дизайн нескольких мутаций.
+objective: Найти комбинации, недоступные полным перебором.
+starting_inputs:
+- parent
+- mutable positions
+- labelled library optional
+generated_objects:
+- combinatorial mutation sets
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Supervised Pareto search on display labels
+  generates: Combinatorial CDR sets
+  representation: Sequence features + assay labels
+  examples:
+  - makowski-affinity-specificity
+  limitation: Campaign-specific; не pretrained generator
+  sampling: Model-guided library / Pareto front
+  novel_topology: Нет
+  integrated_scoring: Supervised affinity/specificity models
+  complexity_drivers: Library size and label acquisition
+consequences:
+- decision: Need labelled library
+  consequence: Без display/deep-seq данных метод не стартует.
+compute_consequences:
+- Bottleneck — эксперимент, не GPU.
+evidence_summary: 'Makowski et al.: one therapeutic antibody case study with prospective characterization.'
+incomparable:
+- Не сравнивать с zero-shot ESM-1v.
+selection_guidance:
+- Есть sorted library — Makowski-style.
+- Есть мало labels — EVOLVEpro.
+architecture_ids:
+- multi-objective-optimization
+- few-shot-mutation-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- multi-objective
+downstream: false

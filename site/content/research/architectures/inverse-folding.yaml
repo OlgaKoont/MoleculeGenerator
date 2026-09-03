@@ -1,0 +1,183 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Inverse folding — класс <strong>условных генераторов последовательности при фиксированной геометрии backbone (иногда plus ligand/antigen atoms)</strong>. Это не structure predictor и не docking. Прямая задача (folding) предсказывает координаты по sequence; обратная — \(p(s\mid x_{\mathrm{bb}})\).
+  - type: p
+    text: 'Объекты: residue tokens \(s_i\in\{20 \text{ AA}\}\); вход — N/Cα/C (часто O, Cβ) coordinates или local frames. Задачи каталога: <a href="/tasks/inverse-folding.html">inverse folding</a>, <a href="/tasks/antibody-structure-aware-sequence-design.html">antibody structure-aware sequence design</a>, CDR sequence redesign. Инструменты: <a href="/tools/proteinmpnn.html">ProteinMPNN</a>, <a href="/tools/esm-if1.html">ESM-IF1</a>, <a href="/tools/ligandmpnn.html">LigandMPNN</a>, <a href="/tools/antifold.html">AntiFold</a>.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Модель видит 3D-остов (и опционально контекст соседа/антигена) и выдаёт, какие аминокислоты статистически совместимы с этой геометрией по PDB-подобным структурам. Кандидат выбирается categorical sampling / argmax / masked infill. Backbone после генерации не обновляется самой IF-моделью — для этого нужен внешний packer, relaxation или structure predictor.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generic autoregressive inverse folding (ESM-IF1 / AntiFold):'
+  - type: math
+    latex: p_\theta(s\mid x)=\prod_{i=1}^{L} p_\theta(s_i\mid s_{<i}, x),\qquad \mathcal{L}=-\sum_i \log p_\theta(s_i^\star\mid s_{<i}^\star, x)
+    caption: \(s\) — sequence tokens; \(x\) — backbone (coordinates/frames); \(s^\\star\) — native sequence. Порядок факторизации задаётся decoder (обычно N→C по цепи, для Fv — concatenated H+L).
+    source: '[PAPER] Hsu et al. 2022 ESM-IF1; AntiFold inherits this factorization'
+  - type: p
+    text: 'Generic ProteinMPNN: message-passing по kNN graph residues, затем per-position categorical (autoregressive decode over residues). Не записываем UCB и не записываем diffusion reverse SDE на этой странице.'
+  - type: p
+    text: 'Символы: \(L\) — число residues; \(x_i\in\mathbb{R}^{3\times n_{\mathrm{bb}}}\) — backbone atoms residue \(i\); GVP encoder даёт SE(3)-invariant features для Transformer (ESM-IF1).'
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - amino-acid tokens (20 + gap/mask/unknown по реализации);
+    - 'atom coordinates backbone; ESM-IF1/AntiFold: rotation/translation invariant GVP features;'
+    - residue graph kNN (MPNN) или sequence+structure Transformer;
+    - masks фиксированных позиций; chain breaks; для AntiFold — 10 gap tokens между H и L;
+    - optional antigen coordinates as extra chain.
+  - type: p
+    text: 'Тензорные размерности encoder hidden size — tool-specific (ESM-IF1: 4 GVP-GNN + 8 Transformer encoder + 8 decoder layers). Не выдумываем hidden width, если paper/code не назвал её на этой странице класса.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Физический объект входа — пептидный backbone (N, Cα, C, часто O/Cβ). Выход — идентичности side-chain types, не координаты side chain. Side-chain packing, если есть, обычно внешний (Rosetta/Packer), не часть likelihood. Трансляция и вращение всего комплекса: ESM-IF1 encoder построен invariant к global SE(3). Перестановка несвязанных цепей зависит от encoding chain index.'
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - Backbone coordinates / frames
+      - ковалентная геометрия остова, φ/ψ косвенно через координаты
+      - прямо
+      - не dynamics
+    - - Sequence recovery objective
+      - какие AA встречаются в похожих геометриях PDB
+      - learned structural statistics
+      - не energy function
+    - - kNN distances (MPNN)
+      - локальный packing context
+      - геометрия, не потенциал
+      - cutoff обрезает дальние электростатики
+    - - Antigen coordinates (optional)
+      - steric/context at interface
+      - координаты, не ΔG
+      - cutoff/crop; нет solvent
+    - - H-bonds / electrostatics / hydrophobicity
+      - корреляты в PDB
+      - implicit
+      - не явные кулоновы члены
+    - - Glycans, PTM, protonation, metals
+      - обычно отсутствуют
+      - absent unless ligand atoms (LigandMPNN)
+      - AntiFold не моделирует glycans
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Trainable: encoder+decoder IF network. Target: native (or assigned) sequence. Loss: token cross-entropy. ESM-IF1 pretrained on general proteins; AntiFold fine-tunes на antibody structures с CDR weighting. Negative examples: неправильные AA at each position (softmax). Structure не генерируется — нет FAPE loss в чистом IF.'
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - Backbone PDB/CIF
+    - geometric encoder (GVP / MPNN)
+    - optional mask / antigen
+    - AR decoder logits
+    - sample or score sequence
+    - external structure/complex check
+    note: Класс inverse folding. Не копия figure Hsu/Dauparas.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'Данные: PDB / AlphaFoldDB (ESM-IF1) или SAbDab+OAS predicted structures (AntiFold). Фильтры resolution/redundancy — paper-specific. Split: sequence or cluster identity; AntiFold использует 90% concatenated-CDR identity split как AbMPNN. Augmentations: coordinate noise, masking — tool-specific.'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Старт: фиксированный backbone. Sampling: temperature softmax, иногда top-k/p; masked positions only. Recycles нет (это не AF). Ranking: native sequence recovery, log-likelihood, иногда внешний AF self-consistency. Likelihood ≠ affinity.'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Фиксированные позиции (framework), tied residues, ligand/antigen chain, CDR region masks. Математически: часть \(s_i\) подставляется как observed tokens, logits используются только на masked indices; либо teacher forcing на всех с последующим resample masked.'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: \(L\) residues, kNN degree, AR decode \(O(L)\) steps, Transformer \(O(L^2)\) per layer для ESM-IF1 decoder. Antigen увеличивает \(L\). Нет diffusion T, нет AL rounds.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: p
+    text: 'Фиксация backbone отделяет sequence design от topology search: это дешевле, чем joint diffusion всего комплекса, и даёт калиброванную (по recovery) модель fold compatibility. SE(3)-invariant encoder снижает необходимость учить геометрию во всех ориентациях. Это не гарантия стабильного белка и не гарантия binding.'
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Нельзя сменить CDR canonical cluster, если backbone неверный.
+    - Score — статистика PDB, не ΔG.
+    - General MPNN плохо переносится на antibody CDR без fine-tune (мотивация AntiFold/AbMPNN).
+    - Нет explicit solvent/entropy.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Дизайн вокруг неправильного interface backbone.
+    - Hallucinated CDR sequences с высоким likelihood, но без affinity.
+    - Редкие loop lengths / non-IMGT numbering.
+    - Antigen crop слишком короткий — потеря epitope context.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/proteinmpnn.html">ProteinMPNN</a>
+      - residue MPNN IF
+      - kNN graph, AR decode, optional tied positions
+      - general proteins; used as CDR designer inside RFantibody
+    - - <a href="/tools/esm-if1.html">ESM-IF1</a>
+      - GVP + Transformer AR
+      - invariant encoder, 4 GVP + 8+8 Transformer
+      - pretrain AntiFold
+    - - <a href="/tools/antifold.html">AntiFold</a>
+      - ESM-IF1 fine-tune
+      - SAbDab+OAS, CDR weighting, H+L gap tokens, optional antigen
+      - antibody-specific; no wet-lab in primary paper
+    - - <a href="/tools/ligandmpnn.html">LigandMPNN</a>
+      - MPNN + ligand atoms
+      - small-molecule/metal context
+      - not antibody CDR specialist
+- title: 17. Где применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Есть надёжный backbone: crystal, AF with caution, или сгенерированный остов от diffusion. Не применимо, если нужно изобрести новую topology. См. <a href="/workflows/antibody-inverse-folding.html">antibody IF workflow</a>.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Dauparas et al., ProteinMPNN, Science 2022
+      url: https://doi.org/10.1126/science.add2187
+    - text: Hsu et al., Learning inverse folding… ESM-IF1, ICLR 2022
+      url: https://arxiv.org/abs/2206.12094
+    - text: Høie et al., AntiFold, Bioinformatics Advances 2025
+      url: https://doi.org/10.1093/bioadv/vbae202
+inaccessible:
+- Для ProteinMPNN/ESM-IF1 детали ниже опираются на primary papers Dauparas 2022 и Hsu 2022; полный SI ESM-IF1 в этом проходе не прикладывался как отдельный файл.

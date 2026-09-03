@@ -1,0 +1,39 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Science HTML прочитан (Results, Table 1, experimental figures). Methods/SI PDF не полный."
+lede: "Статья валидирует ProteinMPNN как inverse-folding sequence designer с retrospective recovery и prospective structural/functional rescue. Likelihood и AF2 confidence не равны affinity."
+sections:
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Можно ли обучить AR MPNN на backbone geometry так, чтобы sequences fold/assemble/bind лучше, чем Rosetta packing, на monomers, oligomers, nanoparticles и одном peptide-scaffolded binder?"
+        source: PAPER
+  - id: architecture
+    title: "Архитектура и математика"
+    paragraphs:
+      - text: "3+3 MPNN, hidden 128, kNN distances N/Cα/C/O/Cβ, encoder edge updates, order-agnostic decode, tied logits. См. /tools/proteinmpnn.html."
+        source: PAPER
+  - id: claims-support
+    title: "Утверждения и evidence"
+    paragraphs:
+      - text: "52.4% vs 32.9% recovery vs Rosetta (retrospective). Table 1 ablations. Prospective: soluble yield, SEC oligomer, X-ray 8CYK 2.35 Å, nanoparticle 1.2 Å, Grb2 BLI rescue. Не antibody campaign."
+        source: PAPER
+  - id: unsupported
+    title: "Что evidence не поддерживает"
+    items:
+      - "De novo backbone generation"
+      - "Kd матрица для SH3 binder (численный Kd NR в HTML)"
+      - "Antibody CDR design"
+      - "Что log p = affinity"
+  - id: author-limits
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "In silico recovery чувствителен к resolution; design success ultimately experimental; DL lacks physical transparency of Rosetta."
+        source: PAPER
+citations:
+  - id: "1"
+    text: "Dauparas et al. Science 378, 49–56 (2022)."
+    doi: "10.1126/science.add2187"
+    url: "https://doi.org/10.1126/science.add2187"
+unresolved:
+  - "Полный Methods/SI"

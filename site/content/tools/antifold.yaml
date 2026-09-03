@@ -1,0 +1,230 @@
+identity:
+  id: antifold
+  name: AntiFold
+  slug: antifold
+  aliases:
+  - AntiFold
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/oxpig/AntiFold
+  official_documentation: null
+  official_service: null
+  license: BSD-3-Clause
+  commercial_use_status: Code + web service
+  publication_status: Peer-reviewed journal; Bioinformatics Advances; Q1 status NR
+classification:
+  task_ids:
+  - inverse-folding
+  - antibody-structure-aware-sequence-design
+  - cdr-sequence-generation
+  workflow_ids:
+  - antibody-inverse-folding
+  architecture_ids:
+  - inverse-folding
+  - geometric-transformers
+  generator_classes:
+  - inverse-folding
+  output_modalities:
+  - sequence
+  supported_formats: Fv and VHH/nanobody structures
+  de_novo_or_optimization: Mostly redesign of an existing structural template
+  general_protein_relevance: Low outside antibodies
+  antibody_relevance: High structure-aware relevance
+  VHH_relevance: Supported
+  mutation_relevance: High for structure-preserving proposals
+  compatibility_group: inverse-folding
+generation:
+  exact_generated_object: Fv/VHH sequences, per-residue probabilities, sampled masked variants
+  required_input: Solved or predicted antibody structure; optional antigen context
+  conditioning: CDR/framework masks, fixed residues, optional antigen
+  fixed_components: Backbone coordinates; typically most of the framework unless unmasked
+  editable_components: Masked CDR/framework residues
+  generated_components: Amino-acid identities at masked positions
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No explicit multi-objective loop
+  candidate_generation_mechanism: ESM-IF1 fine-tuned on antibody structures
+architecture:
+  base_model: ESM-IF1 (GVP geometric encoder + autoregressive Transformer)
+  model_family: Antibody-fine-tuned inverse folding
+  model_type: Inverse folding
+  input_representation: Antibody Fv/VHH backbone coordinates; residue graph; optional antigen coordinates;
+    CDR/framework masks
+  node_features: Residue identity (when observed), backbone geometry features inherited from ESM-IF1
+  edge_or_pair_features: Geometric edges / GVP messages between neighbouring residues
+  encoder: GVP geometric encoder (from ESM-IF1)
+  decoder: Autoregressive Transformer over amino-acid tokens
+  latent_or_generative_state: Discrete amino-acid tokens conditioned on backbone
+  equivariance: Geometric encoder uses invariant/equivariant GVP features; decoder is sequence AR
+  conditioning_mechanism: Backbone coordinates, chain identity, residue masks, optional antigen context
+  generation_mechanism: Temperature-based categorical sampling / masked infilling of selected residues
+  sampling_procedure: Per-residue categorical sampling from conditional softmax; masks keep framework/CDR
+    subsets fixed
+  training_objectives: Sequence recovery on antibody structures (fine-tuning ESM-IF1)
+  losses: Cross-entropy over amino-acid tokens
+  architectural_modifications: Fine-tuning ESM-IF1 on antibody structures rather than general proteins
+  computational_complexity_drivers: Fv/VHH length; presence of antigen coordinates
+  output: Conditional sequence distribution, sampled Fv/VHH sequences
+  internal_scorer: Conditional log-likelihood; zero-shot affinity correlation is only a score
+  structure_generation: Нет
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported / Implementation-derived interpretation
+workflow_components:
+  primary_generator: AntiFold inverse-folding sampler
+  integrated_generators: []
+  integrated_scorers:
+  - Conditional probabilities; zero-shot affinity correlation is only a score
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent antibody structure/complex validation and experiments
+  optional_external_dependencies:
+  - Optional antigen context; no docking/MD/developability
+  breakdown:
+  - name: AntiFold inverse-folding sampler
+    role: primary_generator
+    architecture_class: ESM-IF1 fine-tuned on antibody structures
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Conditional probabilities; zero-shot affinity correlation is only a score
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Independent antibody structure/complex validation and experiments
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: 'Antibody structures used to fine-tune ESM-IF1 (exact split sizes: NR here)'
+  preprocessing: null
+  negative_examples: NR
+  fine_tuning: Yes — ESM-IF1 → AntiFold
+  label_requirements: Structure-derived sequences; no wet-lab affinity labels required for training
+  reported_training_hardware: NR
+  reported_training_time: NR
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: Does not include downstream complex prediction or assays
+  CPU: null
+  GPU: NR
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: None for inference beyond the model weights
+evidence:
+  evidence_level: 2 retrospective antibody evaluation
+  retrospective_validation: No prospective wet-lab validation in primary paper
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary paper
+  success_criterion: Improved CDR recovery and retrospective mutation ranking; not demonstrated affinity
+    improvement
+  independent_validation: null
+  evidence_summary: Improved CDR recovery and retrospective mutation ranking; not demonstrated affinity
+    improvement
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Depends on input structure.
+  - no prospective therapeutic evidence.
+  - likelihood must not be read as affinity.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Immediate retrospective evaluation
+relations:
+  related_tools:
+  - esm-if1
+  - proteinmpnn
+  - iglm
+  alternatives:
+  - proteinmpnn
+  - esm-if1
+  complementary_tools:
+  - rfantibody
+  - diffab
+  incompatible_comparisons:
+  - evodiff
+  - framediff
+  - progen
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-antifold
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids:
+  - alphafold3
+  - experimental-assays
+  glossary_ids:
+  - inverse-folding
+  - cdr
+  - framework
+  - likelihood
+  - conditioning
+detailed_architecture:
+  summary_card:
+    Base architecture: ESM-IF1
+    Model type: Inverse folding
+    Representation: Residue graph + backbone coordinates
+    Generation unit: Amino-acid token
+    Conditioning: Backbone, chain identity, antigen context
+    Output: Conditional sequence distribution
+    Sampling: Temperature-based categorical sampling
+    Internal scorer: Model log-likelihood
+    Structure generation: Нет
+  input_representation: 'На вход подаётся не «просто структура», а backbone-level residue graph: координаты
+    тяжёлых атомов остова, маски проектируемых позиций, идентификаторы цепей и, опционально, antigen
+    coordinates. Author-reported: Fv and VHH supported; optional antigen context.'
+  encoder: 'Геометрический GVP encoder из ESM-IF1 кодирует локальные ориентации и расстояния. Implementation-derived
+    interpretation: antibody fine-tune не меняет сам класс encoder, а адаптирует веса к SAbDab-like
+    structures.'
+  latent_or_generative_state: Дискретные amino-acid tokens. Геометрия не сэмплируется.
+  conditioning_mechanism: Coordinate conditioning через geometric edges; residue-level masks; framework
+    можно фиксировать; antigen — optional geometric context, не sequence-only prompt.
+  generation_mechanism: Autoregressive decoding по residues либо masked redesign выбранных CDR/framework
+    позиций. Backbone остаётся clamped.
+  training_objectives: Cross-entropy sequence recovery. Negative non-binding antigens не используются
+    как training signal (NR / not claimed).
+  integrated_evaluation: 'Likelihood ranking is post hoc relative to geometry: it does not update
+    backbone. No docking, no AF in-loop required. Zero-shot affinity correlation must not be read
+    as demonstrated affinity improvement.'
+  architectural_limitations:
+  - feature: Fixed-backbone conditioning
+    limitation: Нельзя исследовать новую CDR topology.
+  - feature: Residue-level representation
+    limitation: Full-atom interactions моделируются лишь косвенно.
+  - feature: Training on antibody structures
+    limitation: Dataset bias и слабое покрытие редких formats возможны.
+  - feature: Likelihood ranker
+    limitation: Learned score может быть miscalibrated вне training distribution.
+review_queue: []

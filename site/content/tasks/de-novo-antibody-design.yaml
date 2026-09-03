@@ -1,0 +1,58 @@
+id: de-novo-antibody-design
+slug: de-novo-antibody-design
+name: De novo antibody design
+group: Антитела и antibody-like форматы
+definition: Создание нового antibody paratope, а не оптимизация parent mutations.
+objective: Получить CDR-mediated binder на выбранном framework к заданному epitope.
+starting_inputs:
+- target structure or antigen sequence
+- framework
+- epitope
+generated_objects:
+- CDR sequences/backbones and antibody–antigen proposals
+generator_classes:
+- target-conditioned-binder
+strategies:
+- name: Diffusion backbone + MPNN CDRs + complex filter
+  generates: CDR geometry and sequences
+  representation: Frames + tokens + complex graph
+  examples:
+  - rfantibody
+  limitation: Низкий hit rate; нужен hotspot/holo target
+  sampling: Multi-stage pipeline
+  novel_topology: Только CDRs
+  integrated_scoring: RF2 / AF3
+  complexity_drivers: Designs × filters
+- name: Sequence generator + antibody complex models + display
+  generates: CDR sequences then complexes
+  representation: Sequence + predicted complex
+  examples:
+  - tfold
+  limitation: Reported Kd нельзя приписать одному generator
+  sampling: Generator + virtual screen + phage display
+  novel_topology: CDRs on fixed human framework
+  integrated_scoring: tFold-Ag filters
+  complexity_drivers: Library size + screening
+consequences:
+- decision: Display/selection intertwined
+  consequence: Нельзя считать все reported affinities чистым эффектом модели.
+compute_consequences:
+- Heavy GPU + optional wet display.
+evidence_summary: RFantibody и tFold имеют prospective antibody evidence; DiffAb — нет.
+incomparable:
+- De novo antibody ≠ parent mutation optimizer.
+selection_guidance:
+- Structure epitope + VHH/scFv — RFantibody.
+- mAb campaign with display — tFold, с лицензионной оговоркой.
+architecture_ids:
+- frame-diffusion
+- inverse-folding
+- protein-language-models
+workflow_ids:
+- de-novo-antibody-rfantibody
+- epitope-mab-tfold
+paper_ids: []
+glossary_ids:
+- cdr
+- epitope
+downstream: false

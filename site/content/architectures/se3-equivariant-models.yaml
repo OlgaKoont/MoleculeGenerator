@@ -1,0 +1,42 @@
+id: se3-equivariant-models
+slug: se3-equivariant-models
+name: SE(3)-equivariant networks
+name_ru: SE(3)-эквивариантные сети
+intuition: Если вход повернуть, выход (координаты/frames) поворачивается так же. Это правильная индуктивная
+  bias для генерации 3D geometry.
+mathematical_formulation: $f(Rx+t)=R f(x)+t$. Реализуется через vector neurons, spherical harmonics
+  (TFN), IPA, или frame updates.
+input_representation: Coordinates, orientation frames, optionally atom types.
+generated_state: Updated coordinates/frames or equivariant features.
+training_objective: Denoising score matching, FAPE, coordinate MSE.
+inference: Denoising/refinement in 3D.
+conditioning: Fixed motif frames, hotspot residues, target coordinates.
+complexity_drivers:
+- N residues
+- order of spherical features
+- diffusion steps
+strengths:
+- Работает непосредственно с 3D geometry
+- Не зависит от абсолютной позы
+limitations:
+- Сложнее инженерия и отладка
+- Выше inference cost
+failure_modes:
+- Broken equivariance in implementation
+- Over-smoothing of loop geometry
+applicable_task_ids:
+- de-novo-backbone-generation
+- joint-cdr-sequence-structure-design
+- de-novo-antibody-design
+not_for_task_ids: []
+paper_ids:
+- paper-rfdiffusion
+- paper-framediff
+- paper-diffab
+subtypes:
+- TFN/SE(3)-Transformer
+- IPA/frame averaging
+- EGNN
+glossary_ids:
+- equivariance
+- diffusion

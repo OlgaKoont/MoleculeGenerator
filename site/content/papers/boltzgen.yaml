@@ -1,0 +1,48 @@
+id: paper-boltzgen
+slug: boltzgen
+title: 'BoltzGen: universal binder design'
+authors: null
+year: '2025'
+venue: bioRxiv preprint (Frontier/Watchlist)
+publication_status: bioRxiv preprint (Frontier/Watchlist)
+doi: 10.1101/2025.11.20.689494
+url: https://doi.org/10.1101/2025.11.20.689494
+preprint_url: https://doi.org/10.1101/2025.11.20.689494
+tool_ids:
+- boltzgen
+main_task: All-atom universal binder generation across proteins, peptides and nanobodies
+claimed_novelty: null
+model_architecture: All-atom generative diffusion unified with folding; design specification
+  language
+input_representation: null
+encoder_decoder: null
+generative_state: Binder sequence–structure and target complex
+conditioning: Residue/chain masks, modality, target context, geometry; supports diverse biomolecules
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Includes nanobody and live-cell/functional examples;
+  still preprint
+tested_designs: Distributed multi-lab campaigns across modalities; per-task counts in preprint
+success_criterion: Includes nanobody and live-cell/functional examples; still preprint
+main_results: Includes nanobody and live-cell/functional examples; still preprint
+limitations: Preprint; unified model scores are not independent validation; evidence differs
+  greatly by binder modality.
+demonstrates:
+- Includes nanobody and live-cell/functional examples; still preprint
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'BoltzGen: universal binder design'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: bioRxiv preprint (Frontier/Watchlist)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

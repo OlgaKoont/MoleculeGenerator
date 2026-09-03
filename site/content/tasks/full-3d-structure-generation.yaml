@@ -1,0 +1,48 @@
+id: full-3d-structure-generation
+slug: full-3d-structure-generation
+name: Генерация полной 3D structure
+group: Общий белковый дизайн
+definition: Генерация не только backbone, но и более полного атомарного/all-atom представления.
+objective: Получить геометрию, пригодную для packing, ligand context или full-atom scoring.
+starting_inputs:
+- conditioners
+- atomic context
+- length
+generated_objects:
+- all-atom or full-atom structure
+generator_classes:
+- backbone-structure-generator
+- joint-sequence-structure
+strategies:
+- name: All-atom diffusion
+  generates: Atomic coordinates around context
+  representation: Atom/residue graph
+  examples:
+  - rfdiffusion-aa
+  - chroma
+  - abdiffuser
+  limitation: Дороже residue-level generation
+  sampling: Diffusion
+  novel_topology: Да
+  integrated_scoring: Model confidence / physics priors
+  complexity_drivers: Atoms × steps
+consequences:
+- decision: Full-atom representation
+  consequence: Лучше моделирует локальные interactions, но растёт cost.
+compute_consequences:
+- Высокая потребность в GPU/VRAM.
+evidence_summary: All-atom generation не равна experimentally validated function.
+incomparable:
+- Не смешивать с sequence-only generators.
+selection_guidance:
+- Ligand/metal context — RFdiffusionAA.
+- Programmable complexes — Chroma.
+architecture_ids:
+- coordinate-diffusion
+- joint-sequence-structure-generation
+workflow_ids:
+- joint-multimodal-generation
+paper_ids: []
+glossary_ids:
+- diffusion
+downstream: false

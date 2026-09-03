@@ -1,0 +1,36 @@
+id: multi-objective-optimization
+slug: multi-objective-optimization
+name: Multi-objective optimization
+name_ru: Многокритериальная оптимизация
+intuition: Affinity, specificity и developability конфликтуют. Ищут Pareto-фронт, а не один scalar
+  score.
+mathematical_formulation: Maximize $y(s)\in\mathbb{R}^k$; $s$ Pareto-optimal iff no $s'$ dominates
+  all coordinates.
+input_representation: Sequences plus multiple assay heads.
+generated_state: Set of trade-off variants.
+training_objective: Multi-head regression or scalarization with caution.
+inference: NSGA-like selection or Pareto filtering of predicted vectors.
+conditioning: Constraints on each objective.
+complexity_drivers:
+- k objectives
+- library size
+strengths:
+- Честно показывает trade-off
+limitations:
+- Нужны simultaneous labels
+- Filter cascade ≠ Pareto
+failure_modes:
+- Hidden scalarization inside a 'single reward'
+applicable_task_ids:
+- multi-objective-optimization
+- specificity-optimization
+- polyspecificity-optimization
+not_for_task_ids:
+- general-protein-sequence-generation
+paper_ids:
+- paper-makowski-affinity-specificity
+subtypes:
+- Pareto front
+- Weighted-sum scalarization
+glossary_ids:
+- multi-objective

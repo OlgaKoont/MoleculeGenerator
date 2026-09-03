@@ -1,0 +1,14 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+lede: "Стадии: эмбеддинг → surrogate fit → proposal → assay. Proposal в EVOLVEpro — ranking, не token generator. Acquisition в mermaid YAML не должна читаться как Pareto NSGA: T7 preprint использует веса, RF может быть multi-property."
+sections:
+  - id: gen-eval
+    title: "Generator vs evaluation в этом workflow"
+    paragraphs:
+      - text: "Surrogate — evaluator. top-N — выбор экспериментальной партии (практический «generator» library). Assay — experiment. Structure predictors не обязательны."
+        source: CODE
+        locator: "EvolvePro evolve_experimental"
+citations:
+  - id: 1
+    text: "EVOLVEpro tool page"
+    url: "../tools/evolvepro.html"

@@ -1,0 +1,179 @@
+identity:
+  id: framediff
+  name: FrameDiff
+  slug: framediff
+  aliases:
+  - FrameDiff
+  - SE(3) diffusion
+  version: null
+  release_year: '2023'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/jasonkyuyim/se3_diffusion
+  official_documentation: null
+  official_service: null
+  license: MIT (repository); bundled dependency terms apply
+  commercial_use_status: Code
+  publication_status: ICML 2023 main track (A*)
+classification:
+  task_ids:
+  - de-novo-backbone-generation
+  workflow_ids:
+  - de-novo-backbone-then-mpnn
+  architecture_ids:
+  - frame-diffusion
+  - se3-equivariant-models
+  generator_classes:
+  - backbone-structure-generator
+  output_modalities:
+  - structure
+  supported_formats: Monomer backbones (reported up to 500 aa)
+  de_novo_or_optimization: De novo
+  general_protein_relevance: Methodological benchmark
+  antibody_relevance: 'No'
+  VHH_relevance: 'No'
+  mutation_relevance: 'No'
+  compatibility_group: backbone-generator
+generation:
+  exact_generated_object: Protein backbone
+  required_input: Length specification
+  conditioning: Primarily length; research implementation
+  fixed_components: null
+  editable_components: null
+  generated_components: Protein backbone
+  support_for_single_mutations: 'No'
+  support_for_combinatorial_mutations: Sequence must be added externally
+  support_for_multi_objective_optimization: 'No'
+  candidate_generation_mechanism: SE(3) diffusion / score model over residue frames
+architecture:
+  base_model: null
+  model_family: SE(3) diffusion / score model over residue frames
+  model_type: 3 Backbone/structure generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Primarily length; research implementation
+  generation_mechanism: SE(3) diffusion / score model over residue frames
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Protein backbone
+  internal_scorer: Designability metrics only
+  structure_generation: 'No'
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: FrameDiff
+  integrated_generators: []
+  integrated_scorers:
+  - Designability metrics only
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - ProteinMPNN + structure prediction/self-consistency
+  optional_external_dependencies:
+  - No sequence stage
+  breakdown:
+  - name: FrameDiff
+    role: primary_generator
+    architecture_class: SE(3) diffusion / score model over residue frames
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Designability metrics only
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: ProteinMPNN + structure prediction/self-consistency
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 1 in silico generation/evaluation
+  retrospective_validation: No prospective wet-lab validation in primary paper
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary paper
+  success_criterion: Computational designability and novelty
+  independent_validation: null
+  evidence_summary: Computational designability and novelty
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Backbone-only research baseline.
+  - no functional conditioning or prospective evidence.
+  - repository maintenance risk.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Research-only
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - antifold
+  - esm-1v-efficient-evolution
+  - esm-if1
+  - evodiff
+  - ligandmpnn
+  - progen
+  - proteinmpnn
+  - structural-evolution
+  paper_ids:
+  - paper-framediff
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

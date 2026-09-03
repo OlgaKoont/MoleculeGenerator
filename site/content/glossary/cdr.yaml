@@ -1,0 +1,9 @@
+id: cdr
+slug: cdr
+term: CDR
+term_ru: Гипервариабельные петли
+definition: Complementarity-determining regions — петли variable domain, обычно ответственные за antigen
+  contacts.
+related_ids:
+- framework
+- epitope

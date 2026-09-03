@@ -1,0 +1,43 @@
+id: multi-objective-optimization
+slug: multi-objective-optimization
+name: Multi-objective optimization
+group: Оптимизация существующих белков
+definition: Одновременная оптимизация нескольких свойств (affinity, specificity, developability).
+objective: Найти Pareto-компромиссы, а не максимизировать один score.
+starting_inputs:
+- parent
+- multiple assays/labels
+generated_objects:
+- Pareto-front variants
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Explicit Pareto on labelled properties
+  generates: Trade-off mutation sets
+  representation: Supervised multi-head models
+  examples:
+  - makowski-affinity-specificity
+  limitation: Не pretrained universal generator
+  sampling: Pareto selection
+  novel_topology: Нет
+  integrated_scoring: Multiple assay models
+  complexity_drivers: Number of objectives and labels
+consequences:
+- decision: Scalarized reward without assays
+  consequence: Легко получить apparent gain по proxy, потеряв реальное свойство.
+compute_consequences:
+- Зависит от числа objectives.
+evidence_summary: Явный affinity–specificity Pareto — Makowski et al. Filter cascades (BindCraft)
+  — не то же самое.
+incomparable:
+- Filter-based multi-criterion ≠ Pareto optimization.
+selection_guidance:
+- Нужны simultaneous labels.
+architecture_ids:
+- multi-objective-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- multi-objective
+downstream: false

@@ -1,0 +1,45 @@
+id: cdr-backbone-generation
+slug: cdr-backbone-generation
+name: Генерация CDR backbone
+group: Антитела и antibody-like форматы
+definition: Генерация геометрии CDR петель при фиксированном framework.
+objective: Предложить CDR loop conformations, совместимые с epitope.
+starting_inputs:
+- framework structure
+- target/epitope
+- CDR lengths
+generated_objects:
+- CDR backbone coordinates
+generator_classes:
+- backbone-structure-generator
+strategies:
+- name: Antibody-fine-tuned SE(3) diffusion
+  generates: CDR backbone
+  representation: Equivariant frames
+  examples:
+  - rfantibody
+  limitation: Framework фиксирован; sampling дорогой
+  sampling: Diffusion trajectories
+  novel_topology: Только в пределах CDR loops
+  integrated_scoring: RF2 self-consistency
+  complexity_drivers: Trajectories × CDR length × RF2
+consequences:
+- decision: Fixed framework
+  consequence: Нельзя сделать global redesign всего Fv.
+compute_consequences:
+- Существенно дороже sequence-only CDR design.
+evidence_summary: 'RFantibody: prospective VHH/scFv binders; hit rates ниже miniprotein pipelines.'
+incomparable:
+- Не сравнивать runtime с AntiFold.
+selection_guidance:
+- Epitope-conditioned de novo loops — RFantibody.
+architecture_ids:
+- frame-diffusion
+- se3-equivariant-models
+workflow_ids:
+- de-novo-antibody-rfantibody
+paper_ids: []
+glossary_ids:
+- cdr
+- diffusion
+downstream: false

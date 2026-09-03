@@ -1,0 +1,182 @@
+identity:
+  id: esm-if1
+  name: ESM-IF1
+  slug: esm-if1
+  aliases:
+  - ESM-IF1
+  - ESM Inverse Folding
+  version: null
+  release_year: '2022'
+  last_verified: '2026-08-27'
+  official_repository: https://github.com/facebookresearch/esm
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Code + weights
+  publication_status: ICML 2022 main track (A*)
+classification:
+  task_ids:
+  - inverse-folding
+  - single-mutation-proposal
+  workflow_ids:
+  - fixed-backbone-inverse-folding
+  architecture_ids:
+  - inverse-folding
+  - geometric-transformers
+  - se3-equivariant-models
+  - invariant-models
+  generator_classes:
+  - inverse-folding
+  output_modalities:
+  - sequence
+  supported_formats: Monomer and protein complex
+  de_novo_or_optimization: Design or masked redesign
+  general_protein_relevance: High
+  antibody_relevance: General model; used in antibody-complex evolution but not antibody-specialized
+  VHH_relevance: Transferable
+  mutation_relevance: High for structure-constrained mutation proposals
+  compatibility_group: inverse-folding
+generation:
+  exact_generated_object: Sequence and sequence likelihood conditioned on backbone
+  required_input: N–Cα–C backbone coordinates; partial masks allowed
+  conditioning: Partial masks, complexes, interfaces, multistate use cases
+  fixed_components: null
+  editable_components: null
+  generated_components: Sequence and sequence likelihood conditioned on backbone
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: No explicit multi-objective optimizer
+  candidate_generation_mechanism: GVP geometric encoder + autoregressive Transformer
+architecture:
+  base_model: null
+  model_family: GVP geometric encoder + autoregressive Transformer
+  model_type: 2 Fixed-backbone inverse-folding generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Partial masks, complexes, interfaces, multistate use cases
+  generation_mechanism: GVP geometric encoder + autoregressive Transformer
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Sequence and sequence likelihood conditioned on backbone
+  internal_scorer: Conditional log-likelihood; can score mutations
+  structure_generation: 'No'
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: ESM-IF1 inverse-folding model
+  integrated_generators: []
+  integrated_scorers:
+  - Conditional log-likelihood; can score mutations
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Backbone/complex quality must be independently checked
+  optional_external_dependencies:
+  - No docking/MD/developability
+  breakdown:
+  - name: ESM-IF1 inverse-folding model
+    role: primary_generator
+    architecture_class: GVP geometric encoder + autoregressive Transformer
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Conditional log-likelihood; can score mutations
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Backbone/complex quality must be independently checked
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 2 retrospective in primary paper; 4 when embedded in later structural-evolution
+    workflow
+  retrospective_validation: 'Primary paper: no prospective wet lab'
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: 'Primary paper: no prospective wet lab'
+  success_criterion: Retrospective recovery/generalization; later antibody evolution evidence
+    belongs to separate workflow
+  independent_validation: null
+  evidence_summary: Retrospective recovery/generalization; later antibody evolution evidence
+    belongs to separate workflow
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Fixed-backbone assumption.
+  - scores fold compatibility more directly than therapeutic function.
+  - legacy repository.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Immediate retrospective evaluation
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - evodiff
+  - framediff
+  - progen
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-esm-if1
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

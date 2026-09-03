@@ -1,0 +1,134 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Маскированные позиции восстанавливаются из двустороннего контекста (BERT-style) или iterative decoding.
+  - type: p
+    text: Генератор на masked indices; evaluator, если только score. ESM-1v mutation scoring использует masked logits без генерации библиотеки de novo.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Модель заполняет пропуски, видя оба фланга — в отличие от AR left-to-right.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: p(s_i\mid s_{\setminus i})=\mathrm{softmax}(W h_i^{\setminus i})
+    caption: Masked LM. Для мутаций \(\Delta\log p = \log p(s_i^{mut}\mid s_{\setminus i})-\log p(s_i^{wt}\mid s_{\setminus i})\).
+    source: '[PAPER] ESM-1v Meier et al. 2021; generic MLM'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - mask tokens
+    - bidirectional hidden states
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Sequence context only, unless model is IF/multimodal.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - ΔLL
+      - evolutionary plausibility of substitution
+      - implicit
+      - ≠ ΔΔG
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'MLM CE. Zero-shot use: no task FT required.'
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - mask positions
+    - encode
+    - fill or score
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: Random masks on UniRef etc.
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Single forward for scoring 20 AA; iterative fill for multi-site.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Unmasked sequence; optional structure in other models.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: One forward × positions for scoring; 19 substitutions per site.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Сильный zero-shot variant ranking без labels.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Плохо ловит epistasis multi-mutant.
+    - Не binding assay.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Over-rank conservative substitutions.
+    - Epitope-disrupting but 'natural' mutations.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - <a href="/tools/esm-1v-efficient-evolution.html">ESM-1v evolution</a>
+      - masked ΔLL
+      - enumerate substitutions
+      - zero-shot, not AL
+    - - AntiFold (masked regions)
+      - IF logits + mask
+      - structure-conditioned fill
+      - not MLM UniRef
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Single-mutation proposal. Не few-shot AL.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Meier et al., ESM-1v, NeurIPS 2021
+      url: https://doi.org/10.1101/2021.07.09.450648

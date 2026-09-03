@@ -1,0 +1,37 @@
+id: flow-matching
+slug: flow-matching
+name: Flow matching
+name_ru: Flow matching
+intuition: Вместо стохастической диффузии обучается детерминированное векторное поле, которое перевозит
+  simple prior (шум/Gaussian) в data distribution по прямой (или другому) пути.
+mathematical_formulation: 'Путь $x_t=(1-t)x_0+t x_1$. Objective: $\mathbb{E}\|v_\theta(x_t,t)- (x_1-x_0)\|^2$.
+  Sampling: ODE $\dot x=v_\theta(x,t)$.'
+input_representation: Continuous geometric state, optionally one-hot sequence embeddings.
+generated_state: Sequence–structure pair at t=1.
+training_objective: Conditional flow-matching regression.
+inference: ODE integration with a small number of steps compared with long DDPM.
+conditioning: Framework frames, antigen, masks concatenated or via cross-attention.
+complexity_drivers:
+- ODE steps
+- N residues
+- network width
+strengths:
+- Часто меньше sampling steps, чем diffusion
+- Прямой транспорт
+limitations:
+- Меньше накопленной практики в antibodies
+- Код/validation могут быть ограничены
+failure_modes:
+- Плохая discretization ODE
+- Смешение predicted и measured gains
+applicable_task_ids:
+- joint-cdr-sequence-structure-design
+not_for_task_ids:
+- few-shot-active-learning
+paper_ids:
+- paper-flowdesign
+subtypes:
+- Gaussian flow matching
+- Riemannian flow matching on SE(3)
+glossary_ids:
+- flow-matching

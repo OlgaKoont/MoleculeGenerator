@@ -1,0 +1,43 @@
+id: polyspecificity-optimization
+slug: polyspecificity-optimization
+name: Оптимизация polyspecificity
+group: Оптимизация существующих белков
+definition: Снижение широкой неспецифической липкости antibody.
+objective: Улучшить specificity/developability, не потеряв on-target binding.
+starting_inputs:
+- parent antibody
+- nonspecific binding assays
+generated_objects:
+- framework/CDR mutants
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Assay-trained multi-objective models
+  generates: Mutation sets
+  representation: Sequence + PSR/nonspecific labels
+  examples:
+  - makowski-affinity-specificity
+  limitation: Один case study; не universal generator
+  sampling: Pareto front
+  novel_topology: Нет
+  integrated_scoring: Nonspecific binding model
+  complexity_drivers: Library + assays
+consequences:
+- decision: Optimize only affinity
+  consequence: Polyspecificity может вырасти.
+compute_consequences:
+- Developability panel обязателен.
+evidence_summary: Makowski et al. напрямую работает с nonspecific binding trade-off.
+incomparable:
+- Humanness scores ≠ polyspecificity assays.
+selection_guidance:
+- Нужны labels неспецифического binding.
+architecture_ids:
+- multi-objective-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- developability
+- multi-objective
+downstream: false

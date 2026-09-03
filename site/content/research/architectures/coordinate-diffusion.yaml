@@ -1,0 +1,331 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Coordinate diffusion — генерация <strong>декартовых координат</strong> \(x\in\mathbb{R}^{N\times 3}\) (обычно C\(\alpha\) или heavy atoms) обращением стохастического процесса, который добавляет (часто Gaussian) шум в \(\mathbb{R}^3\). Это генератор структуры, не sequence LM и не affinity predictor. Sequence либо отсутствует, либо ставится отдельно (CRF/IF), либо идёт параллельным дискретным каналом (тогда это уже <a href="/architectures/joint-sequence-structure-diffusion.html">joint diffusion</a>).
+  - type: p
+    text: 'Класс <em>не</em> совпадает с <a href="/architectures/frame-diffusion.html">frame diffusion</a>: там independently диффундируют ориентации \(R_i\in\mathrm{SO}(3)\) (IGSO(3)/Brownian) и трансляции кадров. Здесь generated state — точки; frames, если появляются, <strong>вычисляются из координат</strong> (Genie Frenet–Serret) или относятся к другому каналу (RFdiffusion-AA: frames белка + фиксированные ligand atoms).'
+  - type: p
+    text: 'В каталоге: <a href="/tools/chroma.html">Chroma</a> (correlated backbone coords + design network); <a href="/tools/rfdiffusion-aa.html">RFdiffusion-AA</a> (гибрид: Gaussian C\(\alpha\) + Brownian rotations вокруг ligand); C\(\alpha\)-канал <a href="/tools/diffab.html">DiffAb</a> (не coords-only). <a href="/tools/rfdiffusion.html">RFdiffusion</a> помечен обоими классами из‑за Gaussian трансляций, но каноническая страница — frame diffusion. <a href="/tools/boltzgen.html">BoltzGen</a> — all-atom generative diffusion, methods NR this pass.'
+  - type: p
+    text: 'Задачи: <a href="/tasks/de-novo-backbone-generation.html">de novo backbone</a>, <a href="/tasks/full-3d-structure-generation.html">full 3D</a>, motif/shape/ligand context. Не CDR-sequence-only и не few-shot ELISA loops.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Forward process превращает нативную геометрию в облако шума. Denoiser учится предсказывать чистые координаты \(x_0\), шум \(\varepsilon\) или score \(\nabla\log p_t(x)\). Reverse integrator собирает складку. Motif/ligand/shape задаются clamp или classifier guidance, не «энергией связывания».
+  - type: p
+    text: 'Изотропный Gaussian (Genie, DDPM, DiffAb position) не знает, что белок — полимер: цепочку и \(R_g\) сеть должна выучить с нуля. Chroma вкладывает collapsed-polymer covariance в шум, чтобы prior уже был chain-like. [PAPER]'
+  - type: warn
+    text: scTM / scRMSD / pLDDT / model likelihood / conditioner energy / GALigandDock ≠ experimental fold или Kd. FastRelax после sample меняет геометрию относительно сырого \(x_0\).
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Три subtype. Не смешивать ядра шума.
+  - title: Изотропный VP / DDPM на Cα (Genie; DiffAb position channel)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        x&\in\mathbb{R}^{N\times 3},\\
+
+        q(x_t\mid x_{t-1})&=\mathcal{N}\bigl(x_t;\sqrt{1-\beta_t}\,x_{t-1},\beta_t I\bigr),\\
+
+        x_t&=\sqrt{\bar\alpha_t}\,x_0+\sqrt{1-\bar\alpha_t}\,\varepsilon,\quad\varepsilon\sim\mathcal{N}(0,I).
+
+        \end{aligned}'
+      caption: 'Ho-style VP. Genie: cosine schedule, \(T=1000\); denoiser \(\varepsilon_\theta(x_t,t)\) предсказывает Cartesian displacements; Frenet–Serret frames строятся из \(x_t\), не диффундируют отдельно. DiffAb: тот же Gaussian на C\(\alpha\), плюс SO(3) и sequence — joint страница.'
+      source: '[PAPER] Ho et al. DDPM 2020; Lin & AlQuraishi Genie ICML 2023 Eq. 1; Luo DiffAb'
+  - title: Коррелированный polymer VP-SDE (Chroma)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        x&=Rz,\quad z\sim\mathcal{N}(0,I),\quad \Sigma=RR^\top,\\
+
+        \mathrm{d}z&=-\tfrac{\beta_t}{2}z\,\mathrm{d}t+\sqrt{\beta_t}\,\mathrm{d}w,\\
+
+        \mathrm{d}x&=-\tfrac{\beta_t}{2}x\,\mathrm{d}t+\sqrt{\beta_t}\,R\,\mathrm{d}w,\\
+
+        x_t&=\sqrt{\alpha_t}\,x_0+\sqrt{1-\alpha_t}\,R\varepsilon.
+
+        \end{aligned}'
+      caption: Whitening \(z=\Sigma^{-1/2}(x-b)\). \(\Sigma\) подгоняется offline под chain + radius-of-gyration статистику, не учится вместе с \(\theta\). Loss — denoising / ELBO в \(z\)-space (Kingma et al. 2021 weights). Probability-flow ODE даёт детерминированный encode/sample. [PAPER] Ingraham et al. bioRxiv Appendix A.
+      source: '[PAPER] Ingraham et al. Nature 2023 / bioRxiv 2022.12.01.518682'
+    - type: p
+      text: 'Classifier guidance: \(\nabla_x\log p_t(x\mid y)=\nabla_x\log p_t(x)+\nabla_x\log p_t(y\mid x)\) (Song et al. 2021). \(y\) — symmetry, substructure RMSD, CATH/PFAM, language captions. Это не epitope one-hot RFantibody.'
+  - title: 'Гибрид: protein frames + fixed ligand Cartesian (RFdiffusion-AA)'
+    level: 3
+    blocks:
+    - type: math
+      latex: q(t_{i,\tau}\mid t_{i,0})=\mathcal{N}(\sqrt{\bar\alpha}\,t_{i,0},(1-\bar\alpha)I),\quad q(R_{i,\tau}\mid R_{i,0})=\mathrm{Brownian}(\mathrm{SO}(3))
+      caption: 'Science: «3D Gaussian noise to the Cα coordinates and Brownian motion on the manifold of rotations»; ligand/motif coords clamped. Это frame process вокруг all-atom context, не isotropic all-atom DDPM. Sequence — LigandMPNN после. [PAPER]'
+      source: '[PAPER] Krishna et al. Science 2024'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Что шумится
+      - Ядро шума
+      - Каталог
+      rows:
+      - - Coordinate diffusion (эта страница)
+        - \(x\in\mathbb{R}^{N\times 3}\)
+        - isotropic или \(\Sigma=RR^\top\)
+        - Chroma; Cα-канал DiffAb
+      - - <a href="/architectures/frame-diffusion.html">Frame diffusion</a>
+        - \((R_i,t_i)\in\mathrm{SE}(3)\)
+        - Gaussian + IGSO(3)/Brownian
+        - RFdiffusion, FrameDiff, RFantibody
+      - - <a href="/architectures/torsion-diffusion.html">Torsion diffusion</a>
+        - \(\phi,\psi,\omega\) on torus
+        - wrapped DDPM
+        - FoldingDiff (не tool)
+      - - <a href="/architectures/joint-sequence-structure-diffusion.html">Joint seq–struct</a>
+        - AA + geometry
+        - факторизованный forward
+        - DiffAb; BoltzGen family
+      - - <a href="/architectures/flow-matching.html">Flow matching</a>
+        - coords/frames по ODE
+        - нет SDE-шума как генератор
+        - Proteina / FlowDesign — не этот класс
+      - - AF2 / RFAA predictor
+        - coords given sequence+graph
+        - recycling, не sampler \(p(x)\)
+        - RFAA ≠ RFdiffusion-AA
+    - type: warn
+      text: FAPE — loss predictor'а (AF2/RFAA), не default diffusion objective. UCB / sequence NLL ProGen сюда не ставить.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'C\(\alpha\) cloud: Genie \(x\in\mathbb{R}^{N\times 3}\); DiffAb \(p\in\mathbb{R}^{L\times 3}\).'
+    - 'Chroma: backbone coords в nm; polymer \(\Sigma\) (chain + \(R_g\)); random graph с long-range edges (Barnes–Hut-like); pair distances для equivariant reconstruction. Hidden widths SI Tables 2–3 NR this pass.'
+    - 'RFdiffusion-AA: residue frames (C\(\alpha\) + N–C–C) + atom nodes без relative position encoding (permutation-invariant small-molecule graph); ligand tokens from chemical graph.'
+    - 'Time: discrete \(t\in\{1..T\}\) (Genie 1000; RFdiffusion-AA README \(T=100\) ligand-only, \(T=200\) + protein motif) или continuous \(t\in(0,1)\) (Chroma VP-SDE).'
+    - 'Sequence tokens: отсутствуют в Genie; Chroma design network после backbone; DiffAb discrete channel; RFdiffusion-AA не диффундирует AA.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generated state — остов (N, C\(\alpha\), C; O часто coplanar). Side chains: Chroma design network после \(x\); RFdiffusion-AA/Genie — packer/IF. Глобальный SE(3): изотропный DDPM не invariant без centering/augmentation; Chroma и Genie используют equivariant layers. Перестановка residues ломает chain (кроме ligand atom set). Цепи/комплексы: Chroma семплирует complexes; Nature пример icosahedral 60 subunits / 60 000 residues. [PAPER]'
+  - type: p
+    text: RFAA как predictor двигает heavy-atom coords независимо (translational updates); это не то же самое, что generative reverse SDE RFdiffusion-AA. Не путать две головы одной статьи Science.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - Isotropic \(\varepsilon\) on C\(\alpha\)
+      - разрушает локальную геометрию
+      - explicit noise
+      - bond lengths не сохранены
+    - - Polymer \(\Sigma=RR^\top\)
+      - chain connectivity + collapsed \(R_g\)
+      - fixed prior Chroma
+      - не secondary-structure labels
+    - - Frenet–Serret frames (Genie)
+      - локальная ориентация из трёх Cα
+      - derived, not diffused
+      - терминали копируют соседа
+    - - Ligand Cartesian (RFdiffusion-AA)
+      - фиксированный small-molecule pose
+      - clamp
+      - неверный pose → неверный карман
+    - - Classifier \(\nabla\log p(y\mid x)\)
+      - programmable constraint
+      - analytic или NN
+      - wrong classifier ≠ function
+    - - CRF / LigandMPNN sequence
+      - совместимость с backbone/ligand
+      - после diffusion
+      - не joint \(p(s,x)\)
+    - - H-bonds, electrostatics, solvent, glycans, epitope
+      - —
+      - absent in generator
+      - Chroma VHH CDR infill — demonstration, не wet-lab Ab campaign
+    source: '[INTERPRETATION] класс; числа — cited papers'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Genie: \(\varepsilon_\theta\) MSE (noise prediction) на C\(\alpha\); 4.1M params, from scratch (vs RFdiffusion 59.8M pretrained RF). [PAPER] Chroma: denoiser \(\hat x_\theta(x_t,t)\); ELBO в whitened space + regularization в \(x\)-space (absolute nm error); \(R\) fit offline. Design network — отдельная GNN с sequence/side-chain heads (Ingraham 2019 / ProteinMPNN lineage), не diffusion loss. [PAPER]'
+  - type: p
+    text: 'RFdiffusion-AA: fine-tune RFAA weights на denoising protein frames given small-molecule context (explicitly conditional, не classifier guidance). Auxiliary potentials для контактов авторы сочли ненужными (fig. S10C, SI). Sequence CE не главный loss. [PAPER]'
+  - type: p
+    text: Negative examples — зашумлённые natives, не docking decoys. Likelihood Chroma weakly predictive of soluble expression в одном conditional сете и не в другом (Nature). [PAPER]
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - noise / polymer prior / random frames around ligand
+    - denoiser (GNN / IPA / RF-AA)
+    - predict x0 or ε
+    - SDE/ODE/DDPM step; clamp motif/ligand
+    - optional classifier guidance / low-T
+    - sequence (CRF / LigandMPNN / DiffAb head)
+    - AF2 / crystallography / binding assay
+    note: Схема класса. Не копия Nature Fig. 1 / Science Fig. 4.
+  - type: p
+    text: 'Chroma low-T: modified diffusion, inverse temperature \(\lambda_0=10\) в bioRxiv 50k/10k characterization; Nature v.0/v.1 — 100k chains + 20k complexes. Quality↑ entropy↓. [PAPER] RFdiffusion-AA step: predict \(X_0\), step toward it, re-noise to \(X_{t-1}\). [PAPER]'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'Данные: PDB (и AFDB/SwissProt для Genie-SwissProt). Leakage: TM к train set; Chroma Nature приводит низкие nearest-neighbour TM; RFdiffusion-AA: TM к PDB binders related ligands Tanimoto>0.5 — DIG top 0.59, heme <0.62, bilin <0.52, sequence similarity undetectable. [PAPER]'
+  - type: p
+    text: 'Chroma ablations семи архитектур — SI Fig. 22 / Appendix L, NR page-by-page; авторы сообщают gain в likelihood и in silico refolding. RFAA predictor train: full assemblies PDB; RFdiffusion-AA FT на protein–small molecule set + motif scaffolding with/without ligands. [PAPER]'
+  - type: p
+    text: 'Genie-SCOPe vs SwissProt: long-model comparison vs FrameDiff/RFdiffusion в Table 1; scRMSD<2 Å + pLDDT>70. In silico only. [PAPER]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Genie: \(x_T\sim\mathcal{N}(0,I)\) per C\(\alpha\); ancestral reverse \(T=1000\). Chroma: sample from polymer prior, reverse SDE или probability-flow ODE; low-T schedule; conditioner gradients каждый шаг. RFdiffusion-AA: Gaussian frames around fixed ligand; README \(T=100\) (ligand) / \(T=200\) (ligand+protein motif); contigmap задаёт длину. [PAPER]+[DOC]'
+  - type: p
+    text: 'Stopping: фиксированный T / t=0. Ranking: AF2 scRMSD, pLDDT, Rosetta/GALigandDock, Chroma likelihood — всё in silico, пока нет assay. Sequence: не часть reverse SDE у Chroma/RFdiffusion-AA.'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Clamp coordinates (motif, ligand, framework). Chroma programmable y: symmetry groups (Cn, Dn, T, O, I); substructure RMSD infill/outfill (DHFR cut; VHH CDR rebuild — computational demo); volumetric shapes; CATH/PFAM/SS classifiers; natural-language PDB/UniProt captions. [PAPER]'
+  - type: p
+    text: 'RFdiffusion-AA: ligand graph + optional protein motif residues (e.g. contig 10–120,A84–87,10–120). Explicitly conditional FT, не Song-style guidance. DiffAb: generate_flag на CDR, antigen/framework clamped. Нет ELISA labels. Нет UCB.'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: 'Изотропный Transformer/IPA: \(O(N^2 T)\). Chroma: random long-range graph \(O(N)\) или \(O(N\log N)\) vs quadratic pair track; Nature — комплексы до 60k residues под symmetry. [PAPER] RFdiffusion-AA: RF-like pair + atom track; crop/T NR beyond README 100–200. All-atom дороже C\(\alpha\). Wall-clock oracle (crystallography, ITC) доминирует claims of function.'
+  - type: p
+    text: 'Genie 4.1M vs RFdiffusion 59.8M: меньше параметров ≠ лучше antibody CDR. Parameter count не affinity.'
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Прямой sampler \(p(x)\) в 3D: motif clamp и shape guidance естественны (Chroma infill; RFdiffusion-AA pocket around ligand).'
+    - Polymer covariance снижает нагрузку «выучить цепь» (Chroma).
+    - 'Wet-lab: Chroma 310 designs; 172 unconditional 100–450 aa все выше split-GFP negative control; кристаллы UNC_079 RMSD 1.1 Å (8TNM) и UNC_239 1.0 Å (8TNO). RFdiffusion-AA: DIG \(K_d=343\) nM (ITC); heme crystal 0.86 Å C\(\alpha\) RMSD; 168 heme designs → 135 expressed → 90 UV-Vis Cys-heme. [PAPER]'
+    - Sub-quadratic scaling позволяет крупные комплексы, недоступные \(O(N^2)\) pair diffusion без crop.
+  - type: p
+    text: Это не antibody affinity campaign и не замена epitope-conditioned RFantibody. Conservative Chroma success, если считать только individually purified, ~3%. [PAPER]
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: isotropic noise ломает bonds; \(\Sigma\) misspecification; ELBO ≠ experimental ΔG.'
+    - 'Представление: нет side chains до второго модуля; ligand pose зафиксирован.'
+    - 'Физика/химия: нет растворителя, протонирования, гликанов как термов.'
+    - 'Данные: PDB bias; Chroma language conditioner не always semantic.'
+    - 'Обобщение: нет prospective mAb Kd в разобранных papers; VHH CDR infill — figure, не SPR.'
+    - 'Deployment: Chroma weights gated; RFdiffusion-AA container/legacy env; BoltzGen preprint.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Unstructured high-likelihood samples до low-T (Chroma bioRxiv: mostly unstructured until temperature modification). [PAPER]'
+    - Exploded / unphysical bond lengths при isotropic Cα без reconstruction constraints.
+    - Подмена AF2 pLDDT / GALigandDock / conditioner energy экспериментальным связыванием.
+    - 'Считать RFdiffusion-AA «all-atom diffusion белка»: диффундируют frames, ligand clamp. [PAPER]'
+    - Считать unconditional Chroma antibody–antigen-like complex (TM 0.46/0.43) de novo antibody design. [PAPER]
+    - Length–solubility anti-correlation (Chroma split-GFP). [PAPER]
+    - Неверный ligand conformer → карман под неправильную химию.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool / method
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/chroma.html">Chroma</a>
+      - correlated Cartesian VP-SDE + design GNN
+      - polymer \(\Sigma\); sub-quadratic random graph; classifier guidance; CRF sequence after backbone
+      - Nature 2023; weights gated; no Ab wet-lab
+    - - <a href="/tools/rfdiffusion-aa.html">RFdiffusion-AA</a>
+      - frame diffusion around ligand atoms
+      - FT RFAA; Gaussian Cα + Brownian SO(3); LigandMPNN
+      - Science 2024; DIG 343 nM; heme 0.86 Å; not antibody
+    - - <a href="/tools/rfdiffusion.html">RFdiffusion</a>
+      - не этот класс как канон
+      - SE(3) frames, RF denoiser
+      - см. frame-diffusion; catalog tag coords = translations
+    - - <a href="/tools/diffab.html">DiffAb</a>
+      - 'joint: Cα VP + SO(3) + seq'
+      - FullDPM ε-MSE on positions
+      - coords-only интерпретация неверна
+    - - <a href="/tools/boltzgen.html">BoltzGen</a>
+      - all-atom generative diffusion (NR methods)
+      - unified with folding; spec language
+      - preprint; nanobody claims не перенесены сюда
+    - - <a href="/tools/framediff.html">FrameDiff</a>
+      - SE(3) frames
+      - Yim 2023
+      - не Cartesian DDPM
+    - - Genie (не в каталоге)
+      - isotropic Cα DDPM T=1000
+      - FS frames from coords; 4.1M
+      - in silico scTM/scRMSD only
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Применимо к <a href="/tasks/de-novo-backbone-generation.html">de novo backbone</a>, shape/symmetry programming, ligand-conditioned pockets. Практический antibody backbone в каталоге — <a href="/architectures/frame-diffusion.html">frame diffusion</a> / <a href="/tools/rfantibody.html">RFantibody</a>. Ligand binders — RFdiffusion-AA + LigandMPNN, не ELISA-loop EVOLVEpro.
+  - type: p
+    text: 'Не применимо как sequence-only CDR library (<a href="/tools/iglm.html">IgLM</a>) или few-shot mutation AL. Не сравнивать Chroma split-GFP с DIG \(K_d\) и с RFantibody yeast display: разные \(f\), разные generated objects.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Ho et al., Denoising Diffusion Probabilistic Models, NeurIPS 2020.
+      url: https://arxiv.org/abs/2006.11239
+    - text: Song et al., Score-Based Generative Modeling through SDEs, ICLR 2021 (VP-SDE, classifier guidance, probability-flow ODE).
+      url: https://arxiv.org/abs/2011.13456
+    - text: Ingraham et al., Illuminating protein space with a programmable generative model, Nature 2023, 10.1038/s41586-023-06728-8 (Chroma).
+      url: https://doi.org/10.1038/s41586-023-06728-8
+    - text: Ingraham et al. bioRxiv 10.1101/2022.12.01.518682 (Chroma methods / correlated SDE).
+      url: https://doi.org/10.1101/2022.12.01.518682
+    - text: Krishna et al., Generalized biomolecular modeling and design with RoseTTAFold All-Atom, Science 2024, 10.1126/science.adl2528.
+      url: https://doi.org/10.1126/science.adl2528
+    - text: 'Lin & AlQuraishi, Genie: Equivariantly Diffusing Oriented Residue Clouds, ICML 2023 / arXiv 2301.12485.'
+      url: https://arxiv.org/abs/2301.12485
+    - text: Luo et al., DiffAb, NeurIPS 2022 (Cα channel inside joint diffusion).
+      url: https://arxiv.org/abs/2203.07725
+    - text: Watson et al., RFdiffusion, Nature 2023 (frame class; Gaussian translations).
+      url: https://doi.org/10.1038/s41586-023-06415-8
+    - text: Yim et al., FrameDiff, arXiv 2302.02277.
+      url: https://arxiv.org/abs/2302.02277
+    - text: Architecture frame diffusion (distinct class)
+      url: /architectures/frame-diffusion.html
+    - text: Architecture joint sequence–structure diffusion
+      url: /architectures/joint-sequence-structure-diffusion.html
+    - text: Tool Chroma
+      url: /tools/chroma.html
+    - text: Tool RFdiffusion-AA
+      url: /tools/rfdiffusion-aa.html
+inaccessible:
+- Chroma Nature SI Appendices C–G, L (точный polymer covariance R, graph hyperparameters, ablation of seven configs) не разбирались постранично; уравнения VP-SDE и x_t=√α x_0+√(1−α)Rε сверены с bioRxiv 10.1101/2022.12.01.518682 HTML; экспериментальные counts — Nature HTML 10.1038/s41586-023-06728-8.
+- github.com/generatebio/chroma не аудировался по commit; weights gated (API key).
+- RFdiffusion-AA Science SI / fig. S10, S21, S29–S30 не постранично; ligand Gaussian+Brownian frames и wet-lab DIG/heme/bilin — Science HTML 10.1126/science.adl2528; T=100/200 — README baker-laboratory/rf_diffusion_all_atom, не commit audit.
+- 'BoltzGen bioRxiv 10.1101/2025.11.20.689494 methods в этом проходе не перечитывались: all-atom diffusion только как catalog tag, без уравнений.'
+- Genie (Lin & AlQuraishi, ICML 2023) не в каталоге tools; DDPM T=1000 — arXiv 2301.12485 HTML, repo aqlaboratory/genie не аудирован.

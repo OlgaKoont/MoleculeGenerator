@@ -1,0 +1,48 @@
+id: paper-proteinmpnn
+slug: proteinmpnn
+title: Robust deep learning-based protein sequence design using ProteinMPNN
+authors: Justas Dauparas, Ivan Anishchenko, Nathaniel Bennett, Hua Bai, Robert J. Ragotte, Lukas F. Milles, Basile I. M. Wicky, Alexis Courbet, Robbert J. de Haas, Neville Bethel, Peggy J. Y. Leung, Timothy F. Huddy, Sam Pellock, Doug Tischer, F. Chan, Brian Koepnick, Hannah Nguyen, Alex Kang, Banumathi Sankaran, Asim K. Bera, Neil P. King, David Baker
+year: '2022'
+venue: Peer-reviewed journal; Science (Q1)
+publication_status: Peer-reviewed journal; Science (Q1)
+doi: 10.1126/science.add2187
+url: https://doi.org/10.1126/science.add2187
+preprint_url: https://doi.org/10.1101/2022.06.03.494563
+tool_ids:
+- proteinmpnn
+main_task: Fixed-backbone sequence design / inverse folding
+claimed_novelty: null
+model_architecture: Autoregressive message-passing neural network on backbone geometry
+input_representation: null
+encoder_decoder: null
+generative_state: One or many sequences compatible with input backbone
+conditioning: Fixed positions, chain design masks, amino-acid bias, tied positions, multi-chain
+  context
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: X-ray/cryo-EM/functional rescue and design evidence;
+  general proteins
+tested_designs: 'Multiple monomer, oligomer, nanoparticle and binder campaigns; exact aggregate:
+  NR'
+success_criterion: X-ray/cryo-EM/functional rescue and design evidence; general proteins
+main_results: X-ray/cryo-EM/functional rescue and design evidence; general proteins
+limitations: Cannot invent a backbone; likelihood is not affinity; fixed backbone can lock
+  in incorrect interface geometry.
+demonstrates:
+- X-ray/cryo-EM/functional rescue and design evidence; general proteins
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Robust deep learning-based protein sequence design using ProteinMPNN
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Science (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

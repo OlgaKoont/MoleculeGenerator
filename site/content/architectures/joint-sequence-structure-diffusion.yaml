@@ -1,0 +1,41 @@
+id: joint-sequence-structure-diffusion
+slug: joint-sequence-structure-diffusion
+name: Joint sequence–structure diffusion
+name_ru: Совместная диффузия sequence и structure
+intuition: Одновременно зашумляются residue identity и геометрия. Denoiser восстанавливает оба, поэтому
+  sequence сразу согласована с coordinates.
+mathematical_formulation: Факторизованный forward process $q(s_t,x_t\mid s_0,x_0)=q(s_t\mid s_0)q(x_t\mid
+  x_0)$; denoiser $p_\theta(s_{t-1},x_{t-1}\mid s_t,x_t,c)$.
+input_representation: Noisy residue types + noisy coordinates/orientations + antigen context.
+generated_state: Joint sequence–structure pair.
+training_objective: Sum of discrete CE and continuous coordinate/frame losses.
+inference: Shared reverse trajectory; framework residues may be clamped.
+conditioning: Antigen coordinates, CDR masks, framework sequence.
+complexity_drivers:
+- N designed residues
+- T steps
+- antigen size
+strengths:
+- Согласованность sequence и geometry
+- Естественный CDR co-design
+limitations:
+- Дорогой sampling
+- Нужен complex input для antigen-conditioned моделей
+failure_modes:
+- Framework leakage
+- Energy metrics mistaken for affinity
+applicable_task_ids:
+- joint-cdr-sequence-structure-design
+- joint-sequence-structure-generation
+not_for_task_ids:
+- single-mutation-proposal
+paper_ids:
+- paper-diffab
+- paper-abdiffuser
+- paper-boltzgen
+subtypes:
+- Type+Cα+orientation diffusion
+- Full-atom joint diffusion
+glossary_ids:
+- diffusion
+- cdr

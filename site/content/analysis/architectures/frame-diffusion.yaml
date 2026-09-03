@@ -1,0 +1,169 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс frame diffusion описан по каталогу RFdiffusion/FrameDiff и Nature RFantibody (HTML частично). Полные Methods RFdiffusion/Watson et al. в этом выпуске не close-read. Не подставлять DiffAb Cα-DPM уравнения как frame diffusion RFdiffusion."
+lede: "Frame diffusion моделирует каждый residue как элемент SE(3): ориентация + трансляция. Это generator **геометрии остова**, обычно с отдельным inverse folding для sequence (ProteinMPNN). Не predictor affinity."
+inaccessible:
+  - source: "Watson et al. RFdiffusion Nature/bioRxiv full Methods"
+    reason: "Не перечитаны целиком в выпуске 9"
+    workaround: "Nature RFantibody HTML (pipeline description); класс SE(3) frames из seed + RFantibody paper narrative"
+  - source: "Yim et al. FrameDiff full paper"
+    reason: "Не читался в этом выпуске"
+    workaround: "страница FrameDiff остаётся not_started на уровне tool"
+sources:
+  - kind: PAPER
+    citation: "Bennett, Watson et al. Atomically accurate de novo design of antibodies with RFdiffusion. Nature 10.1038/s41586-025-09721-5"
+    url: "https://doi.org/10.1038/s41586-025-09721-5"
+    doi: "10.1038/s41586-025-09721-5"
+    note: "HTML Nature просмотрен ранее; Methods/SI не полностью"
+  - kind: PAPER
+    citation: "Watson et al. De novo design of protein structure and function with RFdiffusion. Nature 2023 (foundational RFdiffusion)"
+    doi: "10.1038/s41586-023-06415-8"
+    note: "Не close-read здесь; только как foundational pointer"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Класс **backbone structure generators** на residue frames. Задачи: [de novo backbone](../tasks/de-novo-backbone-generation.html), [CDR backbone](../tasks/cdr-backbone-generation.html), [de novo antibody](../tasks/de-novo-antibody-design.html) как в RFantibody. Sequence обычно **следующий** модуль (MPNN), не тот же denoiser."
+        source: INTERPRETATION
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Шум на вращениях и смещениях кадров, согласованный с кинематикой цепи лучше, чем независимый Gaussian по всем атомам без кадров. Denoiser (часто SE(3)-equivariant, RoseTTAFold-derived в RFdiffusion) предсказывает более чистые frames. Motif/framework/target frames можно зажать."
+        source: INTERPRETATION
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Родовая запись (не tool-specific solver RFdiffusion без Methods):"
+        source: INTERPRETATION
+    equations:
+      - latex: "g_i=(R_i,t_i)\\in \\mathrm{SE}(3),\\quad R_i\\in\\mathrm{SO}(3),\\; t_i\\in\\mathbb{R}^3"
+        caption: "Локальный residue frame. Generic."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: R_i, type: "3×3 rotation", meaning: "ориентация N-Cα-C кадра"}
+          - {sym: t_i, type: "R^3", meaning: "трансляция (часто Cα)"}
+      - latex: "q(g_t\\mid g_0)=q_{\\mathrm{SO}(3)}(R_t\\mid R_0)\\,q_{\\mathbb{R}^3}(t_t\\mid t_0)"
+        caption: "Факторизованный forward на вращениях и трансляциях. Конкретное IGSO(3) vs geodesic — tool-specific; для RFantibody exact schedule **NR** без Methods."
+        generic_or_specific: generic
+        source: INTERPRETATION
+    paragraphs:
+      - text: "Не использовать UCB и не копировать DiffAb KL-on-amino-acids сюда: sequence в RFantibody назначается **ProteinMPNN после** backbone."
+        source: PAPER
+        locator: "Nature RFantibody pipeline narrative"
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Noisy frames; contig/hotspot maps; target coordinates; fixed framework frames. Pair/distogram heads могут быть auxiliary у RF-like denoiser — точные тензоры RFantibody fine-tune NR без SI."
+        source: NR
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Frames ↔ backbone atoms. Side chains появляются после sequence design+packing/relax, не обязательно в diffusion state. SE(3) equivariance: поворот всего комплекса согласованно вращает векторные признаки; это inductive bias, не термодинамическая устойчивость."
+        source: INTERPRETATION
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    physchem:
+      - feature: "SE(3) frames"
+        interpretation: "жёсткий локальный остов residual"
+        encoded: "прямо"
+        limitation: "гибкость loop не равна MD"
+      - feature: "Hotspot residues"
+        interpretation: "желаемый epitope contact"
+        encoded: "conditioning (RFantibody)"
+        limitation: "ошибка mapping почти фатальна"
+      - feature: "H-bonds / electrostatics"
+        interpretation: "не explicit в diffusion"
+        encoded: "не представлены или лишь статистика train"
+        limitation: "RF2/AF3 confidence ≠ affinity"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Denoising score / frame updates на структурных данных (general then antibody fine-tune для RFantibody). MPNN CE — отдельная модель. RF2 — **predictor** losses, не generator."
+        source: PAPER
+        locator: "RFantibody Nature: Ab-finetuned RFdiffusion → MPNN → Ab-finetuned RF2"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    mermaid: |
+      flowchart TD
+        TGT["Target + hotspots"] --> RF["Ab-finetuned RFdiffusion denoiser"]
+        FW["Fixed framework frames"] --> RF
+        RF --> BB["CDR backbone frames"]
+        BB --> MPNN["ProteinMPNN sequence"]
+        MPNN --> RF2["Ab-finetuned RF2 filter"]
+        RF2 --> RANK["Confidence / self-consistency"]
+    mermaid_caption: "Оригинальная схема **workflow RFantibody**, не копия Nature figure."
+    mermaid_source: "Nature 10.1038/s41586-025-09721-5 narrative"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "General RFdiffusion pretrain (Watson et al.) + antibody fine-tune (RFantibody). Точные corpora, splits, число steps — NR без Methods/SI."
+        source: NR
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Несколько diffusion trajectories; MPNN samples на backbone; RF2/AF3 ranking. Recycles RF2 — predictor inference. Relax/MD если есть — отдельные модули. Default T steps RFantibody — NR здесь."
+        source: PAPER
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Clamped target и framework; hotspot constraints; contig CDR lengths; VHH vs scFv format. Нет affinity classifier guidance в описанном pipeline."
+        source: PAPER
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    items:
+      - "N residues designed + context"
+      - "T diffusion steps (NR численно для Ab fine-tune)"
+      - "Число trajectories × MPNN sequences × RF2"
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Кадровое представление естественно для peptide geometry. Fine-tune на antibody loops адресует failure vanilla protein prior на CDR (ограничение, названное авторами RFantibody относительно miniprotein pipelines). Equivariance снижает ориентационный overfitting. Не гарантирует hit rate."
+        source: PAPER
+  - id: limits
+    title: "14. Ограничения"
+    items:
+      - "Sequence decoupled (если MPNN отдельно)"
+      - "Framework fixed в RFantibody"
+      - "Низкий hit rate vs miniproteins (авторски)"
+      - "Humanness CDR не оптимизируется генератором"
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - "Broken peptide bonds / clashes"
+      - "Неверный hotspot"
+      - "False confidence RF2/AF3"
+      - "Mode collapse CDR length"
+  - id: tools
+    title: "16. Реализации в инструментах"
+    tables:
+      - headers: ["Tool", "Generic", "Specific", "Отличие"]
+        rows:
+          - ["[RFdiffusion](../tools/rfdiffusion.html)", "SE(3) frame diffusion", "general proteins / binders", "не antibody-fine-tuned"]
+          - ["[RFantibody](../tools/rfantibody.html)", "тот же класс + Ab fine-tune", "CDRs on fixed FW + MPNN + RF2", "prospective VHH/scFv"]
+          - ["[FrameDiff](../tools/framediff.html)", "frame diffusion literature", "не инспектирован code в этом выпуске", "не путать checkpoint"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "[de-novo-antibody-rfantibody](../workflows/de-novo-antibody-rfantibody.html). Не humanization-only. Не few-shot mutation AL."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Watson et al. 2023 RFdiffusion; Yim FrameDiff; Nature RFantibody 2025/26."
+        source: PAPER
+citations:
+  - id: 1
+    text: "Bennett N., Watson J.L. et al. Atomically accurate de novo design of antibodies with RFdiffusion. Nature. DOI 10.1038/s41586-025-09721-5"
+    doi: "10.1038/s41586-025-09721-5"
+    url: "https://doi.org/10.1038/s41586-025-09721-5"
+  - id: 2
+    text: "Watson et al. De novo design of protein structure and function with RFdiffusion. Nature 2023."
+    doi: "10.1038/s41586-023-06415-8"
+  - id: 3
+    text: "RosettaCommons/RFantibody (commit в этом проходе: fetch timeout — NR SHA)"
+    url: "https://github.com/RosettaCommons/RFantibody"
+unresolved:
+  - "Точный noise schedule и число шагов Ab-RFdiffusion"
+  - "RFantibody repo commit SHA (API timeout)"
+  - "SI cryo-EM statistics полностью"

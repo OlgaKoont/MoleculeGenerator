@@ -1,0 +1,623 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — generator дискретного (или sequence-space) noising токенов, не Cartesian DDPM. Прочитаны: Alamdari et al. bioRxiv 10.1101/2023.09.11.556673 v2 HTML Methods D3PM vs OADM (preprint, не journal); Austin et al. D3PM arXiv HTML 2107.03006 Eqs. 1–5 (NeurIPS 2021); Lisanza et al. Nat. Biotechnol. HTML Methods sequence-space Gaussian (journal; SI Algorithms S1–S2 / Table 2 wall-clock не построчно); Liu/Hao/Fan HuAbDiffusion Brief. Bioinform. HTML Methods+ELISA Table 4 (journal 10.1093/bib/bbaf658); Ma et al. HuDiff bioRxiv 10.1101/2024.10.22.619416 HTML Methods ARDM Eqs. 3–8 (preprint; Nature Mach. Intell. 10.1038/s42256-025-01120-9 не page-sync). CODE microsoft/evodiff, TencentAI4S/HuDiff, RosettaCommons/protein_generator, HuAbDiffusion repo — не аудированы (commit NR). EvoDiff Table S1–S6 numeric cells HTML NR."
+lede: "Sequence diffusion — **generator** amino-acid state: forward noising токенов (categorical $Q_t$, absorbing [MASK], или Gaussian на scaled one-hot $L\\times 20$), reverse $T$ шагов. Это не Cartesian coordinate DDPM, не inverse folding и не affinity predictor. Одна матрица $Q_t$ **не** описывает EvoDiff-D3PM, ProteinGenerator и HuDiff."
+inaccessible:
+  - source: "Alamdari EvoDiff Supplementary Tables S1–S6 numeric ppl/FPD cells"
+    reason: "HTML «View this table» без чисел"
+    workaround: "Качественно: OADM ppl лучше D3PM Uniform/BLOSUM; T=500 λ=0 — Methods prose"
+  - source: "microsoft/evodiff commit SHA + sampler functions"
+    reason: "extra_constraints: code unaudited this pass"
+    workaround: "D3PM Uniform/BLOSUM, sinusoidal t, x_T uniform AA — bioRxiv Methods"
+  - source: "Lisanza Nat. Biotechnol. SI Algorithms S1–S2 and Supplementary Table 2 (inference wall-clock, training T)"
+    reason: "SI PDF не извлечён построчно"
+    workaround: "Eq. (1) Gaussian $L\\times 20$, sqrt schedule, CE+FAPE, self-cond, inference 10–50 steps — journal Methods; training $T$ numeric — NR (GitHub README 1000 не CODE)"
+  - source: "RosettaCommons/protein_generator commit SHA"
+    reason: "репозиторий не line-audit"
+    workaround: "Architecture RF + sequence diffusion — PAPER; contig CLI — NR"
+  - source: "HuDiff Nature Machine Intelligence 10.1038/s42256-025-01120-9 journal HTML/SI"
+    reason: "В этом проходе канон — bioRxiv HTML; journal pagination не сличена"
+    workaround: "ARDM Eqs. 3–8, IMGT 291, BLI 0.15 vs 0.12 nM — preprint; Science-adjacent journal-only numbers NR"
+  - source: "TencentAI4S/HuDiff commit SHA"
+    reason: "CODE unaudited"
+    workaround: "CNN kernel 7, Adam 1e-4, batch 256 — bioRxiv Methods; CLI flags — NR"
+  - source: "HuAbDiffusion official_repository + Table S7 BLI numeric cells"
+    reason: "repo NR (MATRIX); S-table HTML не отдал Kd"
+    workaround: "ELISA Table 4 EC50 ng/ml clone 13/16/38; architecture 12L Transformer T=512 — journal Methods"
+  - source: "Austin D3PM Appendix A closed-form $\\bar Q_t$ proofs"
+    reason: "читался HTML §§2–5, не все appendix derivations"
+    workaround: "Uniform $Q_t=(1-\\beta_t)I+\\beta_t\\mathbf{1}\\mathbf{1}^\\top/K$; absorbing; hybrid $L_\\lambda$ Eq. 5 — основной HTML"
+sources:
+  - kind: PAPER
+    citation: "Alamdari S. et al. Protein generation with evolutionary diffusion: sequence is all you need. bioRxiv 10.1101/2023.09.11.556673"
+    url: "https://www.biorxiv.org/content/10.1101/2023.09.11.556673v2.full"
+    doi: "10.1101/2023.09.11.556673"
+    note: "Preprint: D3PM T=500 λ=0 Uniform/BLOSUM; OADM T=L — sibling infill; UniRef50 42M"
+  - kind: PAPER
+    citation: "Austin J. et al. Structured Denoising Diffusion Models in Discrete State-Spaces. NeurIPS 2021 / arXiv:2107.03006"
+    url: "https://arxiv.org/abs/2107.03006"
+    doi: null
+    note: "Foundational D3PM: Cat(x_t; x_{t-1} Q_t); uniform/absorbing/NN kernels; L_λ=L_vb+λ CE"
+  - kind: PAPER
+    citation: "Lisanza S.L. et al. Multistate and functional protein design using RoseTTAFold sequence space diffusion. Nat. Biotechnol. (2024/2025)"
+    url: "https://doi.org/10.1038/s41587-024-02395-w"
+    doi: "10.1038/s41587-024-02395-w"
+    note: "Journal: Gaussian on scaled one-hot L×20, not amino-acid D3PM Q; CE+FAPE; RF backbone"
+  - kind: PAPER
+    citation: "Liu D., Hao X., Fan L. HuAbDiffusion: a discrete language diffusion model used for antibody humanization. Brief. Bioinform. 26, bbaf658 (2025)"
+    url: "https://doi.org/10.1093/bib/bbaf658"
+    doi: "10.1093/bib/bbaf658"
+    note: "Journal: absorbing MASK on FR, CDR clamp, T=512, Transformer; YabXnization service; no public repo"
+  - kind: PAPER
+    citation: "Ma J. et al. An adaptive autoregressive diffusion approach to design active humanized antibody and nanobody. bioRxiv 10.1101/2024.10.22.619416"
+    url: "https://doi.org/10.1101/2024.10.22.619416"
+    doi: "10.1101/2024.10.22.619416"
+    note: "Preprint: ARDM absorbing FR, T=F framework length; Dual CNN+Roformer; AbNatiV fine-tune; not D3PM Q_t"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id sequence-diffusion"
+    note: "evodiff, hudiff, huabdiffusion, protein-generator"
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль — **generator** (density model на дискретной цепи токенов). Не sequential assay loop и не geometric SE(3) inductive bias как определение класса. ProteinGenerator дополнительно декодирует структуру через RoseTTAFold — пересечение с [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html), не лицензия копировать Cartesian DDPM."
+        source: INTERPRETATION
+      - text: "Generated state — amino-acid tokens $x_0$ (и, у PG, сопряжённая структура $y$). Intermediate $x_t$ — noisy tokens / scaled logits / [MASK]/`#`, не атомы. Scored embeddings без reverse chain — не этот класс."
+        source: PAPER
+        locator: "Austin discrete state; Lisanza L×20; Alamdari tokens"
+      - text: "Задачи: [general protein sequence generation](/tasks/general-protein-sequence-generation.html) и [motif scaffolding](/tasks/motif-scaffolding.html) ([EvoDiff](/tools/evodiff.html), [sequence-first de novo](/workflows/sequence-first-de-novo.html)); [humanization](/tasks/humanization.html) / [framework redesign](/tasks/framework-redesign.html) ([HuDiff](/tools/hudiff.html), [HuAbDiffusion](/tools/huabdiffusion.html), [humanization-framework](/workflows/humanization-framework.html)); joint/multistate ([ProteinGenerator](/tools/protein-generator.html), [joint-multimodal](/workflows/joint-multimodal-generation.html))."
+        source: MATRIX
+      - text: "Это **не** [masked-token infilling](/architectures/masked-token-infilling.html) как канон: infill-страница — OADM / ILM / generative MLM. EvoDiff-**D3PM** ($Q$, $T=500$, $x_T$ uniform AA) живёт здесь. OADM у того же tool имеет оба id; уравнения OADM подробно там."
+        source: PAPER
+        locator: "Alamdari: D3PM only for discrete corruption; OADM for masking"
+      - text: "Это **не** [autoregressive generation](/architectures/autoregressive-generation.html) как left-to-right без absorbing FR: ProGen пишет префикс. HuDiff **цитирует** ARDM (Hoogeboom) и также стоит в AR-id каталога — не гадать, что это GPT; train target — order-agnostic unmask FR, не next-token L→R."
+        source: PAPER
+        locator: "HuDiff Methods vs traditional AR chain rule; extra_constraints"
+      - text: "Это **не** [joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html): DiffAb categorical CDR — **совместный** type+Cα+SO(3) state. Не переносить DiffAb $Q^{\\mathrm{type}}$ как default этого класса. Это **не** [coordinate-diffusion](/architectures/coordinate-diffusion.html) / [frame-diffusion](/architectures/frame-diffusion.html): нет xyz/frames как диффузионный state (PG диффундирует sequence tensor)."
+        source: INTERPRETATION
+      - text: "Это **не** [protein language models](/architectures/protein-language-models.html) целиком: PLM может быть AR/MLM/frozen $E$. Sequence diffusion задаёт **марковскую** forward/reverse цепь по $t$. ESM LL rerank у HuAbDiffusion — **evaluator**, не generator."
+        source: PAPER
+        locator: "HuAbDiffusion Variants ranking ESM-1b/1v"
+      - text: "Catalog tools: [EvoDiff](/tools/evodiff.html), [HuDiff](/tools/hudiff.html), [HuAbDiffusion](/tools/huabdiffusion.html), [ProteinGenerator](/tools/protein-generator.html). Путают с [RFdiffusion](/tools/rfdiffusion.html) (structure-space), [ProGen](/tools/progen.html), [ESM3](/tools/esm3.html), [DiffAb](/tools/diffab.html) (другой architecture_id)."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "При inference с $x_T$ (uniform AA, all-MASK, или Gaussian $L\\times 20$) сеть итеративно восстанавливает $x_0$. Меняются **токены** (и у PG — предсказанный fold). Не физическая траектория фолдинга."
+        source: INTERPRETATION
+      - text: "Четыре несовместимых forward. (i) EvoDiff-D3PM: мутации по $Q$ до uniform. (ii) Absorbing mask: FR → [MASK]/`#`, CDR зажаты (HuAb, HuDiff, EvoDiff-OADM). (iii) ProteinGenerator: Gaussian на scaled one-hot, не Cat $Q$. (iv) DiffAb type channel — joint-страница."
+        source: PAPER
+        locator: "Alamdari Fig. 1B; Lisanza Eq. 1; HuAb Methods MASK; HuDiff absorbing FR"
+      - text: "Рычаг **EvoDiff-D3PM**: выбор Uniform vs BLOSUM $Q$, $T=500$. PAPER. Авторы для downstream взяли **OADM-640M**, не D3PM (ppl и foldability хуже). Guidance как future — D3PM, потому что токен можно править каждый шаг."
+        source: PAPER
+        locator: "Alamdari selected OADM as EvoDiff-Seq; Discussion guidance fits D3PM"
+      - text: "Рычаг **PG**: sqrt noise, self-conditioning, logit clamp $[-3,3]$, guidance potentials (AA composition, charge, hydropathy, DSSP, multistate logit mix), partial noise $\\lambda$. PAPER."
+        source: PAPER
+        locator: "Lisanza Methods Inference clamp; partial noising λ"
+      - text: "Рычаг **HuDiff**: $T=F$ (длина FR), permutation $\\sigma$ FR sites, AbNatiV fine-tune (Gumbel), Nb `de` vs `inp` (сохранить гидрофильный FR2). PAPER."
+        source: PAPER
+        locator: "t determined by framework length; Nb de/inp"
+      - text: "Рычаг **HuAbDiffusion**: $T=512$, temperature 0.7 VH / 0.65 VL, затем ESM log-likelihood **rerank**. PAPER. Rerank ≠ generator."
+        source: PAPER
+        locator: "HuAb sampling temperatures 0.7 and 0.65; Variants ranking"
+      - text: "Предостережение. PPL, OmegaFold/AF pLDDT, motifRMSD, scPerplexity, TM, ESM LL, AbNatiV/OASis, PG design pLDDT, Rosetta **не** $K_d$ / ELISA / BLI / ADA. Humanness ≠ immunogenicity. PG ESM pseudo-perplexity «indicative of experimental success» в цитируемой литературе — не Kd этого класса."
+        source: PAPER
+        locator: "Lisanza ESM ppl citation; HuAb pLDDT/scPPL tables in silico"
+      - text: "EvoDiff Cox15 8/8 и MDM2 BLI — кампании **OADM EvoDiff-Seq**, не D3PM (не переносить на эту страницу как успех D3PM). HuDiff 0.15 nM vs parent 0.12 nM — **experiment** одной murine mAb preprint/journal, не класс."
+        source: PAPER
+        locator: "Alamdari EvoDiff-Seq = OADM; HuDiff Fig. 3d BLI"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовой D3PM Austin. Затем подтипы с **разными** $Q$/ядрами. Не одна $Q_t$ на EvoDiff, PG и HuDiff. Не подставлять seed one-liner как уравнение инструмента."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** являются default этого класса: Ho Cartesian VP-DDPM на xyz; Lipman CFM; UCB (PG сравнивает guidance с qUCB baseline — не train PG); FAPE как уравнение EvoDiff/HuDiff; Meier $\\Delta\\ell$; AR NLL ProGen; DiffAb SO(3)/Cα score; IgLM ILM."
+        source: INTERPRETATION
+      - text: "FAPE **есть** в train ProteinGenerator (tool-specific) вместе с sequence CE — не родовой loss класса и не EvoDiff. Не сравнивать EvoDiff ppl, PG AF2 filters и HuDiff BLI как один benchmark."
+        source: PAPER
+        locator: "Lisanza CE on sequence and FAPE on structure"
+      - text: "Austin: BERT может быть one-step D3PM; AR — вырожденный discrete diffusion. Это связь классов, не лицензия ставить BERT 15% как EvoDiff-D3PM."
+        source: PAPER
+        locator: "Austin §4 BERT is a one-step diffusion model"
+    equations:
+      - latex: "q(x_t\\mid x_{t-1})=\\mathrm{Cat}(x_t;\\, p=x_{t-1}Q_t),\\qquad \\bar Q_t=Q_1\\cdots Q_t"
+        caption: "Родовой D3PM (Austin). $Q_t$ — tool-specific. Generic: не checkpoint EvoDiff/HuAb. PG **не** использует эту Cat-$Q$ форму (Gaussian на $L\\times 20$)."
+        generic_or_specific: generic
+        source: PAPER
+        locator: "Austin Eq. after Cat definition; t-step marginal"
+        symbols:
+          - {sym: "x_t", type: "one-hot token", meaning: "дискретное состояние позиции (или независимо по L)"}
+          - {sym: "Q_t", type: "K×K stochastic matrix", meaning: "forward kernel на шаге t"}
+          - {sym: K, type: "int", meaning: "размер алфавита"}
+        meaning: "Оптимизируется reverse $p_\\theta(x_{t-1}\\mid x_t)$ / $\\tilde p_\\theta(x_0\\mid x_t)$. Семплируется $x_0$ за $T$ шагов. Affinity в $Q$ не входит."
+      - latex: "Q_t^{\\mathrm{unif}}=(1-\\beta_t)I+\\beta_t\\mathbf{1}\\mathbf{1}^\\top/K"
+        caption: "Родовой uniform kernel (Hoogeboom/Austin). Stationary — uniform. Generic подтип Cat-diffusion."
+        generic_or_specific: generic
+        source: PAPER
+        locator: "Austin Uniform Appendix A.2.1 / Hoogeboom Q"
+        symbols:
+          - {sym: "\\beta_t", type: "noise level", meaning: "$\\in[0,1]$; schedule tool-specific"}
+        meaning: "Forward перемешивает категории равномерно. Не BLOSUM и не Gaussian logits."
+    sections:
+      - id: math-evodiff-d3pm
+        level: 3
+        title: "Подтип A — EvoDiff-D3PM Uniform / BLOSUM (не OADM)"
+        paragraphs:
+          - text: "Hybrid $L_{vb}+\\lambda L_{ce}$, $\\lambda=0$, $T=500$. Uniform: doubly stochastic $Q_t$, schedule $(T-t+1)^{-1}$. BLOSUM62 → softmax → Sinkhorn; $\\beta$-schedule, половина мутаций к $t=250$. Синусоидальный $t$ (не implicit mask count). $x_T$ — uniform AA. Tool-specific [EvoDiff](/tools/evodiff.html). CODE NR."
+            source: PAPER
+            locator: "Alamdari Methods D3PM λ=0 T=500; Uniform and BLOSUM subsections"
+        equations:
+          - latex: "\\mathcal{L}=\\mathcal{L}_{vb}+\\lambda\\mathcal{L}_{ce},\\quad \\lambda=0,\\ T=500"
+            caption: "EvoDiff-D3PM train (Alamdari). Не OADM $T=L$. Не Austin $\\lambda$ по умолчанию для изображений. $L_{vb}$ три члена как в D3PM; сеть предсказывает $\\tilde p_\\theta(x_0\\mid x_t)$."
+            generic_or_specific: "EvoDiff-D3PM [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods hybrid loss; λ=0 all D3PM experiments"
+            symbols:
+              - {sym: "\\lambda", type: "weight", meaning: "CE auxiliary; выбран 0 после ablation"}
+              - {sym: T, type: "int", meaning: "500 mutation steps"}
+            meaning: "Train: NLL bound на undo-mutations. Sample: 500 шагов от uniform AA. PPL ≠ fold ≠ Kd."
+      - id: math-pg
+        level: 3
+        title: "Подтип B — ProteinGenerator sequence-space Gaussian (не Cat $Q$)"
+        paragraphs:
+          - text: "Scaled one-hot: true $=1$, else $-1$ ($\\times 2-1$). Ho forward в непрерывном $L\\times 20$. Sqrt schedule. Loss: CE($x_0$)+FAPE/bond/distogram/lddt на $y$ + KL на $x_{t-1}$. Self-cond. Inference: $x_{t-1}\\sim q(x_{t-1}\\mid x_0)$ лучше чем $q(\\cdot\\mid x_0,x_t)$. Tool-specific [ProteinGenerator](/tools/protein-generator.html)."
+            source: PAPER
+            locator: "Lisanza Methods Sequence representation Eq. 1; Training; Inference"
+        equations:
+          - latex: "q(x_t\\mid x_0)=\\mathcal{N}\\bigl(x_t;\\sqrt{\\bar\\alpha_t}x_0,(1-\\bar\\alpha_t)I\\bigr),\\quad x_0\\in\\mathbb{R}^{L\\times 20}"
+            caption: "Lisanza Eq. (1). Не Austin Cat. Не xyz coordinate diffusion (state — sequence logits). Training $T$ numeric — NR (SI/README)."
+            generic_or_specific: "ProteinGenerator [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods Eq. (1) Ho formulation"
+            symbols:
+              - {sym: "\\bar\\alpha_t", type: "schedule", meaning: "sqrt noise schedule (ref. 10 in paper)"}
+              - {sym: L, type: "length", meaning: "residues"}
+            meaning: "Train: предсказать чистую sequence+structure. Sample: $T_{\\mathrm{inf}}$ шагов от Gaussian; часто 25. AF2 filter — evaluator."
+      - id: math-huab
+        level: 3
+        title: "Подтип C — HuAbDiffusion absorbing MASK на FR (не mutation $Q$)"
+        paragraphs:
+          - text: "D3PM+DiffusionBERT-style: V-region → [MASK], CDR prefix всегда видим. $T=512$. Vocab 26. Не BLOSUM. Не PG Gaussian. Tool-specific [HuAbDiffusion](/tools/huabdiffusion.html). Repo NR."
+            source: PAPER
+            locator: "Methods discrete Cat Q; CDRs-conditional; 512 steps"
+        equations:
+          - latex: "x_T^{\\mathrm{FR}}=\\texttt{[MASK]}^{L_{\\mathrm{V}}},\\quad x_t^{\\mathrm{CDR}}=x_0^{\\mathrm{CDR}}\\ \\forall t"
+            caption: "Absorbing FR, clamped CDR (HuAb Methods). $L_V=149$ AHo. Не EvoDiff-D3PM uniform AA. Не HuDiff ARDM permutation loss с номером (3)."
+            generic_or_specific: "HuAbDiffusion [PAPER]; tool-specific"
+            source: PAPER
+            locator: "forward noise only on V region; T=512"
+            symbols:
+              - {sym: "L_{\\mathrm{V}}", type: "int", meaning: "149 aligned V (AHo)"}
+            meaning: "Train: unmask FR given CDRs. Sample: 512 steps, T=0.7/0.65. ESM LL — post-hoc evaluator."
+      - id: math-hudiff
+        level: 3
+        title: "Подтип D — HuDiff ARDM absorbing FR (не D3PM $Q_t$)"
+        paragraphs:
+          - text: "Corrupts FR напрямую (как MLM), не строит $Q_t$. $T=F$ длина FR; $\\sigma\\sim U(S_F)$. Pretrain: $L^{Ab}=F\\cdot L_t + L_{\\mathrm{assistant}}$. Fine-tune: max AbNatiV VH/VL via Gumbel-Softmax. Tool-specific [HuDiff](/tools/hudiff.html). Также architecture_id autoregressive-generation — не ProGen."
+            source: PAPER
+            locator: "HuDiff Methods Objective function Eqs. 3–8; D3PM constructs Q whereas HuDiff corrupts directly"
+        equations:
+          - latex: "\\log p(x)\\ge \\mathbb{E}_{t\\sim U(1,\\ldots,F)}[F\\cdot L_t],\\quad L_t=\\frac{1}{F-t+1}\\sum_{k\\in\\sigma(\\ge t)}\\log p(x_k\\mid x_{\\sigma(<t)},x_{\\mathrm{CDR}})"
+            caption: "HuDiff pretrain (bioRxiv Eqs. 5–6; Hoogeboom ARDM). $F$=FR length, не 500. Не Austin uniform $Q$."
+            generic_or_specific: "HuDiff [PAPER]; tool-specific"
+            source: PAPER
+            locator: "Methods Eqs. 5–7; t determined by framework length"
+            symbols:
+              - {sym: F, type: "int", meaning: "число FR позиций (T при inference)"}
+              - {sym: "\\sigma", type: "permutation", meaning: "случайный порядок unmask FR"}
+            meaning: "Train: order-agnostic FR reconstruction + CDR assistant. Sample: T=F unmask steps from absorbing FR. AbNatiV ≠ Kd."
+    tables:
+      - headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        source: INTERPRETATION
+        rows:
+          - ["Sequence diffusion (эта страница)", "D3PM $L_{vb}$/CE / Gaussian+FAPE / ARDM FR", "T discrete or Gaussian steps", "EvoDiff-D3PM, PG, HuAb, HuDiff"]
+          - ["[Masked-token infilling](/architectures/masked-token-infilling.html)", "unmask $s_M\\mid s_{\\setminus M}$", "OADM/ILM/MLM", "EvoDiff-OADM, IgLM, ESM3"]
+          - ["[Autoregressive generation](/architectures/autoregressive-generation.html)", "next-token CE L→R", "ancestral prefix", "ProGen; HuDiff также в этом id"]
+          - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "score/noise на xyz", "ODE/SDE coords", "RFdiffusion, Chroma — не этот id"]
+          - ["[Joint seq–str diffusion](/architectures/joint-sequence-structure-diffusion.html)", "type+frames (+DiffAb $Q^{\\mathrm{type}}$)", "joint reverse", "DiffAb; не HuAb FR-only"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы: позиции токенов. Рёбра: ByteNet dilated conv (EvoDiff-Seq), MSA Transformer, RF pair tracks (PG), Transformer/Roformer (HuAb/HuDiff). Time: sinusoidal 1D (EvoDiff-D3PM, HuAb embed time in each block); OADM implicit; PG timestep in sequence template; HuDiff $t$ = сколько FR ещё masked."
+        source: PAPER
+        locator: "Alamdari sinusoidal vs implicit; HuAb time embedding; Lisanza timestep feature"
+      - text: "EvoDiff-Seq: UniRef50, sample length ≤2048. D3PM $K$ = standard AA (+ J,O,U uniform rows; MSA `<GAP>`). Hidden: 38M $d=1020$ 16 layers / 640M $d=1280$ 56 layers. CODE NR."
+        source: PAPER
+        locator: "Alamdari ByteNet 38M/640M; BLOSUM extra rows"
+      - text: "PG: $L\\times 20$ real tensor. DSSP concat 25% train, mask 0–90%. Tasks mix: 40% diffusion, 30% seq2str, 30% fixed-backbone design. Motif: 1–4 spans 4–8 aa или random active-site unmask. Contig — внешний файл/строка, не выученный tensor (CLI NR)."
+        source: PAPER
+        locator: "Lisanza Training 40/30/30; motif spans"
+      - text: "HuAb: OAS 2M H + 2M κ + 2M λ unpaired; AHo 149; North CDR; CDR concat length 64 (H) / 67 (L); vocab 26; input CDR prefix + [SEP] + V. Transformer 12L, 16 heads, $d=1024$. Batch 64 AdamW; lr HTML обрыв — **NR**."
+        source: PAPER
+        locator: "HuAb Materials dataset; 12 layers 16 heads 1024; batch 64"
+      - text: "HuDiff-Ab: IMGT VH 152 + VL 139 = 291; vocab 23 (`-`,`#`,`X`+20 AA). CNN kernel 7. Split pretrain 1,738,321 paired 19:1; finetune mouse 19,387 19:1. Nb length 152. Hidden width Roformer — NR."
+        source: PAPER
+        locator: "HuDiff Methods 291; 1,738,321; kernel 7"
+      - text: "Внешние файлы: PDB для PG templates/hotspots/DSSP; OAS dumps; library CSV нет как вход generator. HuAb service YabXnization — не локальный checkpoint."
+        source: PAPER
+        locator: "Lisanza optional structural information; HuAb YabXnization URL"
+      - text: "Аугментации: EvoDiff MSA Rand vs MaxHamming depth 64×512. PG recycle 1–3 structure; GMM2/GMM3 sampling. HuDiff permutation $\\sigma$ FR. 3D rotation: только PG structure track, не EvoDiff tokens."
+        source: PAPER
+        locator: "Alamdari MSA 64×512; Lisanza recycle 1–3"
+      - text: "Masks: D3PM нет [MASK] канона; absorbing tools — [MASK]/`#` на FR. Classifier-free ELISA — нет."
+        source: INTERPRETATION
+      - text: "DiffAb type one-hot 21 — не data-repr catalog tools этого id."
+        source: INTERPRETATION
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "$x_i$ ↔ однобуквенный код (или gap/pad/mask). Assay $y$ (BLI, ELISA, microscopy, CD, SEC) **не** координата диффузии."
+        source: INTERPRETATION
+      - text: "SE(3): **не применимо** к EvoDiff/HuDiff/HuAb (нет coords в generator state). PG: RF декодирует $y$; диффузионный state — sequence tensor, не IGSO(3). Global rotation ломает PG templates, не EvoDiff tokens."
+        source: INTERPRETATION
+      - text: "Перестановка residues в биологическом порядке ломает смысл, кроме явного $\\sigma$ HuDiff и OADM. Concat VH||VL: HuDiff-Ab paired 291; HuAb генерирует цепи отдельно (H и L temperatures разные); EvoDiff unpaired UniRef."
+        source: PAPER
+        locator: "HuDiff paired 291; HuAb 0.7 vs 0.65"
+      - text: "Side chains: отсутствуют в EvoDiff/Hu* tokens. PG — в предсказанной структуре RF; pack MPNN не канон (30% train — fixed backbone design task внутри RF)."
+        source: PAPER
+        locator: "Lisanza 30% fixed backbone sequence design"
+      - text: "$x_t$ / `#` / Gaussian logits ≠ фолдинг-траектория и ≠ энергия. AF2/OmegaFold/Chai на generated sequence — **predictor**."
+        source: PAPER
+        locator: "HuAb Chai pLDDT; Alamdari OmegaFold"
+      - text: "Antigen coords: нет у EvoDiff-D3PM/HuAb/HuDiff generator. PG hotspots/DSSP optional. Не ELISA epitope tensor."
+        source: PAPER
+        locator: "HuDiff CDR-only input; Lisanza hotspot unmask"
+      - text: "MSA EvoDiff — evolutionary context, не $y$. Subsample 64."
+        source: PAPER
+        locator: "Alamdari depth 64"
+      - text: "Black-hole init PG structure — математическая заглушка, не физический collapse."
+        source: PAPER
+        locator: "Lisanza black-hole initialized structure"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head у EvoDiff-D3PM/HuAb/HuDiff. PG FAPE — геометрический loss RF, не $\\Delta G$ и не SPR. Запрещено писать, что класс «считает $\\Delta G$»."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "первичная структура"
+        encoded: "прямо: Cat tokens / L×20 logits / MASK"
+        limitation: "D3PM BLOSUM — статистика подстановок, не mutational chemistry in vivo"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "3D fold"
+        encoded: "EvoDiff/Hu* — не в state; PG — RF decode + FAPE"
+        limitation: "pLDDT predictor ≠ crystal; PG design pLDDT ≠ Kd"
+      - feature: "Antigen / hotspot"
+        interpretation: "интерфейс"
+        encoded: "не представлена (Hu*, EvoDiff-D3PM); PG — опциональные templates/hotspots"
+        limitation: "humanization tools не antigen-conditioned co-design"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "стабильность / NSB"
+        encoded: "PG charge/hydropathy guidance косвенно; иначе не явно"
+        limitation: "guidance ≠ измеренный pI/SAP как loss EvoDiff"
+      - feature: "Evolutionary statistics"
+        interpretation: "UniRef / OAS / BLOSUM / germline"
+        encoded: "прямо корпуса; BLOSUM Q; AbNatiV fine-tune HuDiff"
+        limitation: "OAS unpaired HuAb vs paired HuDiff — разные biases"
+      - feature: "Experimental y"
+        interpretation: "BLI / ELISA / CD / localization"
+        encoded: "не в D3PM/HuAb diffusion loss; HuDiff fine-tune — AbNatiV не BLI; PG iterative GB1 — classifier на fitness, не этот catalog default"
+        limitation: "не переносить HuDiff nM на EvoDiff-D3PM"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\theta$ denoiser. Frozen: HuDiff AbNatiV при fine-tune (scores, Gumbel backprop через one-hot). PG — finetune всего RF. Affinity labels в EvoDiff-D3PM / HuAb diffusion **нет**. Negative binders **нет** (кроме искусственного шума)."
+        source: PAPER
+        locator: "HuDiff Gumbel AbNatiV; Alamdari no assay loss"
+      - text: "EvoDiff-D3PM: $L_{vb}$ only ($\\lambda=0$). OADM CE — другой подтип/страница. Adam 1e-4, warmup 16k Seq."
+        source: PAPER
+        locator: "λ=0; Adam 1e-4 16k warmup"
+      - text: "PG: CE sequence + FAPE family + KL $x_{t-1}$. Self-cond. Recycle 1–3. Не ELISA."
+        source: PAPER
+        locator: "Training CE FAPE KL self-cond"
+      - text: "HuAb: discrete diffusion CE (D3PM/DiffusionBERT). Точная $L$ формула с номером Austin в paper не выписана — NR besides absorbing description."
+        source: NR
+      - text: "HuDiff pretrain ARDM $F\\cdot L_t$ + CDR assistant; finetune max VH/VL AbNatiV. Humanness scores ≠ affinity labels."
+        source: PAPER
+        locator: "Eqs. 7–8"
+      - text: "Pretrain корпуса: UniRef50 42M; PDB+RF data PG; OAS unpaired 6M HuAb; OAS paired 1.74M HuDiff. Не один split."
+        source: PAPER
+        locator: "each Methods datasets"
+      - text: "Fine-tune: HuDiff mouse/VHH; PG DSSP later iterations; EvoDiff scaffolding **без** finetune (same weights). HuAb finetune на ELISA **нет**."
+        source: PAPER
+        locator: "Alamdari same models unconditional/conditional"
+      - text: "Teacher forcing: HuDiff ARDM on remaining masks. PG predicts $x_0$ not teacher-forced tokens. D3PM $x_0$-parameterization Austin (4)."
+        source: PAPER
+        locator: "Austin Eq. 4 x0 parameterization"
+      - text: "CODE optimizers line-by-line — NR."
+        source: NR
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "EvoDiff-D3PM: $x_T$ uniform AA → ByteNet($x_t,t$) → sample $x_{t-1}$ ×500 → sequence. OmegaFold / ESM-IF / DR-BERT — **predictor/evaluator**. Не прятать внутрь CNN."
+        source: PAPER
+        locator: "Alamdari sampling Equation 5; Fig. 2A evaluators"
+      - text: "PG: Gaussian $x_T$ + black-hole $y$ → RF predicts $x_0,y$ → noise to $x_{t-1}$ + self-cond → AF2 filter **evaluator** → expression **experiment**. MPNN не обязателен post-hoc (в отличие от RFdiffusion pipeline)."
+        source: PAPER
+        locator: "Fig. 1b; AF2 filters Methods"
+      - text: "HuAb: CDRs + masked V → 512 Transformer steps → ESM-1b/1v LL rank **evaluator** → ELISA/BLI **experiment**. Chai/pLDDT — predictor."
+        source: PAPER
+        locator: "Fig. 1; Variants ranking"
+      - text: "HuDiff: CDRs + `#` FR → Dual CNN + Roformer → unmask order $\\sigma$ $F$ steps → AbNatiV/OASis **evaluator** → BLI **experiment**. `inp` зажимает FR2 Nb."
+        source: PAPER
+        locator: "Fig. 1a–b; Nb inp"
+      - text: "Sequence появляется сразу; geometry — только PG RF decode или внешний AF. Score (ppl, i_pTM-like) — evaluator."
+        source: INTERPRETATION
+      - text: "EvoDiff-OADM forward — infill-страница, не этот mermaid-канон D3PM."
+        source: PAPER
+        locator: "OADM T=L"
+      - text: "Не прятать ProteinMPNN scPerplexity HuAb внутрь Transformer."
+        source: PAPER
+        locator: "HuAb scPerplexity ProteinMPNN"
+      - text: "CODE graphs — NR."
+        source: NR
+    mermaid: |
+      flowchart TD
+        NOISE["x_T: uniform AA or MASK/hash FR or Gaussian Lx20"] --> DEN["Denoiser θ"]
+        DEN --> D3["EvoDiff-D3PM: Cat Q T=500 — generator"]
+        DEN --> PG["PG: RF predict x0,y then renoize — generator"]
+        DEN --> HAB["HuAb: Transformer unmask FR T=512 — generator"]
+        DEN --> HD["HuDiff: ARDM unmask FR T=F — generator"]
+        D3 --> SEQ["Sequence x0"]
+        PG --> SEQ
+        HAB --> SEQ
+        HD --> SEQ
+        PG --> YSTR["RF structure y — entangled decode"]
+        SEQ --> LL["PPL / ESM LL / AbNatiV — evaluator"]
+        SEQ --> AF["AF2 / OmegaFold / Chai — predictor"]
+        YSTR --> AF
+        AF --> EXP["ELISA / BLI / CD / microscopy — experiment"]
+        subgraph gen ["Generator"]
+          DEN
+          D3
+          PG
+          HAB
+          HD
+        end
+        subgraph ev ["Evaluator / predictor"]
+          LL
+          AF
+        end
+        subgraph ex ["Experiment"]
+          EXP
+        end
+    mermaid_caption: "Схема класса по Austin reverse, Alamdari D3PM, Lisanza Fig. 1b, HuAb Fig. 1, HuDiff Fig. 1a — не копипаст paper figures. Generator отделён от AF/ESM LL и от assay."
+    mermaid_source: "Austin reverse; Alamdari Fig. 1C; Lisanza Fig. 1b; HuAb Fig. 1; HuDiff Fig. 1a"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого split класса нет. Не выводить EvoDiff split из README. Не смешивать UniRef50 с OAS paired."
+        source: INTERPRETATION
+      - text: "EvoDiff-Seq: 42M UniRef50. 38M: 8×V100 ~2 weeks ~700k steps; 640M: 32×V100 23 days без сходимости (OADM и D3PM-Uniform). MSA 372 296 train / 10 000 val. $t\\sim U\\{1,\\ldots,T-1\\}$ D3PM. Test ppl: sample t, corrupt, one forward; **числа S1 NR**."
+        source: PAPER
+        locator: "Alamdari Methods training; 42M; 23 days"
+      - text: "Симуляция vs wet-lab EvoDiff: pLDDT/scPPL — in silico. Prospective OADM (не D3PM): IDR Cox15; Ca2+; MDM2 BLI — preprint. Не приписывать D3PM."
+        source: PAPER
+        locator: "EvoDiff-Seq = OADM for downstream"
+      - text: "PG: PDB RF set; t uniform [0,T]; 40/30/30 tasks. Unconditional 70–80 aa, 25 steps, filter AF2 pLDDT>90 RMSD<2 Å — **симуляция отбора**, затем expression. Training T — NR."
+        source: PAPER
+        locator: "Unconditional protein generation filters"
+      - text: "HuAb: 80? split HTML не даёт train/val ratio — **NR** besides 22 mAb test. 22 in silico vs 3 ELISA clones — не смешивать."
+        source: NR
+      - text: "HuDiff: 19:1. Pretrain human paired; finetune mouse ~20k. Nb: VH pretrain then VHH finetune. In silico HuAb348/Humab25 vs HEK BLI 2B04 — разные oracles."
+        source: PAPER
+        locator: "19:1 splits; Fig. 3 BLI 2B04"
+      - text: "Leakage HuAb 22 mAbs vs OAS — NR. HuDiff experimental mAb vs OAS — NR."
+        source: NR
+      - text: "Self-conditioning: PG да. EvoDiff D3PM — NR. Teacher forcing HuDiff ARDM да."
+        source: PAPER
+        locator: "Lisanza self-conditioning"
+      - text: "Batch: HuDiff 256; HuAb 64; EvoDiff dynamic. CODE NR."
+        source: PAPER
+        locator: "HuDiff batch 256; HuAb 64"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт D3PM: uniform AA, length from train ≤2048. PG: Gaussian $L\\times 20$ + black-hole. HuAb: aligned CDRs + 149 MASK. HuDiff: CDRs, FR=`#`, $T=F$."
+        source: PAPER
+        locator: "each Methods sampling start"
+      - text: "Алгоритм: D3PM ancestral Cat $T=500$ (не top-k канон). PG $T_{\\mathrm{inf}}$ 10–50 (25 common); GMM optional; clamp logits. HuAb 512 steps, T=0.7/0.65. HuDiff T iterative unmask FR; Nb `inp` flag."
+        source: PAPER
+        locator: "PG as few as 10 steps Fig. 1c; HuAb 512"
+      - text: "Post-hoc **evaluator**: EvoDiff OmegaFold; PG AF2 pLDDT/RMSD/SAP; HuAb ESM LL + Chai; HuDiff OASis/T20/AbNatiV. Pack/relax не канон D3PM. PG FastRelax — NR в Methods как обязательный."
+        source: PAPER
+        locator: "filter lists Methods"
+      - text: "Чего нет: beam как канон; AF recycle в EvoDiff; ELISA-in-the-loop; CFG ELISA. PG recycle 1–3 — train RF, не assay."
+        source: PAPER
+        locator: "Lisanza recycle training"
+      - text: "HuAb ESM rerank — не diffusion. Не называть LL «affinity head» (авторы цитируют корреляции в литературе, не свою SPR loss)."
+        source: PAPER
+        locator: "log-likelihood scores ranking paragraph"
+      - text: "Argmax vs sample: HuAb temperature; D3PM stochastic reverse. PG GMM vs N(0,I)."
+        source: PAPER
+        locator: "PG GMM2 GMM3"
+      - text: "Partial noising PG $\\lambda\\in(0,1]$ sets start $t=\\mathrm{round}(T\\lambda)$ — local redesign, не full $x_T$."
+        source: PAPER
+        locator: "Partial noising λ"
+      - text: "CLI / service internals HuAb — NR."
+        source: NR
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается: EvoDiff motif AA identities (OADM clamp; D3PM guidance — future, не default). PG: sequence/structure motif, DSSP, hotspots, contig lengths, compositional/charge/hydropathy potentials, multistate DSSP mix 0.25. Hu*: CDRs visible; HuDiff Nb `inp` FR2."
+        source: PAPER
+        locator: "Lisanza mixing coefficient 0.25; HuDiff inp"
+      - text: "Чего нет: ELISA tensor; measured_var EVOLVEpro; epitope graph PALM; CATH как default EvoDiff."
+        source: INTERPRETATION
+      - text: "Classifier-free guidance: EvoDiff D3PM discussed as future, не реализованный default. PG sequence-based guidance = potentials on $x_0$, не CFG class labels ELISA."
+        source: PAPER
+        locator: "Alamdari Discussion guidance; Lisanza amino acid potential"
+      - text: "Contig RFdiffusion-style: PG да (Methods spans / SI). EvoDiff/HuAb — не contig-string RFD."
+        source: PAPER
+        locator: "Lisanza unmask spans motif"
+      - text: "MSA conditioner EvoDiff-MSA. HuAb unpaired chains. HuDiff paired Ab."
+        source: PAPER
+        locator: "Alamdari MSA; HuDiff paired OAS"
+      - text: "Library $\\mathcal{X}$ не вход D3PM (unconditional length dist). GB1 PG iterative — four sites V39 D40 G41 V54, 96/round ×3 — **tool-specific campaign**, не humanization."
+        source: PAPER
+        locator: "Iterative guidance GB1 96 designs three rounds"
+      - text: "Function keywords ESM3 — не этот класс."
+        source: INTERPRETATION
+      - text: "HuAb type embedding 0=CDR 1=V — conditioner, не antigen."
+        source: PAPER
+        locator: "HuAb type layer 0/1"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $L$; $T$ (500 D3PM / 512 HuAb / $F$ HuDiff / $T_{\\mathrm{inf}}$ PG); ByteNet vs $O(L^2)$ attn; MSA $64\\times 512$; RF pair; #samples; AF2 filter NFE; assay latency."
+        source: INTERPRETATION
+      - text: "PG: solutions in as few as 10 steps (Fig. 1c). «Дешевле RFdiffusion» по NFE — не утверждать: paper сравнивает motif success, wall-clock — SI Table 2 **NR**."
+        source: PAPER
+        locator: "Fig. 1c 10 steps; RFdiffusion better large proteins Supplementary Fig. 5c"
+      - text: "EvoDiff 640M ×500 D3PM vs OADM $L$ steps — разные режимы, не «дешевле Cartesian» без NFE table."
+        source: INTERPRETATION
+      - text: "HuAb: A100 mentioned; train wall-clock — NR. HuDiff batch 256, lr 1e-4 — не sampling GPU-hours."
+        source: PAPER
+        locator: "HuAb Nvidia A100; HuDiff Adam 1e-4"
+      - text: "EvoDiff train 8×/32×V100 — PAPER. Не переносить на HuAb A100."
+        source: PAPER
+        locator: "Alamdari 8 vs 32 V100"
+      - text: "CODE throughput — NR."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: любой subset можно зажать (маска/clamp) без AR order; D3PM оставляет возможность переписать токен каждый шаг (guidance). PG sequence guidance (composition, hydropathy) проще, чем в structure-space DDPM — авторский claim."
+        source: PAPER
+        locator: "Lisanza sequence space rather than structure space"
+      - text: "EvoDiff: sequence-only IDRs, где structure generators typically fail (авторский claim). Wet-lab **OADM**, не D3PM. Не обобщать на класс D3PM."
+        source: PAPER
+        locator: "IDR inpainting; EvoDiff-Seq OADM"
+      - text: "PG: motif AF2 RMSD<2, motif RMSD<1, pAE<5 (in silico); experimental soluble designs, disulfides 3–4 Cys, CD thermostable. **Не** antibody. Не Kd."
+        source: PAPER
+        locator: "Fig. 4c motif; Cys mass spec 3–4 disulfides"
+      - text: "HuDiff: hAb1.2 $K_D$ 0.15 nM vs parent 0.12 nM BLI; 39 mutations; ELISA all five bind. Nb hNb1.1 2.52 nM vs 5.47 nM (54%). **Одна** 2B04 и две Nb серии preprint. Не класс, не HuAb ELISA ng/ml."
+        source: PAPER
+        locator: "HuDiff Fig. 3d 0.15 vs 0.12; 2.52 vs 5.47"
+      - text: "HuAb ELISA EC50 ng/ml: BAMU-16 2.374 vs 16CM 2.610; BAMU-38 2.081 vs 38CM 2.815; BAMU-13 4.519 vs 13CM 3.093 (не лучше chimeric). Не nM Kd. Table S7 BLI NR cells."
+        source: PAPER
+        locator: "Table 4 EC50"
+      - text: "Явно: sequence plausibility / humanness / pLDDT не гарантия стабильности / аффинности / экспрессии / низкой ADA. HuAb Fig. 5 ELBO vs ADA — retrospective 217 therapeutics, не designs BAMU."
+        source: PAPER
+        locator: "HuAb Fig. 5 ADA 217"
+      - text: "Austin: выбор $Q$ — design decision (uniform vs absorbing vs NN). Не универсальный kernel."
+        source: PAPER
+        locator: "Austin choice of transition matrix important"
+      - text: "Не сравнивать PG 68/soluble E. coli с HuDiff nM как один success column."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: D3PM труднее OADM (Alamdari); absorbing фиксирует AA после unmask (плохо для guidance); PG Gaussian на logits ≠ calibrated Cat; ARDM $T=F$ растёт с CDR-graft length."
+        source: PAPER
+        locator: "OADM easier than D3PM; OADM fixes identity"
+      - text: "Представление: нет 3D у EvoDiff/Hu*; PG RF bias; HuAb AHo pad 149; HuDiff IMGT 291 ghosts `-`."
+        source: PAPER
+        locator: "pad tokens HuDiff"
+      - text: "Физика: нет electrostatics PDE. BLOSUM ≠ mutational process в клетке."
+        source: INTERPRETATION
+      - text: "Данные: UniRef/OAS/PDB biases; HuAb unpaired; HuDiff mouse finetune ~20k; PG no antibody proof."
+        source: PAPER
+        locator: "Lisanza no antibody-specific; HuDiff 19387"
+      - text: "Обобщение: D3PM не выбран для EvoDiff downstream; HuDiff 3 parent series; HuAb 3 ELISA clones; PG miniprotein-scale campaigns."
+        source: PAPER
+        locator: "three parent HuDiff evidence_summary MATRIX/PAPER"
+      - text: "Deployment: EvoDiff MIT preprint; PG MIT+ckpt; HuDiff custom license NR; HuAb commercial service, source NR, GenScript patents pending."
+        source: MATRIX
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Конкретные ошибки, не «может не сработать»."
+        source: INTERPRETATION
+    items:
+      - "Применить EvoDiff-D3PM API как OADM infill (mutation noise ≠ span MASK)."
+      - "Одна $Q_t$ на PG Gaussian и Austin Cat."
+      - "Считать ESM LL / pLDDT / OASis измеренным Kd."
+      - "Приписать Cox15/MDM2 wet-lab каналу D3PM."
+      - "HuDiff как ProGen left-to-right без absorbing FR."
+      - "HuAb 22 mAb in silico = 3 ELISA clones."
+      - "Humanness / ELBO как clinical ADA для новых BAMU designs."
+      - "PG AF2 pLDDT>90 filter как affinity."
+      - "Мало D3PM steps ≪500 без paper calibration."
+      - "Motif sequence clamp без 3D (EvoDiff) как RFdiffusion scaffolding."
+      - "HuAb неполные V (trained on complete AHo 149)."
+      - "Сравнить HuDiff 0.15 nM и HuAb EC50 ng/ml как один Kd."
+      - "DiffAb joint type channel как sequence-only tool этого id."
+      - "UCB на страницу как train (только PG GB1 baseline)."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Полный reverse index. CODE SHA всех — NR. Неравные oracles не в одной колонке успеха."
+        source: MATRIX
+    tables:
+      - headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        source: INTERPRETATION
+        rows:
+          - ["[EvoDiff](/tools/evodiff.html)", "discrete token diffusion", "D3PM Uniform/BLOSUM T=500 λ=0 ByteNet; **и** OADM T=L (другой id); UniRef50 42M; CODE **NR**", "D3PM не выбран как EvoDiff-Seq; wet-lab OADM"]
+          - ["[ProteinGenerator](/tools/protein-generator.html)", "sequence-space noising", "RF; Gaussian $L\\times 20$; CE+FAPE; sqrt; self-cond; CODE **NR**; training T **NR**", "Не Cat $Q$; structure entangled; не antibody"]
+          - ["[HuDiff](/tools/hudiff.html)", "absorbing FR ARDM", "Dual CNN+Roformer; T=F; OAS paired; AbNatiV FT; BLI 0.15/0.12 nM preprint; CODE **NR**; journal NMI не sync", "Не D3PM Q; также AR architecture_id"]
+          - ["[HuAbDiffusion](/tools/huabdiffusion.html)", "absorbing MASK FR D3PM-like", "12L Transformer d=1024 T=512; OAS unpaired 2M×3; ESM rerank; ELISA Table 4; **repo NR**; service YabXnization", "Не HuDiff ARDM; не paired Dual CNN"]
+      - headers: ["Метод вне карточек / не этот id", "Зачем указан", "Не делать"]
+        source: PAPER
+        rows:
+          - ["Austin D3PM / Hoogeboom OADM-ARDM", "родовые kernels", "номера appendix без PDF — NR"]
+          - ["EvoDiff-OADM", "sibling infill id", "не уравнение D3PM-страницы как default"]
+          - ["DiffAb type channel", "categorical CDR + frames", "joint diffusion id"]
+          - ["RFdiffusion", "structure-space", "не sequence Q"]
+          - ["ProGen / ESM3", "AR / MLM", "нет этого architecture_id как diffusion"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо для sequence-first генерации и motif **sequence** clamp ([EvoDiff](/tools/evodiff.html), [sequence-first-de-novo](/workflows/sequence-first-de-novo.html)); humanization FR от CDR ([HuDiff](/tools/hudiff.html), [HuAbDiffusion](/tools/huabdiffusion.html), [humanization-framework](/workflows/humanization-framework.html)); sequence-space guidance / multistate ([ProteinGenerator](/tools/protein-generator.html)). Задачи [general-protein-sequence-generation](/tasks/general-protein-sequence-generation.html), [humanization](/tasks/humanization.html), [motif-scaffolding](/tasks/motif-scaffolding.html) (sequence-level)."
+        source: MATRIX
+      - text: "Этим **нельзя** заменять: de novo backbone control ([frame-diffusion](/architectures/frame-diffusion.html), [RFdiffusion](/tools/rfdiffusion.html)); antigen-conditioned Ab 3D ([joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html)); few-shot ELISA loop ([active-learning](/architectures/active-learning.html)); IF при готовом backbone ([ProteinMPNN](/tools/proteinmpnn.html))."
+        source: INTERPRETATION
+      - text: "Не использовать D3PM likelihood как Kd. Не использовать HuAb ELBO как ADA новых дизайнов. Нужен binding assay."
+        source: MATRIX
+      - text: "EvoDiff IDR evidence не делает tool antibody therapeutic generator. PG не имеет antibody wet-lab в primary. HuDiff nM не переносится на HuAb EC50."
+        source: INTERPRETATION
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational: Austin D3PM; Hoogeboom ARDM/OADM (HuDiff ref. 64; Alamdari 24). Catalog: [paper-evodiff](/papers/evodiff.html), [paper-protein-generator](/papers/protein-generator.html), [paper-hudiff](/papers/hudiff.html), [paper-huabdiffusion](/papers/huabdiffusion.html)."
+        source: PAPER
+      - text: "Прочитано: Alamdari v2 Methods D3PM; Austin HTML Eqs.; Lisanza Methods; HuAb BIB Methods+Table 4; HuDiff bioRxiv Methods Eqs. 3–8. Pointer-only: EvoDiff S-tables; PG SI Table 2 / Alg S1; HuDiff NMI journal; all commits; HuAb S7 BLI."
+        source: INTERPRETATION
+      - text: "Не библиография всего discrete diffusion: Sohl-Dickstein, Hoogeboom multinomial, DiffusionBERT — указаны papers, не карточки tools."
+        source: PAPER
+        locator: "Austin related work; HuAb DiffusionBert ref"
+citations:
+  - id: 1
+    text: "Alamdari S. et al. Protein generation with evolutionary diffusion: sequence is all you need. bioRxiv 10.1101/2023.09.11.556673."
+    url: "https://doi.org/10.1101/2023.09.11.556673"
+    doi: "10.1101/2023.09.11.556673"
+  - id: 2
+    text: "Austin J. et al. Structured Denoising Diffusion Models in Discrete State-Spaces. arXiv:2107.03006 (NeurIPS 2021)."
+    url: "https://arxiv.org/abs/2107.03006"
+  - id: 3
+    text: "Lisanza S.L. et al. Multistate and functional protein design using RoseTTAFold sequence space diffusion. Nat. Biotechnol. doi:10.1038/s41587-024-02395-w."
+    url: "https://doi.org/10.1038/s41587-024-02395-w"
+    doi: "10.1038/s41587-024-02395-w"
+  - id: 4
+    text: "Liu D., Hao X., Fan L. HuAbDiffusion: a discrete language diffusion model used for antibody humanization. Brief. Bioinform. 26, bbaf658 (2025)."
+    url: "https://doi.org/10.1093/bib/bbaf658"
+    doi: "10.1093/bib/bbaf658"
+  - id: 5
+    text: "Ma J. et al. An adaptive autoregressive diffusion approach to design active humanized antibody and nanobody. bioRxiv 10.1101/2024.10.22.619416. (Nature Mach. Intell. journal не page-sync в этом проходе.)"
+    url: "https://doi.org/10.1101/2024.10.22.619416"
+    doi: "10.1101/2024.10.22.619416"
+  - id: 6
+    text: "Hoogeboom et al. Autoregressive Diffusion Models — цитируется HuDiff (64) и Alamdari (24); PDF уравнений не close-read beyond HuDiff Methods transcription."
+  - id: 7
+    text: "microsoft/evodiff, RosettaCommons/protein_generator, TencentAI4S/HuDiff — pointer; commits не аудированы."
+unresolved:
+  - "EvoDiff Table S1–S6 numeric ppl/Hamming/FPD"
+  - "microsoft/evodiff commit and D3PM sampler symbol"
+  - "ProteinGenerator training T (Nature Methods не число; GitHub README 1000 не CODE)"
+  - "Lisanza SI Table 2 wall-clock; Algorithms S1–S2 line-level"
+  - "RosettaCommons/protein_generator commit"
+  - "HuDiff Nature Mach. Intell. 10.1038/s42256-025-01120-9 vs bioRxiv pagination"
+  - "TencentAI4S/HuDiff commit; Roformer hidden width"
+  - "HuAbDiffusion Table S7 BLI Kd; AdamW learning rate (HTML обрыв); train/val split ratio"
+  - "HuAbDiffusion source repo (MATRIX NR)"
+  - "Austin Appendix closed-form Q-bar derivations not transcribed"

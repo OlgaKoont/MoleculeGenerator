@@ -1,0 +1,45 @@
+id: paper-framediff
+slug: framediff
+title: SE(3) diffusion model with application to protein backbone generation
+authors: null
+year: '2023'
+venue: ICML 2023 main track (A*)
+publication_status: ICML 2023 main track (A*)
+doi: null
+url: https://proceedings.mlr.press/v202/yim23a.html
+preprint_url: null
+tool_ids:
+- framediff
+main_task: Unconditional monomer backbone generation
+claimed_novelty: null
+model_architecture: SE(3) diffusion / score model over residue frames
+input_representation: null
+encoder_decoder: null
+generative_state: Protein backbone
+conditioning: Primarily length; research implementation
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Computational designability and novelty
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Computational designability and novelty
+main_results: Computational designability and novelty
+limitations: Backbone-only research baseline; no functional conditioning or prospective evidence;
+  repository maintenance risk.
+demonstrates:
+- Computational designability and novelty
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: SE(3) diffusion model with application to protein backbone generation
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: ICML 2023 main track (A*)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

@@ -1,0 +1,141 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: 'Frame diffusion — генерация <strong>protein backbone как набора residue frames в SE(3)</strong>: трансляция Cα (или origin кадра) + ориентация N–Cα–C. Это генератор структуры (часто только остова), не sequence LM и не affinity predictor. Sequence обычно назначается отдельно (ProteinMPNN) или параллельной головой.'
+  - type: p
+    text: 'Задачи: de novo backbone, motif scaffolding, epitope-conditioned antibody CDR backbone (<a href="/tools/rfantibody.html">RFantibody</a>, <a href="/tools/rfdiffusion.html">RFdiffusion</a>, <a href="/tools/framediff.html">FrameDiff</a>).'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Forward process портит ориентации и координаты кадров до почти случайного облака. Denoiser, обученный на PDB-подобных структурах (и, для RFantibody, на antibody/TCR/loop interfaces), предсказывает чистые кадры. На inference запускается reverse процесс при зажатых motif/framework/hotspot кадрах. Получается новая геометрия петель/доков, а не экспериментальный Kd.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generic SE(3) frame diffusion (Yim FrameDiff / RFdiffusion-style; формулировка класса, не копия одного уравнения из одного SI):'
+  - type: math
+    latex: '\begin{aligned}
+
+      T_i &\in \mathrm{SE}(3),\quad T_i=(R_i,t_i),\ R_i\in\mathrm{SO}(3),\ t_i\in\mathbb{R}^3,\\
+
+      q(t_{i,\tau}\mid t_{i,0})&=\mathcal{N}(t_{i,\tau};\sqrt{\bar\alpha_\tau}\,t_{i,0},(1-\bar\alpha_\tau)I),\\
+
+      q(R_{i,\tau}\mid R_{i,0})&=\mathrm{IGSO}(3)\ \text{or Brownian on }\mathrm{SO}(3).
+
+      \end{aligned}'
+    caption: \(T_i\) — frame residue \(i\); \(\tau\) — diffusion time; translations — Gaussian VP-like; rotations — isotropic Gaussian on SO(3) / geodesic random walk. Exact schedule is tool-specific.
+    source: '[PAPER] Yim et al. FrameDiff; Watson et al. RFdiffusion; generic class'
+  - type: p
+    text: 'RFdiffusion training: denoiser предсказывает \(x_0\) (clean frames) и минимизирует MSE между predicted и true coordinates/frames, с RoseTTAFold-like backbone. Motif/hotspot conditioning — clamp coords / 2D template / one-hot hotspots. [PAPER Watson 2023; Bennett 2025 for antibody FT]'
+  - type: warn
+    text: 'Не подставляйте multinomial sequence diffusion DiffAb как уравнение RFdiffusion: sequence там обычно не диффундирует, её ставит ProteinMPNN после frames.'
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - residue frames (Cα + orientation);
+    - optional sequence one-hot for self-conditioning;
+    - pair/template distograms and dihedrals (RFdiffusion invariant 2D template for framework in RFantibody);
+    - hotspot one-hot on target;
+    - contig maps (which residues generated vs fixed).
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'Каждый кадр — локальная ориентация пептидной плоскости/backbone triad. Трансляции/ротации всего белка: сеть SE(3)-equivariant, поэтому глобальный поворот не должен менять внутреннюю геометрию. Абсолютные координаты всё же используются внутри, но обновления эквивариантны. Side chains обычно отсутствуют до MPNN+packing.'
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - How encoded
+    - Limitation
+    rows:
+    - - Frames / Cα
+      - backbone kinematics
+      - explicit geometry
+      - not energy
+    - - SE(3) equivariance
+      - 'inductive bias: same structure in any pose'
+      - architectural
+      - не гарантирует физическую стабильность
+    - - Hotspots
+      - user-specified epitope residues
+      - one-hot condition
+      - wrong hotspots → wrong epitope
+    - - Template distances (framework)
+      - preserve Fv geometry
+      - invariant 2D features
+      - framework not designed
+    - - Electrostatics / solvent / glycans
+      - —
+      - absent in generator
+      - могут появиться только в Rosetta/MD после
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'Denoiser weights (RF backbone). Loss: MSE on denoised frames/coords vs \(x_0\), plus auxiliary RF heads as in RFdiffusion. Sequence CE не главный loss RFdiffusion. Fine-tune RFantibody: mix SAbDab / TCR-MHC / loop-mediated PDB interfaces (доли уточнять по SI; вторичные описания 50/10/40 — пометить если SI не сверён).'
+- title: 8. Information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - Target structure + hotspots + contig
+    - noisy frames
+    - SE(3) denoiser
+    - clean CDR/dock frames
+    - ProteinMPNN sequences
+    - RF2/AF3 filter (evaluator)
+    - experiment
+    note: Типичный RFdiffusion-like binder/antibody pipeline. Distinguishes generator vs evaluator.
+- title: 9–12. Training, inference, conditioning, complexity
+  level: 2
+  blocks:
+  - type: p
+    text: 'Training: PDB/AF structures, motif-scaffolding tasks, optional antibody FT. Inference: reverse diffusion T steps (order 50–200, tool-specific), clamp motif. Conditioning: contig, hotspot, fold, length. Complexity: \(N\) residues × \(T\) steps × pair representation; crop 768 reported for RFantibody FT descriptions. Pair \(O(N^2)\) dominates.'
+- title: 13–15. Преимущества, ограничения, failure modes
+  level: 2
+  blocks:
+  - type: p
+    text: 'Преимущество: естественная параметризация backbone vs сырые Cartesian clouds. Ограничение: sequence decoupled; vanilla protein prior ломает CDR canonical loops (мотивация antibody FT). Failures: broken peptide geometry, wrong epitope, high confidence AF3 на несвязывающих дизайнах (false confidence), clashes until pack/relax.'
+- title: 16–18. Инструменты и источники
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic
+    - Specific
+    - Difference
+    rows:
+    - - <a href="/tools/rfdiffusion.html">RFdiffusion</a>
+      - frame/backbone diffusion
+      - RF-based denoiser, contig, hotspots
+      - general proteins/miniproteins
+    - - <a href="/tools/rfantibody.html">RFantibody</a>
+      - same + Ab FT
+      - framework as 2D template; CDRs+dock generated
+      - vanilla RF fails on Ab loops
+    - - <a href="/tools/framediff.html">FrameDiff</a>
+      - SE(3) diffusion without RF
+      - Yim et al. architecture
+      - not antibody-specialized in this catalog evidence
+  - type: refs
+    items:
+    - text: Watson et al., RFdiffusion, Nature 2023
+      url: https://doi.org/10.1038/s41586-023-06415-8
+    - text: Yim et al., FrameDiff / SE(3) diffusion
+      url: https://arxiv.org/abs/2302.02277
+    - text: Bennett et al., RFantibody, Nature 2025
+      url: https://doi.org/10.1038/s41586-025-09721-5
+inaccessible:
+- Полный SI RFdiffusion (Watson 2023) и Nature RFantibody SI PDF в этом проходе не разбирались постранично как отдельные файлы; frame process сверен с Watson et al. 2023, Yim FrameDiff, Nature 2025 RFantibody PDF/PMC, и с описанием released RFantibody modules.

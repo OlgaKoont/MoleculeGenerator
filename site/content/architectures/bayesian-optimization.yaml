@@ -1,0 +1,32 @@
+id: bayesian-optimization
+slug: bayesian-optimization
+name: Bayesian optimization
+name_ru: Байесовская оптимизация
+intuition: 'Частный случай active learning: Gaussian process или другой probabilistic surrogate +
+  acquisition по неопределённости.'
+mathematical_formulation: GP prior on fitness; posterior $p(y\mid D)$; $x_{t+1}=\arg\max_x a(x;p(y\mid
+  D))$.
+input_representation: Low-dimensional embeddings or descriptors of mutants.
+generated_state: Next query sequence(s).
+training_objective: Marginal likelihood of surrogate.
+inference: Acquisition maximization.
+conditioning: Box constraints on mutational space.
+complexity_drivers:
+- GP cubic in number of labels unless sparse
+strengths:
+- Хорош при очень малых данных
+limitations:
+- Плохо масштабируется на огромные combinatorial spaces без embeddings
+failure_modes:
+- Kernel misspecification
+applicable_task_ids:
+- few-shot-active-learning
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-evolvepro
+subtypes:
+- GP-BO
+- Random-forest surrogate
+glossary_ids:
+- active-learning

@@ -1,0 +1,135 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: SE(3)-equivariant сети преобразуют векторы/координаты согласованно с вращением входа.
+  - type: p
+    text: Inductive bias для structure generation (FrameDiff, DiffAb EpsilonNet, RF structure module). Equivariance ≠ physical correctness.
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: Повернули комплекс — сеть должна повернуть предсказанные векторы так же.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: math
+    latex: f(Rx+t)=R f(x)+t \quad \text{(for point clouds / frames appropriately)}
+    caption: 'Equivariance on coordinates. Frames: \(R_i \mapsto R R_i\), origins \(\mapsto R t_i + t\).'
+    source: '[PAPER] Thomas et al. TFN; Fuchs SE(3)-Transformer; Yim FrameDiff'
+  - type: p
+    text: Это уравнение класса методов. Tool-specific отклонения — на страницах инструментов.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - scalar channels
+    - vector channels
+    - frames \(R_i,t_i\)
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Respects rigid motions of the lab frame. Does not encode thermodynamics.
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature
+    - Interpretation
+    - Encoded
+    - Limitation
+    rows:
+    - - Vector features
+      - oriented geometric quantities
+      - equivariant
+      - still statistical, not force field
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: Denoising / FAPE / coordinate MSE.
+- title: 8. Прямой проход
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - noisy coords
+    - equivariant layers
+    - updated vectors
+    note: Схема класса, не копия paper figure.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: On structures in random orientations (often augmented).
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: Any global pose.
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: Hotspots still need to transform with the body.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: Vector channels increase FLOPs vs scalars.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Не тратит capacity на ориентацию лабораторной системы.
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Не гарантирует отсутствие clashes.
+    - Не affinity.
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Broken peptide bonds if constraints weak.
+    - False confidence after equivariant denoise.
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific
+    - Difference
+    rows:
+    - - DiffAb EpsilonNet
+      - equivariant ε on coords
+      - R @ eps_local
+      - '[CODE]'
+    - - RFdiffusion / FrameDiff
+      - SE(3) frames
+      - diffusion on SE(3)
+      - generator
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: Structure generators. Не PLM-only tools.
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Yim et al., SE(3) diffusion / FrameDiff
+      url: https://arxiv.org/abs/2302.02277

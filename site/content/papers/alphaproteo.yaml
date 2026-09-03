@@ -1,0 +1,49 @@
+id: paper-alphaproteo
+slug: alphaproteo
+title: AlphaProteo generates novel proteins for biology and health
+authors: null
+year: '2024'
+venue: Technical report / arXiv preprint (Watchlist)
+publication_status: Technical report / arXiv preprint (Watchlist)
+doi: 10.48550/arXiv.2409.08022
+url: https://arxiv.org/abs/2409.08022
+preprint_url: https://arxiv.org/abs/2409.08022
+tool_ids:
+- alphaproteo
+main_task: Target-conditioned de novo non-antibody binder generation
+claimed_novelty: null
+model_architecture: Proprietary generative and ranking model family (technical report)
+input_representation: null
+encoder_decoder: null
+generative_state: Binder sequences/structures
+conditioning: Target surface/region; public controllability details limited
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Reported 3–300× affinity improvements versus comparator
+  methods; this is not a head-to-head universal benchmark
+tested_designs: Seven targets in technical report
+success_criterion: Reported 3–300× affinity improvements versus comparator methods; this is
+  not a head-to-head universal benchmark
+main_results: Reported 3–300× affinity improvements versus comparator methods; this is not
+  a head-to-head universal benchmark
+limitations: Closed model and insufficient reproducibility; not antibody-specific; technical-report
+  evidence.
+demonstrates:
+- Reported 3–300× affinity improvements versus comparator methods; this is not a head-to-head
+  universal benchmark
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: AlphaProteo generates novel proteins for biology and health
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Technical report / arXiv preprint (Watchlist)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

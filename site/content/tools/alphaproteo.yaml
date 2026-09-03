@@ -1,0 +1,189 @@
+identity:
+  id: alphaproteo
+  name: AlphaProteo
+  slug: alphaproteo
+  aliases:
+  - AlphaProteo
+  version: null
+  release_year: '2024'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/google-deepmind/ap_trusted_testers
+  official_documentation: null
+  official_service: null
+  license: Trusted-tester notebooks Apache-2.0; model not released
+  commercial_use_status: Restricted/trusted-tester; no local weights
+  publication_status: Technical report / arXiv preprint (Watchlist)
+classification:
+  task_ids:
+  - de-novo-non-antibody-binder-design
+  - target-conditioned-binder-generation
+  workflow_ids:
+  - miniprotein-binder-bindcraft
+  architecture_ids:
+  - joint-sequence-structure-generation
+  generator_classes:
+  - target-conditioned-binder
+  output_modalities:
+  - sequence
+  - structure
+  supported_formats: Small non-antibody protein binders
+  de_novo_or_optimization: De novo
+  general_protein_relevance: Scientifically important benchmark
+  antibody_relevance: Not an antibody generator
+  VHH_relevance: No evidence
+  mutation_relevance: 'No'
+  compatibility_group: general-binder
+generation:
+  exact_generated_object: Binder sequences/structures
+  required_input: Target structure / target region
+  conditioning: Target surface/region; public controllability details limited
+  fixed_components: null
+  editable_components: null
+  generated_components: Binder sequences/structures
+  support_for_single_mutations: 'No'
+  support_for_combinatorial_mutations: Full sequence
+  support_for_multi_objective_optimization: null
+  candidate_generation_mechanism: Proprietary generative and ranking model family (technical
+    report)
+architecture:
+  base_model: null
+  model_family: Proprietary generative and ranking model family (technical report)
+  model_type: 5 Target-conditioned binder generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Target surface/region; public controllability details limited
+  generation_mechanism: Proprietary generative and ranking model family (technical report)
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Binder sequences/structures
+  internal_scorer: Internal proprietary ranking
+  structure_generation: Undisclosed/closed
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: AlphaProteo (closed)
+  integrated_generators: []
+  integrated_scorers:
+  - Internal proprietary ranking
+  integrated_structure_predictor: Undisclosed/closed
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Experimental binding/functional assays still required
+  optional_external_dependencies:
+  - Undisclosed
+  breakdown:
+  - name: AlphaProteo (closed)
+    role: primary_generator
+    architecture_class: Proprietary generative and ranking model family (technical report)
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Internal proprietary ranking
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Undisclosed/closed
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: Experimental binding/functional assays still required
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–4 prospective binding/functional validation
+  retrospective_validation: null
+  prospective_binding_validation: Reported 3–300× affinity improvements versus comparator
+    methods; this is not a head-to-head universal benchmark
+  prospective_functional_validation: Reported 3–300× affinity improvements versus comparator
+    methods; this is not a head-to-head universal benchmark
+  developability_validation: null
+  tested_design_count: Seven targets in technical report
+  success_criterion: Reported 3–300× affinity improvements versus comparator methods; this
+    is not a head-to-head universal benchmark
+  independent_validation: null
+  evidence_summary: Reported 3–300× affinity improvements versus comparator methods; this
+    is not a head-to-head universal benchmark
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: true
+limitations:
+  scientific_limitations:
+  - Closed model and insufficient reproducibility.
+  - not antibody-specific.
+  - technical-report evidence.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Frontier; not internally deployable
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - huabdiffusion
+  - hudiff
+  - humatch
+  - rfantibody
+  - tfold
+  paper_ids:
+  - paper-alphaproteo
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue: []

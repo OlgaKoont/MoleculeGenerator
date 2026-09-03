@@ -1,0 +1,46 @@
+id: paper-dymean
+slug: dymean
+title: End-to-End Full-Atom Antibody Design
+authors: Xiangzhe Kong, Wenbing Huang, Yang Liu
+year: '2023'
+venue: ICML 2023 main track (A*)
+publication_status: ICML 2023 main track (A*)
+doi: null
+url: https://proceedings.mlr.press/v202/kong23c.html
+preprint_url: https://arxiv.org/abs/2302.00203
+tool_ids:
+- dymean
+main_task: End-to-end full-atom antibody CDR-H3 design, docking and affinity-oriented optimization
+claimed_novelty: null
+model_architecture: E(3)-equivariant multi-channel graph network with iterative sequence/structure
+  updates
+input_representation: null
+encoder_decoder: null
+generative_state: Full-atom antibody sequence/structure and docked complex
+conditioning: Epitope, incomplete antibody, CDR design region
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Retrospective structure/design metrics only
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Retrospective structure/design metrics only
+main_results: Retrospective structure/design metrics only
+limitations: Predicted affinity optimization is not measured improvement; training-data scarcity
+  and epitope representation limit generalization.
+demonstrates:
+- Retrospective structure/design metrics only
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: End-to-End Full-Atom Antibody Design
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: ICML 2023 main track (A*)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

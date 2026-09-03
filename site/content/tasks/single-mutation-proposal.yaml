@@ -1,0 +1,57 @@
+id: single-mutation-proposal
+slug: single-mutation-proposal
+name: Предложение single mutations
+group: Оптимизация существующих белков
+definition: Ранжирование одиночных замен относительно parent.
+objective: Предложить небольшой набор substitutions для эксперимента.
+starting_inputs:
+- parent sequence
+- optional complex backbone
+generated_objects:
+- ranked single-amino-acid substitutions
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Zero-shot PLM likelihood
+  generates: Ranked mutations
+  representation: Sequence tokens
+  examples:
+  - esm-1v-efficient-evolution
+  limitation: Evolutionary plausibility ≠ affinity prediction
+  sampling: Likelihood-guided ranking
+  novel_topology: Нет
+  integrated_scoring: Ensemble likelihood
+  complexity_drivers: Число positions × 19 substitutions
+- name: Complex inverse-folding scores
+  generates: Ranked mutations
+  representation: Backbone-conditioned sequence
+  examples:
+  - structural-evolution
+  limitation: Нужен credible complex
+  sampling: Enumeration + likelihood
+  novel_topology: Нет
+  integrated_scoring: Conditional likelihood
+  complexity_drivers: Complex size
+consequences:
+- decision: Zero-shot scoring
+  consequence: Не требует labels, но не моделирует epistasis.
+compute_consequences:
+- Обычно быстрее de novo generation.
+evidence_summary: ESM-1v antibody evolution и structural evolution имеют prospective functional
+  evidence.
+incomparable:
+- Zero-shot ≠ few-shot active learning.
+selection_guidance:
+- Нет структуры — ESM-1v workflow.
+- Есть complex — structural evolution.
+architecture_ids:
+- zero-shot-mutation-scoring
+- protein-language-models
+- inverse-folding
+- invariant-models
+workflow_ids:
+- zero-shot-mutation
+paper_ids: []
+glossary_ids:
+- fine-tuning
+downstream: false

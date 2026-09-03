@@ -1,0 +1,7 @@
+id: equivariance
+slug: equivariance
+term: SE(3) equivariance
+term_ru: SE(3)-эквивариантность
+definition: 'Свойство сети: поворот/сдвиг входа поворачивает/сдвигает выход. Нужно для 3D generators.'
+related_ids:
+- diffusion

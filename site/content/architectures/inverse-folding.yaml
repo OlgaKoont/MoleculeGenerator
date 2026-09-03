@@ -1,0 +1,40 @@
+id: inverse-folding
+slug: inverse-folding
+name: Inverse folding
+name_ru: Inverse folding
+intuition: 'Прямая задача: sequence → structure. Обратная: по backbone найти sequences, которые этот
+  fold стабилизируют.'
+mathematical_formulation: $p(s\mid x)=\prod_i p(s_i\mid s_{<i}, x)$, где $x$ — backbone coordinates/frames.
+input_representation: N, Cα, C (иногда O/Cβ) coordinates; residue graph; masks.
+generated_state: Amino-acid tokens; optionally side-chain packing.
+training_objective: Sequence recovery cross-entropy; иногда side-chain RMSD.
+inference: Temperature sampling, native-sequence recovery, masked redesign.
+conditioning: Fixed positions, tied residues, ligand atoms, antigen chain.
+complexity_drivers:
+- Число residues
+- kNN edges
+- autoregressive order
+strengths:
+- Быстрый sequence stage после backbone generation
+- Хорошо калиброван на fold compatibility
+limitations:
+- Не меняет topology
+- Score ≠ affinity
+failure_modes:
+- Дизайн вокруг неверного interface
+- Перенос общего MPNN на antibody loops без fine-tune
+applicable_task_ids:
+- inverse-folding
+- antibody-structure-aware-sequence-design
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-proteinmpnn
+- paper-esm-if1
+- paper-antifold
+subtypes:
+- Residue MPNN
+- GVP-Transformer IF
+glossary_ids:
+- inverse-folding
+- backbone

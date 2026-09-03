@@ -1,0 +1,8 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Generator vs evaluator in antibody IF
+  level: 2
+  blocks:
+  - type: p
+    text: <a href="/tools/antifold.html">AntiFold</a> генерирует sequence при фиксированном Fv backbone. Любой AF2/AF3/RF2, docking, MD, AbNatiV — внешние evaluators. Likelihood AntiFold не заменяет ELISA. [PAPER]

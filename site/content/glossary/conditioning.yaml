@@ -1,0 +1,7 @@
+id: conditioning
+slug: conditioning
+term: Conditioning
+term_ru: Обусловливание
+definition: 'Способ подать в генератор ограничение: antigen, epitope, backbone, mask, tags.'
+related_ids:
+- epitope

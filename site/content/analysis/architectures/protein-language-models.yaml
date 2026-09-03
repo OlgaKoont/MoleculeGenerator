@@ -1,0 +1,684 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс PLM описан как семейство ролей, не одна сеть. Прочитаны: Nijkamp et al. ProGen2 arXiv 2206.13517 HTML (AR, p0≠p∞); Lin et al. ESM-2 bioRxiv 10.1101/2022.07.20.500902v3 (MLM 15%, UniRef, 8M–15B); Meier et al. ESM-1v bioRxiv 10.1101/2021.07.09.450648 (masked-marginal Δℓ, Eq. 1); Hayes et al. ESM3 bioRxiv 10.1101/2024.07.01.600583 (generative MLM, variable mask rate); Shuai/Ruffolo/Gray IgLM Cell Systems HTML + Graylab/IgLM @de819b56 (ранее); Jiang et al. EVOLVEpro bioRxiv + mat10d/EvolvePro @1c77697 (ранее); PALM-H3 Nat. Commun. HTML 10.1038/s41467-024-50903-y; tFold Nat. Commun. HTML 10.1038/s41467-025-67361-9 (ESM-PPI компонент). ProGen Nature 10.1038/s41587-022-01618-2 — abstract/Data (280M sequences, lysozyme 31.4%, PDB 7RGR); Methods paywall. Hie et al. Nat. Biotechnol. 10.1038/s41587-023-01763-2 HTML timeout. ESM-2/ESM3 journal HTML не сличены постранично с preprint. salesforce/progen и Biohub/esm commit NR this pass."
+lede: "Protein language models — семейство **sequence models** над токенами аминокислот. Это не одна роль: (i) generative $p(s)$, (ii) masked infill, (iii) frozen embeddings $E(s)$ для surrogate, (iv) zero-shot $\\Delta\\ell$. Это не structure generator, не affinity predictor и не assay."
+inaccessible:
+  - source: "Madani et al. ProGen Nature Biotechnology 10.1038/s41587-022-01618-2 full Methods + SI"
+    reason: "Nature HTML в этом проходе — abstract, Data/Code availability, не STAR/Methods"
+    workaround: "Abstract: 280M sequences, >19k families, lysozyme identity 31.4%, PDB 7RGR; AR math — ProGen2 HTML; dims ProGen-1 (слои/d_model) — NR"
+  - source: "Hie et al. Efficient evolution of human antibodies. Nat. Biotechnol. 10.1038/s41587-023-01763-2 full text"
+    reason: "Nature HTML timed out"
+    workaround: "Механизм scoring — Meier ESM-1v Eq. 1; catalog wet-lab 32×/19× не копировать как verified; PALM intro цитирует Hie «up to 160-fold» — это чужая цитата, не наш close-read"
+  - source: "Lin et al. Science 10.1126/science.ade2574 journal HTML vs bioRxiv"
+    reason: "Читался bioRxiv v3, не Science pagination"
+    workaround: "MLM/UniRef/scale — preprint; SI Table S1 layer widths не транскрибированы"
+  - source: "Hayes et al. Science 10.1126/science.ads0018 journal vs bioRxiv 10.1101/2024.07.01.600583"
+    reason: "Читался bioRxiv HTML"
+    workaround: "Generative MLM, 1.4/7/98B, GFP campaign — preprint; Science-only numbers NR"
+  - source: "Jiang et al. Science 10.1126/science.adr6006 EVOLVEpro journal"
+    reason: "Paywall; ранее — preprint"
+    workaround: "Frozen ESM-2 + RF top-N — bioRxiv + CODE EvolvePro"
+  - source: "salesforce/progen, Biohub/esm, Tencent PALM, TencentAI4S/tfold, brianhie/efficient-evolution line audit"
+    reason: "Commit SHA не фиксировался в этом проходе"
+    workaround: "Papers; IgLM и EvolvePro — ранее аудированные commits"
+  - source: "PALM-H3 SI Table S1 OAS counts beyond main-text Methods; A2binder architecture dims"
+    reason: "Не построчный SI"
+    workaround: "Methods HTML: OAS unpaired counts; 12 antigen/antibody layers in Fig. 1 caption"
+sources:
+  - kind: PAPER
+    citation: "Nijkamp E. et al. ProGen2: Exploring the Boundaries of Protein Language Models. arXiv:2206.13517 / Cell Systems companion"
+    url: "https://ar5iv.labs.arxiv.org/html/2206.13517"
+    doi: "10.48550/arXiv.2206.13517"
+    note: "HTML: causal decoder, Table 1 sizes 151M–6.4B, UniRef90+BFD30, p0 vs p∞, ppl Table 2"
+  - kind: PAPER
+    citation: "Madani A. et al. Large language models generate functional protein sequences across diverse families. Nat. Biotechnol. (2023)"
+    url: "https://doi.org/10.1038/s41587-022-01618-2"
+    doi: "10.1038/s41587-022-01618-2"
+    note: "Abstract/Data: 280M sequences, >19k families, lysozyme ≥31.4% identity, PDB 7RGR; Methods NR"
+  - kind: PAPER
+    citation: "Lin Z. et al. Language models of protein sequences at the scale of evolution enable accurate structure prediction. bioRxiv 10.1101/2022.07.20.500902"
+    url: "https://www.biorxiv.org/content/10.1101/2022.07.20.500902v3.full"
+    doi: "10.1101/2022.07.20.500902"
+    note: "ESM-2 MLM; UniRef sampling; 8M–15B; BERT-style 15% mask; ESMFold = frozen LM + folding head (predictor)"
+  - kind: PAPER
+    citation: "Meier J. et al. Language models enable zero-shot prediction of the effects of mutations on protein function. bioRxiv 10.1101/2021.07.09.450648"
+    url: "https://www.biorxiv.org/content/10.1101/2021.07.09.450648"
+    doi: "10.1101/2021.07.09.450648"
+    note: "ESM-1v 650M, UniRef90 2020-03, five-seed ensemble, masked-marginal Eq. 1"
+  - kind: PAPER
+    citation: "Hayes T. et al. Simulating 500 million years of evolution with a language model. bioRxiv 10.1101/2024.07.01.600583"
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.01.600583"
+    doi: "10.1101/2024.07.01.600583"
+    note: "ESM3 generative MLM all mask rates; 1.4/7/98B; 3.15B sequences / 236M structures / 539M function / 771B tokens"
+  - kind: PAPER
+    citation: "Shuai R.W., Ruffolo J.A., Gray J.J. IgLM. Cell Systems 14, 979–989 (2023)"
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+    doi: "10.1016/j.cels.2023.10.001"
+    note: "Ранее: ILM span 10–20; GPT-2 12.9M; OAS cluster split"
+  - kind: PAPER
+    citation: "Jiang K. et al. Rapid protein evolution by few-shot learning with a protein language model. bioRxiv 10.1101/2024.07.17.604015"
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+    note: "Frozen ESM-2 embeddings + top-layer; не генератор"
+  - kind: PAPER
+    citation: "He X.-H. et al. PALM-H3 / A2binder. Nat. Commun. 10.1038/s41467-024-50903-y"
+    url: "https://www.nature.com/articles/s41467-024-50903-y"
+    doi: "10.1038/s41467-024-50903-y"
+    note: "ESM-2 antigen encoder + RoFormer decoder; A2binder evaluator; SPR Artificial 1"
+  - kind: PAPER
+    citation: "tFold System. Nat. Commun. 10.1038/s41467-025-67361-9"
+    url: "https://www.nature.com/articles/s41467-025-67361-9"
+    doi: "10.1038/s41467-025-67361-9"
+    note: "ESM-PPI = further-pretrained ESM-2; sequence recovery head ≠ весь tFold; SPR after phage"
+  - kind: CODE
+    citation: "Graylab/IgLM IgLM.infill / generate"
+    url: "https://github.com/Graylab/IgLM"
+    note: "commit de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+  - kind: CODE
+    citation: "mat10d/EvolvePro top-layer RF, frozen embeddings"
+    url: "https://github.com/mat10d/EvolvePro"
+    note: "commit 1c77697d0c09bf6989a1562a55da99301a12e2cd"
+  - kind: MATRIX
+    citation: "reverse index architecture_id protein-language-models"
+    note: "esm-1v-efficient-evolution, esm3, evolvepro, iglm, palm-h3, progen, tfold"
+repo:
+  url: "https://github.com/Graylab/IgLM"
+  commit: "de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+  ref: "main; AR/infill tool-specific. Frozen-encoder path: EvolvePro @1c77697"
+  license: "JHU Academic (IgLM catalog); EvolvePro LICENSE NR this pass"
+  files:
+    - iglm/model/IgLM.py
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне **зависит от головы**, не от слова «PLM». (i) **generator** дискретных AA tokens (AR decode / iterative unmask). (ii) **density model** / infiller masked spans. (iii) **feature extractor**: frozen $E(s)$ для [few-shot](/architectures/few-shot-mutation-optimization.html) / [active learning](/architectures/active-learning.html). (iv) **scorer** zero-shot $\\Delta\\ell$ — канон [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html). [EVOLVEpro](/tools/evolvepro.html) = (iii), **не** (i)."
+        source: INTERPRETATION
+      - text: "Generated/scored state — токены аминокислот $s\\in\\mathcal{A}^{L}$ и/или contextual embeddings $h_i$. Координаты, frames, torsions **не** входят в sequence-only PLM. ESM3 добавляет discrete structure/function tracks — это уже пересечение с [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html), не «чистый» sequence LM."
+        source: PAPER
+        locator: "Hayes ESM3 Fig. 1 tracks; Lin ESM-2 sequence-only MLM"
+      - text: "Задачи каталога, которые класс реально закрывает: [general protein sequence generation](/tasks/general-protein-sequence-generation.html) ([ProGen](/tools/progen.html), [ESM3](/tools/esm3.html)), [CDR sequence generation](/tasks/cdr-sequence-generation.html) ([IgLM](/tools/iglm.html), [PALM-H3](/tools/palm-h3.html)), [single-mutation proposal](/tasks/single-mutation-proposal.html) ([ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html)), few-shot AL embeddings ([EVOLVEpro](/tools/evolvepro.html)). [De novo antibody](/tasks/de-novo-antibody-design.html) у [tFold](/tools/tfold.html) — **workflow** с PLM-компонентом, не тождество «tFold = PLM»."
+        source: MATRIX
+      - text: "Это **не** [autoregressive generation](/architectures/autoregressive-generation.html) как отдельный decode-класс: AR — *способ факторизации*, который PLM может использовать, но masked ESM-2 не пишет left-to-right. Это **не** [masked-token infilling](/architectures/masked-token-infilling.html) как единственная задача: infill — *режим inference*, MLM — *train target*."
+        source: INTERPRETATION
+      - text: "Это **не** [zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html): $\\Delta\\ell$ — одно применение pretrained PLM, не определение семейства. Это **не** [few-shot mutation optimization](/architectures/few-shot-mutation-optimization.html): там обучается $f_\\phi$ на labels, PLM обычно frozen. Это **не** [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html) целиком: DiffAb/FlowDesign не обязаны быть PLM."
+        source: INTERPRETATION
+      - text: "Это **не** [inverse folding](/architectures/inverse-folding.html): $p(s\\mid X_{\\mathrm{3D}})$. ESM-IF1 — geometric Transformer, **нет** этого `architecture_id`. Не путать ESM-2 embedder EVOLVEpro с ESM-IF1 и не путать ESM3 с ESM-2."
+        source: MATRIX
+      - text: "Catalog tools с `architecture_id: protein-language-models`: [ProGen](/tools/progen.html), [IgLM](/tools/iglm.html), [ESM3](/tools/esm3.html), [EVOLVEpro](/tools/evolvepro.html), [ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html), [PALM-H3](/tools/palm-h3.html), [tFold](/tools/tfold.html). Часто путают с [ProteinMPNN](/tools/proteinmpnn.html) (IF GNN), [EvoDiff](/tools/evodiff.html) (sequence diffusion, другой id), [AntiFold](/tools/antifold.html) (IF)."
+        source: MATRIX
+      - text: "Литература вне карточек, без которой роли (ii)–(iv) непонятны: ESM-2 (Lin; не catalog tool), ESM-1v (Meier; tool каталога — *pipeline* Hie поверх модели), ESMFold folding head (predictor, frozen LM). ProtGPT2 — pointer, не tool."
+        source: PAPER
+        locator: "Lin ESM-2; Meier ESM-1v; Nijkamp cites Ferruz ProtGPT2"
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Self-supervised цель на миллионах sequences заставляет сеть сжимать **эволюционную статистику** токенов: какие аминокислоты совместны в контексте. При inference меняется разное: AR дописывает следующий токен; MLM заполняет маску; frozen encoder выдаёт вектор $E(s)$ без смены весов PLM; zero-shot считает разность лог-вероятностей wt vs mut."
+        source: INTERPRETATION
+      - text: "Главный рычаг **генераторов**: temperature / nucleus $P$ (ProGen2 Cartesian $T\\times P$; IgLM $T$, top-$p$). Это tokenizer-level entropy, не $kT$ термодинамики."
+        source: PAPER
+        locator: "Nijkamp §3.4 sampling; IgLM generate defaults (prior CODE)"
+      - text: "Рычаг **ESM-2 / ESM-1v как scorer**: masked marginal в мутированных позициях (Meier). Рычаг **EVOLVEpro**: качество и pooling embeddings (preprint: ESM-2 15B, residue average) при **замороженном** PLM; меняется top-layer на labels."
+        source: PAPER
+        locator: "Meier Eq. 1; Jiang frozen embeddings + average pool"
+      - text: "Рычаг **ESM3**: variable mask-rate generative MLM (не фиксированные 15% BERT) + prompts по tracks; alignment preference pairs по pTM/cRMSD, не ELISA."
+        source: PAPER
+        locator: "Hayes: supervision across all masking rates; Appendix A.2.2 mix β(3,9)+uniform"
+      - text: "Предостережение. Likelihood / perplexity / pMMS / A2binder score / ESMFold pLDDT / AAR **не** experimental affinity / $K_d$ / ELISA / BLI. ProGen2 явно: оценка $p_0$ (train distribution) $\\neq$ стационарное $p^\\infty\\propto f$ (fitness); филогенетический bias."
+        source: PAPER
+        locator: "Nijkamp §4.1 citing Weinstein et al. 2022, p0 ≠ p∞"
+      - text: "ESM-2 contact precision и ESMFold TM — **structure predictor / probe**, не функция белка. tFold SPR nanomolar — после phage display и filter, не выход ESM-PPI. PALM A2binder ранжирует **до** SPR; predicted ΔG/probability ≠ измеренный $K_D$."
+        source: PAPER
+        locator: "tFold Fig. 1 phage+SPR; PALM Fig. 7e A2binder then SPR"
+      - text: "IgLM OASis / SAP / CamSol и ProGen2 IgFold pLDDT на generated Ab — in silico developability/structure, primary IgLM paper без wet-lab binding."
+        source: PAPER
+        locator: "IgLM Cell Systems: no prospective wet-lab in catalog paper YAML; Nijkamp Fig. 3 SAP/CamSol"
+      - text: "Не смешивать causal и masked в «одной интуиции softmax»: двусторонний контекст MLM ≠ left-to-right AR; IgLM infill — AR **после** перестановки span (Donahue ILM), не BERT."
+        source: PAPER
+        locator: "IgLM STAR ILM; Lin bidirectional MLM"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "У семейства **нет** одного train target. Ниже родовой объект (токены), затем **отдельные** уравнения ролей (i)–(iv) и multimodal MLM. Не писать одну формулу на ProGen, ESM-2 и EVOLVEpro. Не подставлять UCB, FAPE, diffusion score, Lipman CFM как уравнение PLM."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** default ни одного catalog tool как «уравнение PLM-класса»: ProteinMPNN random-order CE; FrameDiff IGSO(3); EVOLVEpro UCB (released code — top-$N$ $\\hat y$, не UCB); A2binder regression как generative loss; tFold FAPE structure module."
+        source: INTERPRETATION
+      - text: "Не сравнивать ProGen lysozyme $k_{\\mathrm{cat}}$, PALM SPR, tFold phage+$K_D$ и EVOLVEpro activity fold-change как один benchmark: generated object, oracle и split разные."
+        source: INTERPRETATION
+    equations:
+      - latex: "s=(s_1,\\ldots,s_L),\\quad s_i\\in\\mathcal{A}"
+        caption: "Родовой state sequence-only PLM: дискретная цепочка токенов (AA + specials). Это не loss. Generic."
+        generic_or_specific: generic
+        source: INTERPRETATION
+        symbols:
+          - {sym: s, type: "token sequence", meaning: "первичная структура как токены"}
+          - {sym: "\\mathcal{A}", type: "alphabet", meaning: "аминокислоты + special (MASK, EOS, tags); размер словаря tool-specific"}
+          - {sym: L, type: "int", meaning: "длина в токенах (crop/context window — tool-specific)"}
+        meaning: "Оптимизируется CE на токенах выбранной факторизации. Семплируются токены или извлекается E(s). Не Kd."
+    sections:
+      - id: math-ar
+        level: 3
+        title: "Роль (i) — autoregressive p(s) (ProGen/ProGen2; IgLM after ILM permute; PALM decoder)"
+        equations:
+          - latex: "p_\\theta(s\\mid c)=\\prod_{i=1}^{L}p_\\theta(s_i\\mid s_{<i},c)"
+            caption: "Causal LM. $c$ — control tags (ProGen), chain/species (IgLM), или encoder antigen (PALM-H3 cross-attention). Не masked ESM-2. Не default EVOLVEpro."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Nijkamp §2 causal product of conditionals; Madani abstract control tags"
+            symbols:
+              - {sym: c, type: "conditioner", meaning: "tags / prefix / encoder keys"}
+              - {sym: "\\theta", type: "params", meaning: "веса decoder Transformer"}
+            meaning: "Train: next-token CE. Sample: ancestral left-to-right (или ILM order). Likelihood на held-out ≠ fitness."
+          - latex: "\\mathrm{ppl}(s)=\\exp\\Bigl(-\\tfrac{1}{L}\\sum_{i=1}^{L}\\ln p_\\theta(s_i\\mid s_{<i})\\Bigr)"
+            caption: "Perplexity ProGen2 Table 2 (test-max90/max50). Метрика language modeling, не $k_{\\mathrm{cat}}$."
+            generic_or_specific: "ProGen2 [PAPER]"
+            source: PAPER
+            locator: "Nijkamp §4.1 perplexity definition"
+            symbols:
+              - {sym: "\\mathrm{ppl}", type: "scalar", meaning: "exp mean NLL per token"}
+            meaning: "Оценивается $p_0$, не $p^\\infty$."
+      - id: math-mlm
+        level: 3
+        title: "Роль (ii) — masked LM (ESM-2; ESM-1v train; BERT-style 15%)"
+        equations:
+          - latex: "\\mathcal{L}_{\\mathrm{MLM}}=-\\mathbb{E}_{s,M}\\sum_{i\\in M}\\log p_\\theta(s_i\\mid s_{\\setminus M})"
+            caption: "Generic MLM. ESM-2: token в $M$ с вероятностью 15%; из них 80% [MASK], 10% random, 10% unchanged (Lin Appendix). Не causal ProGen. Не ESM3 variable-rate (ниже)."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Lin ESM-2 MLM paragraph + Appendix 15% BERT noise"
+            symbols:
+              - {sym: M, type: "index set", meaning: "маскируемые позиции"}
+              - {sym: "s_{\\setminus M}", type: "context", meaning: "двусторонний незамаскированный контекст"}
+            meaning: "Обучается восстановление токенов. Семплирование полной цепи не определено одним ancestral pass (нужен infill/unmask protocol)."
+      - id: math-esm3
+        level: 3
+        title: "Подтип multimodal generative MLM (ESM3; не 15% BERT)"
+        paragraphs:
+          - text: "Hayes: supervision **across all possible masking rates**, any-order factorization. Tracks fused: sequence, structure tokens, function. Geometric attention в **первом** блоке. Канон совместной генерации — [joint seq–struct](/architectures/joint-sequence-structure-generation.html); здесь только факт, что это всё ещё masked LM."
+            source: PAPER
+            locator: "Hayes ESM3 paragraphs after Fig. 1; 80% β(3,9) mean 25% + 20% uniform, overall ~30% (A.2.2)"
+        equations:
+          - latex: "\\mathbb{E}_{m}\\bigl[-\\log p_\\theta(x_m\\mid x_{\\setminus m})\\bigr],\\quad m\\sim\\mathrm{noise\\ schedule}"
+            caption: "Generative MLM ESM3 на всех tracks $x$ (sequence+structure+function). Не ProGen AR. Не EVOLVEpro."
+            generic_or_specific: "ESM3 [PAPER]"
+            source: PAPER
+            locator: "Hayes: generative masked LM across all tracks; mask schedule A.2.2"
+            symbols:
+              - {sym: x, type: "multimodal tokens", meaning: "AA + VQ structure + function keywords"}
+              - {sym: m, type: "mask", meaning: "случайная маска с variable rate"}
+            meaning: "Train: CE masked tokens. Sample: iterative unmask any order until $m=\\emptyset$."
+      - id: math-frozen
+        level: 3
+        title: "Роль (iii) — frozen E(s) + surrogate (EVOLVEpro; не generative PLM)"
+        equations:
+          - latex: "\\hat y(s)=f_\\phi(E_{\\mathrm{frozen}}(s)),\\qquad B_t=\\mathrm{top}_k\\{s\\in U_t:\\hat y(s)\\}"
+            caption: "Tool-specific EVOLVEpro default (RF + top-N). $E$ не дообучается на activity. Не UCB. Канон цикла — [active learning](/architectures/active-learning.html)."
+            generic_or_specific: "EVOLVEpro [PAPER+CODE]"
+            source: CODE
+            locator: "Jiang preprint frozen embeddings; evolve.py learning_strategy topn; commit 1c77697"
+            symbols:
+              - {sym: "E_{\\mathrm{frozen}}", type: "vector", meaning: "PLM embedding (ESM-2 15B average pool в оптимальной preprint-конфигурации)"}
+              - {sym: "f_\\phi", type: "regressor", meaning: "sklearn RF experimental path"}
+              - {sym: U_t, type: "set", meaning: "ещё не измеренный user library"}
+            meaning: "Оптимизируется regressor на assay y. Семплирования токенов LM нет."
+      - id: math-zs
+        level: 3
+        title: "Роль (iv) — zero-shot masked-marginal Δℓ (ESM-1v; Hie pipeline)"
+        equations:
+          - latex: "\\Delta\\ell(T)=\\sum_{t\\in T}\\bigl[\\log p(x_t=x^{\\mathrm{mt}}_t\\mid x_{\\setminus T})-\\log p(x_t=x^{\\mathrm{wt}}_t\\mid x_{\\setminus T})\\bigr]"
+            caption: "Meier Eq. 1. Вход маскируется во всех мутированных позициях; additive для multiple mutations. Канон — [zero-shot scoring](/architectures/zero-shot-mutation-scoring.html). Не train target EVOLVEpro. Не Kd."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Meier Method Eq. (1)"
+            symbols:
+              - {sym: T, type: "index set", meaning: "мутированные позиции"}
+              - {sym: "x^{\\mathrm{wt}},x^{\\mathrm{mt}}", type: "AA", meaning: "wild-type vs mutant residue"}
+            meaning: "Не оптимизируется (pretrained). Ранжируется library substitutions. Spearman к DMS ≠ affinity guarantee."
+    tables:
+      - caption: "Смежные постановки, которые нельзя смешивать"
+        source: INTERPRETATION
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["PLM family (эта страница)", "CE AR **или** MLM; либо frozen (нет CE на y)", "AR / unmask / embed / Δℓ — разные головы", "7 tools с этим id"]
+          - ["[Autoregressive generation](/architectures/autoregressive-generation.html)", "next-token CE", "left-to-right (или заданный order)", "ProGen, IgLM, PALM decoder; также IF"]
+          - ["[Masked-token infilling](/architectures/masked-token-infilling.html)", "обычно MLM / ILM", "fill span / iterative unmask", "IgLM infill, ESM3, EvoDiff (другой id)"]
+          - ["[Zero-shot mutation scoring](/architectures/zero-shot-mutation-scoring.html)", "нет task loss", "enumerate 19×pos, rank Δℓ", "ESM-1v efficient evolution"]
+          - ["[Few-shot / AL](/architectures/few-shot-mutation-optimization.html)", "surrogate on labels", "top-N / acquisition на пуле", "EVOLVEpro"]
+          - ["[Joint seq–struct](/architectures/joint-sequence-structure-generation.html)", "зависит (MLM tracks / DDPM / FM)", "unmask или diffusion", "ESM3 (пересечение); DiffAb ≠ PLM"]
+          - ["[Inverse folding](/architectures/inverse-folding.html)", "$\\log p(s\\mid X)$", "AR/random-order decode", "ProteinMPNN, ESM-IF1 — **нет** этого id"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы: позиции последовательности (токены). Рёбра: self-attention, не kNN геометрии (кроме ESM3 geometric attention block 1 и tFold Evoformer после ESM-PPI). Pair tensors ESMFold/tFold — **другой модуль**, не обязательный PLM state."
+        source: INTERPRETATION
+      - text: "ESM-2: UniRef; even weighting across ~43M UniRef50 clusters from ~138M UniRef90; ~65M unique sequences over training. Crop 1024 tokens; BOS/EOS. 15% mask BERT noise. Hidden width Table S1 **не транскрибирована** (NR)."
+        source: PAPER
+        locator: "Lin training paragraph; Appendix crop 1024, 15% mask"
+      - text: "ESM-1v: UniRef90 2020-03, 98M sequences, ESM-1b architecture, 650M params, five seeds. Context length details сверх architecture ESM-1b — NR this pass."
+        source: PAPER
+        locator: "Meier ESM-1v paragraph"
+      - text: "ProGen2: Uniref90 + BFD30 (BFD30 ~1/3 Uniref90, 30% id, metagenomic); OAS cluster 85% → 554M for ProGen2-OAS. 1–2 character tokens на N- и C-terminus; sequence as-is **and flipped**. Context 1024 (base 2048). Table 1: 151M/764M/2.7B/6.4B."
+        source: PAPER
+        locator: "Nijkamp §3.2 Data; Table 1"
+      - text: "IgLM: BertTokenizerFast; chain `[HEAVY]`/`[LIGHT]` + species; ILM mask length Unif{10..20}. OAS unpaired 809M → 588M cluster → 558M train (prior analysis). CODE `max_length=150` generate."
+        source: PAPER
+        locator: "IgLM STAR + prior CODE IgLM.py"
+      - text: "PALM-H3: antigen sequence → ESM-2 encoder (UniRef50 pretrain, antigen FT); CDR-H3 decoder RoFormer 12 layers; K/V last antigen layer → every decoder cross-attention. OAS first-round: 1 291 060 593 heavy, 210 950 159 light (Methods). COVID second-round: 81 750 886 H, 17 754 502 L."
+        source: PAPER
+        locator: "PALM Fig. 1 caption; Methods OAS counts"
+      - text: "tFold: ESM-PPI further-pretrains ESM-2 on monomers+multimers; затем Evoformer-Single + IPA. Sequence recovery head на masked antibody residues. FR template, epitope, antigen — **внешние** входы workflow, не UniRef crop."
+        source: PAPER
+        locator: "tFold tFold-Ab four modules; Fig. 6 sequence recovery"
+      - text: "EVOLVEpro: вход сети top-layer — **готовая матрица embeddings** + CSV labels; FASTA parent. Library $\\mathcal{X}$ — внешний файл пользователя, не токены LM. DMS vs experimental paths разные (CODE)."
+        source: CODE
+        locator: "EvolvePro load_experimental_embeddings; commit 1c77697"
+      - text: "Аугментации токенов: ProGen2 reverse sequences; ESM-2 random crop; IgLM span shuffle (не биологический splicing). 3D rotation **не применима** к sequence-only. ESM3 structure tokens — local atomic neighborhoods, не MD."
+        source: PAPER
+        locator: "Nijkamp flipped sequences; Hayes Fig. 1C structure tokenization"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $s_i$ ↔ residue identity в полипептидной цепи (или special token). Это **не** атом, не rotamer, не assay label. Embedding $h_i$ ≠ энергия и ≠ траектория фолдинга."
+        source: INTERPRETATION
+      - text: "SE(3): **не применимо** к sequence-only PLM (координат нет). ESM3 geometric attention оперирует local frames из bond geometry — это уже геометрический слой multimodal модели, не инвариантность ESM-2."
+        source: PAPER
+        locator: "Hayes invariant geometric attention, first block"
+      - text: "Перестановка residues в биологическом порядке ломает смысл, кроме явного ILM (IgLM) или random decode IF (другой класс). Concatenation VH||VL: IgLM генерирует цепи **независимо**; paired Fv не один AR-фактор."
+        source: PAPER
+        locator: "IgLM unpaired chains"
+      - text: "Side chains: в state только **тип** AA, не χ angles. Pack / relax / AF — post-hoc **evaluator**. ESM3 decoder восстанавливает all-atom из structure tokens (Hayes); это не ESM-2."
+        source: PAPER
+        locator: "Hayes structure token decoder <0.5 Å CAMEO reconstruction"
+      - text: "Промежуточный masked token / $s_{<i}$ ≠ физическое время синтеза на рибосоме. Reverse-sequence train ProGen2 — вычислительный трюк, не C→N фолдинг."
+        source: PAPER
+        locator: "Nijkamp §3.2 flipped"
+      - text: "tFold generated CDRs на **фиксированном** human FR (IGHV3-23/IGKV1-5 в кампании) — физический объект IgG/Fc-fusion после phage, не «вывод ESM-PPI»."
+        source: PAPER
+        locator: "tFold design parameters; ten Fc-fusions SPR"
+      - text: "PALM-H3 выход — CDR-H3, прививаемый на context/framework; SPR измеряет комплекс Ab–spike, не logit decoder."
+        source: PAPER
+        locator: "PALM Fig. 7 SPR+pseudovirus"
+      - text: "Function keywords ESM3 (InterPro/GO) — семантические теги, не ELISA. Taxonomy track 98B (last 30k steps) — организм, не affinity."
+        source: PAPER
+        locator: "Hayes InterPro keywords; Appendix taxonomy 30k steps"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head у sequence LM. «Модель считает ΔG» запрещено, кроме явного A2binder (отдельный regressor на **labels**, не generative PLM)."
+        source: INTERPRETATION
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "ковалентная первичная структура"
+        encoded: "прямо токеном"
+        limitation: "нет rotamers / протонирования"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "геометрия остова"
+        encoded: "sequence-only — не представлена; ESM3 — discrete structure tokens / optional coord prompt; ESMFold — отдельный predictor"
+        limitation: "pLDDT ≠ стабильность"
+      - feature: "Antigen / epitope / hotspot coords"
+        interpretation: "партнёр связывания"
+        encoded: "PALM — epitope **sequence** в encoder; tFold — epitope+FR files; ProGen/IgLM/ESM-2 — нет"
+        limitation: "sequence epitope ≠ 3D paratope guarantee"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "физика связывания"
+        encoded: "неявно через corpus co-occurrence; не кулон"
+        limitation: "не ΔG"
+      - feature: "Entropy / ensemble"
+        interpretation: "конформации / diversity library"
+        encoded: "косвенно temperature/nucleus sampling"
+        limitation: "T softmax ≠ β=1/kT"
+      - feature: "Evolutionary statistics"
+        interpretation: "MSA-like constraints без явного MSA (ESM-2/1v/ProGen)"
+        encoded: "прямо цель MLM/AR на UniRef/OAS/BFD"
+        limitation: "p0 ≠ p∞ (ProGen2); phylogeny bias"
+      - feature: "Experimental y (Kd, ELISA, activity)"
+        interpretation: "измеренная функция"
+        encoded: "не в pretrain PLM; EVOLVEpro — labels на surrogate; A2binder — supervised affinity head; Hie/PALM/tFold wet-lab **после** модели"
+        limitation: "не выдавать logit за assay"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Роль (i)–(ii): параметры $\\theta$ Transformer (decoder-only или encoder MLM). Negative examples — неправильные токены softmax, **не** non-binder docking decoys и **не** affinity labels."
+        source: INTERPRETATION
+      - text: "ESM-2: Adam, 500K updates (15B: 270K), batch 2M tokens (15B: 3.2M), crop 1024. ESMFold: **frozen** LM + folding head, FAPE/distogram; MLM loss omitted. Folding head — predictor, не generative PLM."
+        source: PAPER
+        locator: "Lin Appendix training; ESMFold freeze LM, omit MLM"
+      - text: "ESM-1v: 650M, 5 seeds, UniRef90; optional family spiked fine-tune (Meier) — это **не** catalog Hie protocol как обязательный шаг. Ensemble log-odds."
+        source: PAPER
+        locator: "Meier five models; further training paragraph"
+      - text: "ProGen2: Adam, weight decay 0.1, grad clip 0.8–1.0, Table 1 steps/LR. Fine-tune ≤2 epochs, LR/5, Adam moments reset. ProGen-1 Methods dims — **NR** (paywall)."
+        source: PAPER
+        locator: "Nijkamp Table 1 + §3.3; Madani Methods inaccessible"
+      - text: "IgLM: CE next token на ILM-пересталенной ленте. 12 889 600 params (Table 1 prior). Нет antigen в loss."
+        source: PAPER
+        locator: "IgLM Table 1"
+      - text: "PALM: RoFormer MAA (masked AA) pretrain на OAS; затем seq2seq FT paired antigen–CDRH3; A2binder отдельно на affinity/neutralization labels (CoV-AbDab binary, 14H/14L, BioMap ΔG). A2binder **не** generative loss PALM-H3."
+        source: PAPER
+        locator: "PALM three-step construction; A2binder datasets"
+      - text: "EVOLVEpro: $\\theta_{\\mathrm{PLM}}$ frozen; $\\phi$ RF на $(E(s),y)$. Нет contrastive non-binder в default code."
+        source: CODE
+        locator: "EvolvePro model.py / evolve.py"
+      - text: "tFold ESM-PPI: further pretrain ESM-2 monomers+multimers; sequence recovery CE на masked Ab residues **плюс** structure losses в Ag module. ipLDDT — confidence, не Kd."
+        source: PAPER
+        locator: "tFold ESM-PPI paragraph; Fig. 6 recovery head"
+      - text: "ESM3 alignment: preference pairs high pTM / low cRMSD vs worse; IRPO 1000 steps (preprint). Не ELISA fine-tune."
+        source: PAPER
+        locator: "Hayes preference tuning; IRPO 1000 steps"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Общий каркас: tokenize → (optional conditioner tags/encoder) → Transformer blocks → (a) token logits или (b) pooled $E(s)$. Sequence появляется на входе; geometry — только если multimodal/ESMFold/tFold stack. Score affinity — отдельная голова или внешний assay."
+        source: INTERPRETATION
+      - text: "ProGen/ProGen2: tags+prefix → causal decode → FASTA. Evaluator: AF2 pLDDT/TM (Nijkamp generations), не часть LM."
+        source: PAPER
+        locator: "Nijkamp §3.4 AF2 on generations"
+      - text: "IgLM: infill permute → GPT-2 → span until ANS. Нет IF/docking в сети."
+        source: CODE
+        locator: "IgLM.infill commit de819b56"
+      - text: "ESM-1v Hie pipeline: parent → mask each substitution site → Δℓ rank → **experiment** (unread paper). Не AL loop."
+        source: PAPER
+        locator: "Meier inference; Hie HTML NR"
+      - text: "EVOLVEpro: precomputed $E(s)$ → RF → top-k table. Нет sampling LM."
+        source: CODE
+        locator: "evolve_experimental"
+      - text: "PALM-H3: antigen seq → ESM-2 encoder → RoFormer decoder CDR-H3 → **A2binder rank** (evaluator) → SPR/pseudovirus (experiment)."
+        source: PAPER
+        locator: "PALM Fig. 1 and Fig. 7"
+      - text: "tFold: FR+epitope+antigen → ESM-PPI + recovery/structure → ipLDDT filter (evaluator) → phage (experiment) → SPR. Не прятать phage внутрь «одной PLM»."
+        source: PAPER
+        locator: "tFold Fig. 1 workflow"
+      - text: "ESM3: prompt tracks → geometric attn block 1 → transformer → unmask iterate → structure decoder. GFP spectra — experiment, не logit."
+        source: PAPER
+        locator: "Hayes Fig. 1A iterative sampling; Fig. 4 GFP"
+    mermaid: |
+      flowchart TD
+        TOK["AA tokens ± tags / antigen seq / mask"] --> ENC["Transformer PLM: AR decoder / MLM encoder / ESM3 fused tracks"]
+        ENC --> LOG["Token logits p(s_i)"]
+        ENC --> EMB["Embeddings E(s) / h_i"]
+        LOG --> AR["Generator: ancestral AR / ILM / iterative unmask"]
+        LOG --> ZS["Scorer: masked-marginal Δℓ"]
+        EMB --> SUR["Surrogate f_φ — few-shot AL; PLM frozen"]
+        AR --> RANK["Optional ranker: A2binder / likelihood / ipLDDT — evaluator"]
+        ZS --> EXP["Wet-lab: SPR / neutralization / activity / phage"]
+        SUR --> EXP
+        RANK --> EXP
+        AR --> STR["Optional AF2 / ESMFold / tFold-Ag — predictor/evaluator"]
+        STR --> EXP
+        subgraph gen ["Generator heads"]
+          AR
+        end
+        subgraph scr ["Scorer / features"]
+          ZS
+          EMB
+          SUR
+        end
+        subgraph ev ["Evaluator"]
+          RANK
+          STR
+        end
+        subgraph wet ["Experiment"]
+          EXP
+        end
+    mermaid_caption: "Схема семейства по Madani/Nijkamp, Lin/Meier, Hayes, Shuai, Jiang, PALM, tFold — не копия paper figure. Generator, frozen encoder, zero-shot scorer и assay разведены."
+    mermaid_source: "ProGen2 causal; ESM-2 MLM; Meier Eq.1; Hayes unmask; EvolvePro RF; PALM A2binder; tFold phage"
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Единого split класса нет. Не выводить split из README, если его нет в paper."
+        source: INTERPRETATION
+      - text: "ESM-2: holdout ~500k UniRef50 clusters (0.5% random-split в Fig. S1 caption); comparisons at 270k steps. Leakage vs therapeutic mAbs — **NR**."
+        source: PAPER
+        locator: "Lin Fig. S1 ~500K holdout"
+      - text: "ESM-1v: held-out UniRef90 ppl 7.29 (Table 10). DMS Spearman — **retrospective** labels, не train y (zero-shot)."
+        source: PAPER
+        locator: "Meier ppl 7.29; 41 DMS datasets"
+      - text: "ProGen2: Test-max90 / Test-max50 held-out Uniref90+BFD30 clusters. Fine-tune CATH 3.30 1M sequences ≤2 epochs — in silico generation study."
+        source: PAPER
+        locator: "Nijkamp §3.4 evaluation sets; Fig. 2 finetune"
+      - text: "IgLM: random 5% test **не** germline-holdout (авторы оставляют conserved regions). Human heavy ~70% skew."
+        source: PAPER
+        locator: "IgLM STAR dataset (prior analysis)"
+      - text: "PALM: OAS unpaired pretrain; CoV-AbDab 27 324 pairs for A2binder classification; paired antigen–CDRH3 for seq2seq. Prospective SPR — **не** train set claim without Methods split of those clones — library vs test **NR** beyond described datasets."
+        source: PAPER
+        locator: "PALM CoV-AbDab 27324; Methods OAS"
+      - text: "tFold in silico AAR: SAbDab-22-Design-Ab n=50; wet-lab 10 000 Fab/target then phage. Не смешивать AAR с $K_D$."
+        source: PAPER
+        locator: "tFold Fig. 6 n=50; 10000 Fab pairs"
+      - text: "EVOLVEpro DMS simulation vs experimental rounds — разные протоколы CODE; Science journal unread."
+        source: CODE
+        locator: "directed_evolution_simulation vs evolve_experimental"
+      - text: "Teacher forcing: стандарт AR. Self-conditioning diffusion — **нет** у sequence LM. ESM3 mask-rate mixture — analogue of noise schedule, не DDPM $t$."
+        source: PAPER
+        locator: "Hayes A.2.2 noise schedule"
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт AR: BOS / control tags / optional prefix (ProGen2-OAS EVQ prompt для full-length Ab). Старт MLM infill: context + [MASK]. Старт ESM3: fully or partially masked tracks. Старт EVOLVEpro: embedding table, не шум."
+        source: PAPER
+        locator: "Nijkamp EVQ prompt; Hayes start masked"
+      - text: "ProGen2 universal: 5000 seq, $T\\in\\{0.2,0.4,0.6,0.8,1.0\\}$, $P\\in\\{0.5,0.7,0.9,1.0\\}$. Antibody OAS: 52k unprompted + 470k EVQ-prompted. AF2/IgFold — **evaluator**."
+        source: PAPER
+        locator: "Nijkamp §3.4"
+      - text: "IgLM CODE default: temperature=1, top_p=1, max_length=150. Nucleus в paper Eq. 6."
+        source: CODE
+        locator: "IgLM.generate; prior analysis"
+      - text: "ESM-1v: single forward (masked marginal) per scored variant; ensemble 5. Нет beam как обязательный. Hie experimental selection — unread."
+        source: PAPER
+        locator: "Meier inference efficiency; five-model ensemble"
+      - text: "ESM3: iterative unmask; unconditional 98B example T=0.7 (Fig. S14). README 8 steps T=0.7 — **DOC**, не paper law, не цитировать как Methods."
+        source: PAPER
+        locator: "Hayes S14 T=0.7; DOC unmask steps NR as law"
+      - text: "PALM: generate CDR-H3 given antigen; rank A2binder (**evaluator**); then SPR. 1000 CDRH3 vs IgLM/SeqDesign in silico PPL 4.96 (benchmark, не Kd)."
+        source: PAPER
+        locator: "PALM vs IgLM 1000 sequences; PPL 4.96"
+      - text: "tFold: random seed sampling generator; filter ipLDDT / AF-Multimer; phage panning; SPR. Recycle masked low-confidence — structure module, не PLM-only."
+        source: PAPER
+        locator: "tFold generator+filter; ipLDDT recycle"
+      - text: "Чего в классе нет как стандарт: assay-in-the-loop (кроме EVOLVEpro **после** labels); beam как ProGen default (NR); AF2 recycle внутри ESM-2 LM."
+        source: INTERPRETATION
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "ProGen: control tags family/function; prefix; untagged examples в train чтобы уметь sequence-only (ProGen2 text). 3D **нет**."
+        source: PAPER
+        locator: "Madani abstract tags; Nijkamp related ProGen"
+      - text: "IgLM: chain + species tokens; infill span indices. Нет antigen coords."
+        source: PAPER
+        locator: "IgLM STAR"
+      - text: "PALM-H3: antigen/epitope **sequence** via encoder. Нет ELISA tensor. Cross-attention ≠ 3D epitope graph dyMEAN."
+        source: PAPER
+        locator: "PALM Fig. 1b"
+      - text: "ESM3: any subset of sequence/structure/function/SS8/SASA/atomic coords prompts. Classifier-free guidance как Ho–Salimans — **не** описан как default; alignment = preference FT."
+        source: PAPER
+        locator: "Hayes prompting; preference pairs"
+      - text: "EVOLVEpro: user library $\\mathcal{X}$ и measured_var в CSV. Нет epitope. Нет CFG."
+        source: CODE
+        locator: "experimental embeddings table"
+      - text: "tFold: FR template, epitope residues, antigen sequence, CDR length combinations (36 in campaign Table 1). ESM-PPI не «ELISA conditioner»."
+        source: PAPER
+        locator: "tFold 36 CDR3 length combinations"
+      - text: "ESM-2/1v zero-shot: только parent sequence (MSA Transformer few-shot — другой модель, не catalog tool). Не hotspot one-hot."
+        source: PAPER
+        locator: "Meier zero-shot vs MSA Transformer few-shot"
+      - text: "Не приписывать CATH label ProGen2 universal pretrain (CATH used в **finetune** 3.30 experiment). Не приписывать IgLM paired VH–VL token."
+        source: PAPER
+        locator: "Nijkamp CATH 3.30 finetune"
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: длина $L$, $O(L^2)$ attention, число samples, unmask steps (ESM3), 19×positions (zero-shot), library $|U|$ (EVOLVEpro), assay latency. Parameter count 15B vs 150M ≠ affinity."
+        source: INTERPRETATION
+      - text: "ESM-2 15B vs 8M: perplexity 6.37 vs 10.45 at 270k steps — **language modeling**, не wall-clock design. ESMFold 384 res 14.2 s V100 vs AF2 — **predictor** timing Lin A.3.4, не generative PLM class claim для всех tools."
+        source: PAPER
+        locator: "Lin ppl 6.37/10.45; A.3.4 14.2 s"
+      - text: "«Дешевле diffusion» — **не писать** без NFE comparison в paper. PALM Fig. 7b CPU-hours vs Rosetta — tool-specific wall-clock **той фигуры**, не закон класса."
+        source: PAPER
+        locator: "PALM Fig. 7b time vs Rosetta/Absolute!"
+      - text: "tFold-Ab vs AF-Multimer: авторы 50× vs AF3 server, 5000× vs AF-Multimer (Fig. 3b) — **structure prediction speed**, не generative sampling cost, не переносить на ProGen."
+        source: PAPER
+        locator: "tFold Fig. 3b speed"
+      - text: "IgLM 4×A100 ~3 days train (prior STAR) — tool-specific. GPU train ProGen2 TPU-v3 — Nijkamp §3.3, не catalog SLA."
+        source: PAPER
+        locator: "Nijkamp JAX TPU-v3"
+      - text: "Wet-lab (phage, SPR, lysozyme kinetics) доминирует claims of function. Complexity LM ≠ complexity ITC."
+        source: INTERPRETATION
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Сильный sequence prior **без** обязательной 3D: следует из self-supervised CE на UniRef/OAS. Удобно для ideation и zero-shot shortlist, пока не подменяют assay."
+        source: INTERPRETATION
+      - text: "Двусторонний MLM даёт contextual $p(s_i\\mid s_{\\setminus i})$ для Δℓ без MSA (Meier). AR даёт нормированную likelihood и ancestral sample (ProGen2)."
+        source: PAPER
+        locator: "Meier vs MSA methods; Nijkamp Table 2 ppl"
+      - text: "Frozen $E(s)$ — фиксированный feature space для few-shot, когда labels дорогие (EVOLVEpro постановка). Не генерация de novo fold."
+        source: PAPER
+        locator: "Jiang frozen encoder"
+      - text: "ProGen Nature (эта кампания, не класс): artificial lysozymes catalytic efficiency comparable to natural; identity as low as 31.4%; crystal 7RGR. Не antibody evidence."
+        source: PAPER
+        locator: "Madani abstract; PDB 7RGR Data availability"
+      - text: "PALM-H3 SPR (эта кампания): Artificial 1 vs Alpha $K_D=0.29$ nM (natural 0.32 nM), IC50 0.006 μg/mL; Delta $K_D=0.89$ nM; XBB $K_D=0.13$ nM (HTML «nm»), IC50 0.00301 μg/mL. A2binder выбирал клоны — не отождествлять predicted score с $K_D$. Не IgG platform-wide."
+        source: PAPER
+        locator: "PALM Fig. 7e paragraph"
+      - text: "tFold SPR after phage (workflow, не ESM-PPI alone): best $K_D$ 45 pM PD-L1, 3.22 nM Flu A, 2.0 nM SC2RBD, 81.6 nM PD-1. Не переносить на ProGen/IgLM."
+        source: PAPER
+        locator: "tFold Fig. 1c paragraph"
+      - text: "ESM3 esmGFP: 58% identity to known FPs; fluorescence campaign, **не** antibody. Оценка «~500 Myr» — авторская калибровка филогении, не молекулярные часы каталога."
+        source: PAPER
+        locator: "Hayes GFP 58%; Fig. 4H estimator"
+      - text: "Это **не** гарантия стабильности, аффинности, экспрессии для нового промпта. ProGen2: больший модель лучше ppl, **не** всегда лучше zero-shot fitness (peak 764M base on narrow landscapes)."
+        source: PAPER
+        locator: "Nijkamp §4.3 peak at ProGen2-base"
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: $p_0\\neq p^\\infty$; additive Δℓ игнорирует эпистаз (Meier additive multiple mutations); ESM3 any-order ≠ calibrated Boltzmann."
+        source: PAPER
+        locator: "Nijkamp Weinstein; Meier additive model"
+      - text: "Представление: нет 3D у ESM-2/ProGen/IgLM; ESM3 7B/98B API; IgLM unpaired; tFold фиксированный FR в кампании."
+        source: INTERPRETATION
+      - text: "Физика/химия: нет explicit solvent, glycans, Fc effector. A2binder ΔG head — supervised correlation, не MM/GBSA."
+        source: INTERPRETATION
+      - text: "Данные/bias: UniRef/OAS species skew (IgLM human heavy); ProGen2-OAS **хуже** universal models на Ab $K_D$ landscapes (Nijkamp Table 5 qualitative); FAD-like memorization analog — germline CDRs."
+        source: PAPER
+        locator: "Nijkamp §4.3 OAS model poor vs universal on Ab landscapes"
+      - text: "Обобщение: Hie antibody campaign unread здесь; PALM SARS-CoV-2 family; tFold four antigens + phage. Не platform claim."
+        source: INTERPRETATION
+      - text: "Deployment: ESM3 open 1.4B non-commercial; IgLM JHU academic license; tFold commercial review; EvolvePro зависит от embedding generation. Commits progen/esm NR."
+        source: MATRIX
+  - id: failures
+    title: "15. Failure modes"
+    paragraphs:
+      - text: "Конкретные ошибки пользователя и модели, не «может не сработать»."
+        source: INTERPRETATION
+    items:
+      - "Считать [EVOLVEpro](/tools/evolvepro.html) генератором токенов / UCB-агентом: frozen E(s)+top-N."
+      - "Смешать causal ProGen и masked ESM-2 в одно уравнение без подтипа."
+      - "Принять perplexity, Δℓ, A2binder, pLDDT, AAR, ipLDDT за experimental Kd."
+      - "Считать весь [tFold](/tools/tfold.html) PLM: ESM-PPI — компонент; Kd после phage+filter."
+      - "Путать ESM3 (multimodal unmask) с ESM-2 embeddings EVOLVEpro."
+      - "Путать ESM-2 с ESM-IF1 inverse folding."
+      - "IgLM infill без species/chain tags или слишком длинный mask → почти unconditional junk VH."
+      - "Zero-shot ESM-1v на комбинаторных эпистатических библиотеках (additive Eq. 1)."
+      - "ProGen2-OAS likelihood как affinity к неизвестному антигену (Nijkamp: antigen not provided)."
+      - "Ожидать paired Fv от IgLM single forward."
+      - "Сравнивать lysozyme 31.4%, PALM 0.29 nM и tFold 45 pM как один leaderboard."
+      - "Truncation OAS N-termini: unprompted Ab generation зеркалит truncated train (Nijkamp Fig. 3)."
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Все catalog tools с `architecture_id: protein-language-models`. Непрочитанный Hie: NR в tool-specific цифрах кампании."
+        source: MATRIX
+    tables:
+      - caption: "Catalog reverse index"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[ProGen](/tools/progen.html)", "AR causal Transformer + control tags", "ProGen2 HTML: 151M–6.4B, UniRef90+BFD30, RoPE; ProGen-1 Nature Methods **NR**; lysozyme 31.4% / 7RGR из abstract", "Не Ab-specific; catalog slug объединяет ProGen/ProGen2"]
+          - ["[IgLM](/tools/iglm.html)", "AR + ILM infill, Ab tokens", "GPT-2 12.9M; OAS; commit `de819b56`; no wet-lab in primary paper", "Не IF; unpaired VH/VL"]
+          - ["[ESM3](/tools/esm3.html)", "generative MLM multimodal tracks", "1.4/7/98B; variable mask rate; esmGFP 58% ID (bioRxiv); Biohub/esm commit **NR**", "Не ESM-2 embedder; open 1.4B non-commercial"]
+          - ["[EVOLVEpro](/tools/evolvepro.html)", "frozen PLM embeddings + surrogate", "ESM-2 15B average; RF; top-N; commit `1c77697`; Science HTML unread", "**Не** generator (i)"]
+          - ["[ESM-1v efficient evolution](/tools/esm-1v-efficient-evolution.html)", "zero-shot masked-marginal Δℓ", "Meier Eq. 1 + ensemble 5×650M; Hie Nat. Biotech **HTML NR** this pass — campaign numbers не цитировать", "Не few-shot AL"]
+          - ["[PALM-H3](/tools/palm-h3.html)", "ESM-2 antigen encoder + AR RoFormer decoder", "12+12 layers; OAS 1.29B H; A2binder **evaluator**; SPR Fig. 7e", "A2binder ≠ generator; SARS-CoV-2 campaign"]
+          - ["[tFold](/tools/tfold.html)", "ESM-PPI (ESM-2 FT) + Evoformer/IPA + recovery", "Sequence recovery + structure filter + phage; SPR 45 pM–81.6 nM after display", "**Не** весь tFold = PLM; geometric-transformers id тоже"]
+      - caption: "Литература вне карточек tools"
+        source: PAPER
+        headers: ["Метод", "Роль", "Каталог"]
+        rows:
+          - ["ESM-2 (Lin)", "канон MLM encoder; EVOLVEpro features; PALM antigen init", "не отдельный tool"]
+          - ["ESM-1v (Meier)", "канон Δℓ; Hie pipeline", "модель внутри esm-1v-efficient-evolution"]
+          - ["ESMFold", "frozen LM + FAPE head", "predictor, не generator"]
+          - ["ProtGPT2 (Ferruz)", "AR PLM pointer", "не catalog tool"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: [sequence-first de novo](/workflows/sequence-first-de-novo.html), [antibody sequence infilling](/workflows/antibody-sequence-infilling.html), [zero-shot mutation](/workflows/zero-shot-mutation.html), [few-shot AL](/workflows/few-shot-active-learning.html) как **features**, [CDR-H3 PALM](/workflows/cdr-h3-sequence-palm.html), [joint multimodal](/workflows/joint-multimodal-generation.html) для ESM3. tFold workflow [epitope-mab-tfold](/workflows/epitope-mab-tfold.html) использует PLM **внутри** geometric stack."
+        source: MATRIX
+      - text: "**Нельзя** решать этим классом как единственным методом: [de novo backbone](/tasks/de-novo-backbone-generation.html) — [frame](/architectures/frame-diffusion.html) / [coordinate diffusion](/architectures/coordinate-diffusion.html). [Inverse folding](/tasks/inverse-folding.html) — ProteinMPNN/ESM-IF1. Codon/CHO/secretion. Epitope-conditioned 3D co-design без structure module — не IgLM."
+        source: INTERPRETATION
+      - text: "Вместо zero-shot Δℓ для few-shot ELISA — [active learning](/architectures/active-learning.html). Вместо AR для joint CDR+backbone — [joint diffusion](/architectures/joint-sequence-structure-diffusion.html). Не заменять RFantibody epitope frames PALM sequence encoder без оговорки."
+        source: INTERPRETATION
+      - text: "Hie campaign unread: не утверждать protocol details efficient-evolution beyond Meier scoring."
+        source: NR
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Прочитаны HTML methods/results: ProGen2 arXiv; ESM-2 bioRxiv v3; ESM-1v bioRxiv; ESM3 bioRxiv; PALM-H3 Nat. Commun.; tFold Nat. Commun.; ранее IgLM Cell Systems + IgLM.py; EVOLVEpro preprint + EvolvePro code. ProGen Nature — abstract/Data only."
+        source: PAPER
+      - text: "Pointer-only / unread: Hie 2023 Nat. Biotech full; ProGen-1 Methods; ESM-2/ESM3/EVOLVEpro Science pagination; ProtGPT2; Rives ESM-1b architecture paper beyond Meier citation; Biohub/esm, salesforce/progen, PALM, tfold, efficient-evolution commits."
+        source: NR
+      - text: "Preprint vs journal: ESM-2/ESM3/EVOLVEpro цифры этого файла — preprint HTML, если не оговорено Nature/Nat Commun. Не раздувать BERT NLP bibliography."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Nijkamp E., Ruffolo J., Weinstein E.N., Naik N., Madani A. ProGen2. arXiv:2206.13517."
+    url: "https://arxiv.org/abs/2206.13517"
+    doi: "10.48550/arXiv.2206.13517"
+  - id: 2
+    text: "Madani A. et al. Large language models generate functional protein sequences across diverse families. Nat. Biotechnol. 2023."
+    url: "https://doi.org/10.1038/s41587-022-01618-2"
+    doi: "10.1038/s41587-022-01618-2"
+  - id: 3
+    text: "Lin Z. et al. ESM-2 / ESMFold. bioRxiv 10.1101/2022.07.20.500902; Science 10.1126/science.ade2574."
+    url: "https://www.biorxiv.org/content/10.1101/2022.07.20.500902v3"
+    doi: "10.1126/science.ade2574"
+  - id: 4
+    text: "Meier J. et al. ESM-1v. bioRxiv 10.1101/2021.07.09.450648."
+    url: "https://www.biorxiv.org/content/10.1101/2021.07.09.450648"
+    doi: "10.1101/2021.07.09.450648"
+  - id: 5
+    text: "Hayes T. et al. ESM3. bioRxiv 10.1101/2024.07.01.600583; Science 10.1126/science.ads0018."
+    url: "https://www.biorxiv.org/content/10.1101/2024.07.01.600583"
+    doi: "10.1126/science.ads0018"
+  - id: 6
+    text: "Shuai R.W., Ruffolo J.A., Gray J.J. IgLM. Cell Systems 2023."
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+    doi: "10.1016/j.cels.2023.10.001"
+  - id: 7
+    text: "Jiang K. et al. EVOLVEpro. bioRxiv 10.1101/2024.07.17.604015; Science 10.1126/science.adr6006."
+    url: "https://doi.org/10.1101/2024.07.17.604015"
+    doi: "10.1101/2024.07.17.604015"
+  - id: 8
+    text: "PALM-H3 / A2binder. Nat. Commun. 10.1038/s41467-024-50903-y."
+    url: "https://www.nature.com/articles/s41467-024-50903-y"
+    doi: "10.1038/s41467-024-50903-y"
+  - id: 9
+    text: "tFold System. Nat. Commun. 10.1038/s41467-025-67361-9."
+    url: "https://www.nature.com/articles/s41467-025-67361-9"
+    doi: "10.1038/s41467-025-67361-9"
+  - id: 10
+    text: "Hie B. et al. Efficient evolution of human antibodies. Nat. Biotechnol. 10.1038/s41587-023-01763-2. Full text unread this pass."
+    url: "https://doi.org/10.1038/s41587-023-01763-2"
+    doi: "10.1038/s41587-023-01763-2"
+  - id: 11
+    text: "Graylab/IgLM commit de819b56238b5cb9c23d7a6fec4c55d7fc0395e4; mat10d/EvolvePro commit 1c77697d0c09bf6989a1562a55da99301a12e2cd."
+    url: "https://github.com/Graylab/IgLM"
+unresolved:
+  - "ProGen-1 Nature Methods: d_model, layers, batch, Eq. 1 token-average — NR (paywall)"
+  - "Hie 2023: 7 antibodies, 32×/19× neutralization — HTML unread; не подставлять из catalog YAML"
+  - "ESM-2 Table S1 exact width/heads per scale (5120 for 15B не подтверждён в этом проходе)"
+  - "ESM3 Science vs bioRxiv GFP well counts; Biohub/esm commit"
+  - "salesforce/progen commit correspondence to ProGen2 Table 1"
+  - "PALM SI architecture dims; which clones in SPR vs A2binder train leakage"
+  - "tFold ESM-PPI exact FT corpus and sequence-recovery loss formula"
+  - "EVOLVEpro Science vs preprint embedding config"
+  - "IgLM STAR Table S1 species counts (prior: not row-extracted)"

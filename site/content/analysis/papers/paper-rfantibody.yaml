@@ -1,0 +1,80 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Nature HTML narrative. Methods/SI не полностью. Preprint 429. Title Nature: antibodies with RFdiffusion (не «RFantibody» как единственное имя модели)."
+lede: "Вопрос: можно ли epitope-conditioned de novo VHH/scFv получить antibody-fine-tuned RFdiffusion + MPNN + RF2 filtering с экспериментальным подтверждением."
+inaccessible:
+  - source: "Full Methods/SI Nature"
+    reason: "Не выгружены полностью"
+    workaround: "HTML results narrative"
+  - source: "bioRxiv 10.1101/2024.03.14.585103"
+    reason: "429"
+    workaround: "Nature"
+sections:
+  - id: citation
+    title: "Библиография"
+    paragraphs:
+      - text: "Bennett N. et al. / Watson J.L. et al. Atomically accurate de novo design of antibodies with RFdiffusion. Nature. DOI 10.1038/s41586-025-09721-5. Preprint 10.1101/2024.03.14.585103. Code https://github.com/RosettaCommons/RFantibody. Tool [RFantibody](../tools/rfantibody.html)."
+        source: PAPER
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "De novo CDR design on fixed frameworks against specified epitopes, with atomic-level experimental structures for successes."
+        source: PAPER
+  - id: architecture
+    title: "Модель"
+    paragraphs:
+      - text: "Три модуля: Ab-RFdiffusion, ProteinMPNN, Ab-RF2. AF3 retrospective. См. [frame diffusion](../architectures/frame-diffusion.html)."
+        source: PAPER
+  - id: training-obj
+    title: "Training / inference"
+    paragraphs:
+      - text: "Antibody fine-tune details NR. Inference: many trajectories, experimental campaigns 95 or ~9000 designs. Default steps NR."
+        source: NR
+  - id: baselines
+    title: "Baselines / ablations / retrospective"
+    paragraphs:
+      - text: "Сравнение hit rate с miniprotein RFdiffusion pipelines (qualitative, authors). Ablation tables NR this pass."
+        source: NR
+  - id: prospective
+    title: "Prospective evidence"
+    paragraphs:
+      - text: "Binding, cryo-EM, modest initial Kd, OrthoRep maturation / TcdB neutralization for selected lineage. Это prospective binding + function, не proof общего превосходства над всеми antibody generators."
+        source: PAPER
+  - id: claims-ok
+    title: "Поддержанные утверждения (осторожно)"
+    paragraphs:
+      - text: "Некоторые de novo designs bind intended epitope and match designed geometry (selected). Pipeline can yield starting points for experimental maturation. Hit rates low."
+        source: PAPER
+  - id: claims-not
+    title: "Не поддержано"
+    items:
+      - "RF2/AF3 confidence = affinity"
+      - "High miniprotein-like hit rates"
+      - "CDR humanness / full developability"
+      - "Generator alone without filters/assays"
+  - id: author-lim
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "Fixed framework; hotspot/target conformation critical; lower hit rates than miniproteins; initial affinities modest."
+        source: PAPER
+  - id: extra-lim
+    title: "Интерпретация"
+    paragraphs:
+      - text: "OrthoRep — experimental module. IgG conversion selected scFvs ≠ что все designs manufacturable."
+        source: INTERPRETATION
+  - id: si-repo
+    title: "SI и repo"
+    paragraphs:
+      - text: "SI cryo-EM — не разобран. Repo commit NR (timeout)."
+        source: NR
+citations:
+  - id: 1
+    text: "Nature 10.1038/s41586-025-09721-5"
+    doi: "10.1038/s41586-025-09721-5"
+    url: "https://doi.org/10.1038/s41586-025-09721-5"
+  - id: 2
+    text: "https://github.com/RosettaCommons/RFantibody"
+    url: "https://github.com/RosettaCommons/RFantibody"
+unresolved:
+  - "Methods hyperparameters"
+  - "Independent replication"

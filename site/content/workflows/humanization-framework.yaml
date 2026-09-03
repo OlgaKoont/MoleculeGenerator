@@ -1,0 +1,66 @@
+id: humanization-framework
+slug: humanization-framework
+name: Framework humanization
+use_case: Есть non-human antibody или CDRs; нужно human-like framework.
+required_input:
+- paired VH/VL or CDR sequences
+stages:
+- name: Framework proposal
+  architecture_class: Classifiers or sequence diffusion
+  what_happens: Предлагаются humanized sequences
+  generation_or_evaluation: generation
+  generator: humatch
+  intermediate_object: Humanized V-regions
+  alternatives:
+  - hudiff
+  - huabdiffusion
+  node_links:
+  - humatch
+  - sequence-diffusion
+- name: Humanness scoring
+  architecture_class: Nativeness/humanness
+  what_happens: Оценка human-likeness
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Scored variants
+  alternatives:
+  - abnativ
+  node_links:
+  - abnativ
+- name: Binding retention tests
+  architecture_class: null
+  what_happens: Проверка, что CDRs всё ещё bind
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Retained binders
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: 'Humatch: code + web service, typically lightweight. HuAbDiffusion: commercial
+  service, source NR.'
+evidence_level: Humatch retrospective. HuDiff limited prospective preprint. Humanness ≠ immunogenicity.
+failure_points:
+- Assume immunogenicity reduction.
+- Skip binding assays.
+- Use HuDiff-Nb as de novo binder tool.
+decision_criteria:
+- Paired VH/VL available?
+- Need VHH humanization?
+- Need open source?
+task_ids:
+- humanization
+- framework-redesign
+tool_ids:
+- humatch
+- hudiff
+- huabdiffusion
+architecture_ids:
+- sequence-diffusion
+- multi-objective-optimization
+paper_ids:
+- paper-humatch
+- paper-hudiff
+- paper-huabdiffusion
+mermaid: "flowchart TD\n    A[Parent VH/VL or CDRs] --> B[Humanization generator]\n    B --> C[Humanness\
+  \ / pairing scores]\n    C --> D[Binding retention assays]\n    D --> E[Immunogenicity still\
+  \ unproven]"

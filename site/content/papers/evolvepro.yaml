@@ -1,0 +1,51 @@
+id: paper-evolvepro
+slug: evolvepro
+title: Few-shot learning for protein evolution with EVOLVEpro
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Science (Q1)
+publication_status: Peer-reviewed journal; Science (Q1)
+doi: 10.1126/science.adr6006
+url: https://doi.org/10.1126/science.adr6006
+preprint_url: null
+tool_ids:
+- evolvepro
+main_task: Few-shot active-learning evolution of protein activity, including antibody binding
+claimed_novelty: null
+model_architecture: Protein-LM embeddings + lightweight regression/random forest + iterative
+  acquisition
+input_representation: null
+encoder_decoder: null
+generative_state: Ranked single or multi-mutant variants for next round
+conditioning: User-defined mutational space; single/multi-mutant workflows
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Up to 100× property improvement across tasks; cannot
+  generalize this number to antibodies
+tested_designs: Six proteins across reported applications; minimal rounds can use ~10 labels,
+  but campaign sizes vary
+success_criterion: Up to 100× property improvement across tasks; cannot generalize this number
+  to antibodies
+main_results: Up to 100× property improvement across tasks; cannot generalize this number
+  to antibodies
+limitations: Not zero-shot; performance depends on assay noise/library definition; active-learning
+  rounds and experimental turnaround dominate.
+demonstrates:
+- Up to 100× property improvement across tasks; cannot generalize this number to antibodies
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Few-shot learning for protein evolution with EVOLVEpro
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Science (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

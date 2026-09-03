@@ -1,0 +1,641 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Класс — generator непрерывного (иногда joint sequence–structure) состояния через регрессию векторного поля $v_\\theta\\approx u_t$ и ODE-семплирование, не DDPM score и не assay loop. Прочитаны: Lipman et al. arXiv 2210.02747 HTML/ar5iv (ICLR 2023 pagination не сличена): FM Eq. 5, CFM Eq. 9, OT path Eq. 20–23. Wu et al. FlowDesign bioRxiv 10.1101/2024.11.07.622422 v2 HTML STAR Methods (journal Cell Systems 10.1016/j.cels.2025.101270 PDF/SI не постранично; display math STAR Eq. 1–9 в HTML вырезан). Yim et al. FrameFlow arXiv 2310.05297 HTML §2–3 Table 1. Geffner et al. Proteina arXiv 2503.00710 HTML Eq. 1–4, Table 1 (ICLR 2025). CODE FlowDesign/Proteina/FrameFlow не line-audit (commit NR). Не сливать Intro SPR с Fig. 6 BLI. DiffAb/RFdiffusion/BoltzGen ≠ FM."
+lede: "Flow matching — **generator**: нейросеть учит векторное поле $v_\\theta$, транспортирующее prior $p_0$ в data вдоль непрерывного пути; sampling — интегрирование ODE $\\dot x=v_\\theta$ (опционально SDE с тем же marginal). Это не DDPM score/$\\varepsilon$-prediction, не discrete CTMC FM и не affinity predictor."
+inaccessible:
+  - source: "Wu et al. Cell Systems 2025 PDF + SI; STAR display Eq. 1–9 / Key Resources table cells"
+    reason: "journal PDF не постранично; bioRxiv HTML вырезает latex интерполяции и loss"
+    workaround: "STAR Methods prose: one-hot MSE drift, Cα MSE, quaternion then SO(3), α=1/β=0 200k then α=0/β=1 5k; SAbDab 13279; BLI Octet R8. Не выдумывать Grassmann formula."
+  - source: "github.com/nohandsomewujun/FlowDesign commit SHA + LICENSE"
+    reason: "extra_constraints: commit/LICENSE NR; catalog official_repository null"
+    workaround: "Архитектура IPA+3 MLP heads, T-step rescale 1/T — STAR prose; CLI defaults — NR"
+  - source: "NVIDIA-Digital-Bio/proteina и microsoft/frame-flow commit SHA"
+    reason: "CODE unaudited this pass"
+    workaround: "Eq./Table из arXiv HTML; hidden dims FrameDiff-follow — NR beyond «follow FrameDiff»"
+  - source: "Chen & Lipman Riemannian Flow Matching arXiv 2310.04432 full theorems"
+    reason: "не close-read; FrameFlow цитирует geodesic interpolant"
+    workaround: "FrameFlow Eq. 6–12 exp/log SE(3)"
+  - source: "Bose et al. FoldFlow arXiv 2310.04398 methods"
+    reason: "не close-read"
+    workaround: "Proteina Table 1 FoldFlow base/stoc./OT designability/FPSD; FrameFlow Discussion: minibatch OT, no speed-up claim"
+  - source: "Yim et al. TMLR 2024 Improved motif-scaffolding with SE(3) FM arXiv 2401.04082"
+    reason: "не close-read this pass"
+    workaround: "Motif FrameFlow — pointer; не карточка tools"
+  - source: "Campbell/Gat discrete / CTMC / MultiFlow methods"
+    reason: "не primary; extra_constraints: FlowDesign ≠ discrete FM"
+    workaround: "Строка таблицы смешения; уравнения jump process — NR"
+  - source: "Численный BLI $K_D$ wild-type Ibalizumab и Fig. 6J per-isolate IC50 (JRFL и др.)"
+    reason: "HTML: mut-1/2/3 = 0.19/0.56/0.90 nM; WT только «Kd magnitude 1e-10»; таблица 6J не извлечена"
+    workaround: "Цитировать mutant nM и CNE4 IC50 0.006 vs WT 0.024 µg/ml; WT $K_D$ — NR"
+sources:
+  - kind: PAPER
+    citation: "Lipman Y. et al. Flow Matching for Generative Modeling. arXiv 2210.02747 / ICLR 2023"
+    url: "https://arxiv.org/abs/2210.02747"
+    doi: "10.48550/arXiv.2210.02747"
+    note: "Preprint HTML: FM (5), CFM (9) identical gradients Thm. 2; Gaussian paths (10); OT μ=tx1, σ=1-(1-σmin)t; CFM OT (23)"
+  - kind: PAPER
+    citation: "Wu J. et al. FlowDesign: Improved design of antibody CDRs through flow matching and better prior distributions. bioRxiv 10.1101/2024.11.07.622422 (v2; journal Cell Systems 10.1016/j.cels.2025.101270)"
+    url: "https://www.biorxiv.org/content/10.1101/2024.11.07.622422v2.full"
+    doi: "10.1101/2024.11.07.622422"
+    note: "STAR HTML: SAbDab 13279, H3 50% cluster, 20-complex test; dyMEAN prior; one-hot MSE; Ibalizumab FACS+BLI. Journal PDF не сличен."
+  - kind: PAPER
+    citation: "Yim J. et al. Fast protein backbone generation with SE(3) flow matching (FrameFlow). arXiv 2310.05297"
+    url: "https://arxiv.org/abs/2310.05297"
+    doi: "10.48550/arXiv.2310.05297"
+    note: "Geodesic SE(3) Eq. 6–12; SCOPe L<128 n=3938; Table 1 ODE 100 steps designability 0.77 vs FrameDiff SDE 500 = 0.42; 5.7 s vs GENIE 128 s V100 L=100"
+  - kind: PAPER
+    citation: "Geffner T. et al. Proteina: Scaling Flow-based Protein Structure Generative Models. arXiv 2503.00710 / ICLR 2025"
+    url: "https://arxiv.org/abs/2503.00710"
+    doi: "10.48550/arXiv.2503.00710"
+    note: "Euclidean Cα CFM Eq. 1; optional SDE (3) γ; Table 1 M_FS γ=0.35 designability 98.2%; CFG CATH; not antibody"
+  - kind: PAPER
+    citation: "Liu X., Gong C., Liu Q. Flow Straight and Fast: Rectified Flow. arXiv 2209.03003"
+    url: "https://arxiv.org/abs/2209.03003"
+    doi: "10.48550/arXiv.2209.03003"
+    note: "Pointer: linear interpolant x_t=t x_1+(1-t)x_0; Proteina cites as rectified flow / Lipman OT"
+  - kind: MATRIX
+    citation: "catalog reverse index architecture_id flow-matching"
+    note: "только flowdesign. DiffAb/RFdiffusion/BoltzGen — другие ids."
+sections:
+  - id: domain
+    title: "1. Область определения"
+    paragraphs:
+      - text: "Роль в пайплайне — **generator** непрерывного состояния: обучается векторное поле $v_\\theta(x,t)$ (иногда несколько голов F,G,H), которое генерирует плотность-путь $p_t$ от простого $p_0$ к data $p_1$. Sampling — численное интегрирование ODE (Lipman Eq. 1), не reverse DDPM. Это не predictor (AF2 FAPE) и не sequential assay loop."
+        source: PAPER
+        locator: "Lipman §2 CNF Eq. (1)–(3); §3 FM"
+      - text: "Generated state зависит от подтипа: Euclidean $x\\in\\mathbb{R}^{d}$ (часто Cα, Proteina); Riemannian frames $T=(r,x)\\in\\mathrm{SE}(3)^N$ (FrameFlow); joint CDR one-hot $s\\in\\mathbb{R}^{20}$, Cα $x\\in\\mathbb{R}^3$, orientation $O\\in\\mathrm{SO}(3)$ (FlowDesign). Scored state $v_\\theta$ — drift, не $K_d$."
+        source: PAPER
+        locator: "Proteina §3.2 Cα; FrameFlow §2.1 frames; FlowDesign STAR Transport Mapping"
+      - text: "Задачи каталога: [joint CDR sequence–structure](/tasks/joint-cdr-sequence-structure-design.html) и [joint sequence–structure generation](/tasks/joint-sequence-structure-generation.html) через [FlowDesign](/tools/flowdesign.html); workflow [antigen-conditioned CDR co-design](/workflows/cdr-codesign-diffab.html) (FlowDesign — alternative generator, primary в YAML — DiffAb). Seed not_for [few-shot active learning](/tasks/few-shot-active-learning.html)."
+        source: MATRIX
+        locator: "architectures/flow-matching.yaml applicable_task_ids; workflow tool_ids include flowdesign"
+      - text: "Это **не** [coordinate diffusion](/architectures/coordinate-diffusion.html): там train target — score / $\\varepsilon$ / $x_0$ при стохастическом forward SDE. Для Gaussian paths frameworks эквивалентны up to reparameterization (Proteina citing Kingma & Gao; Albergo) — это **не** лицензия копировать DDPM loss на эту страницу."
+        source: PAPER
+        locator: "Proteina §2 Gaussian flows equivalent up to reparametrizations"
+      - text: "Это **не** [frame diffusion](/architectures/frame-diffusion.html): FrameDiff учит SE(3) score; FrameFlow — **другой** train target (geodesic VF) на той же FramePred архитектуре. Это **не** [joint sequence–structure diffusion](/architectures/joint-sequence-structure-diffusion.html): [DiffAb](/tools/diffab.html) — DDPM type+Cα+SO(3), baseline FlowDesign, не FM."
+        source: PAPER
+        locator: "FrameFlow same architecture as FrameDiff; FlowDesign STAR Diffab ~4M diffusion baseline"
+      - text: "Это **не** [joint sequence–structure generation](/architectures/joint-sequence-structure-generation.html) целиком: FM — один из подтипов coupled generation (рядом DiffAb, ESM3). Это **не** [autoregressive structure generation](/architectures/autoregressive-structure-generation.html): PAR может держать FM-decoder, но AR next-scale — другой класс."
+        source: INTERPRETATION
+      - text: "Catalog tools с `architecture_id: flow-matching`: только [FlowDesign](/tools/flowdesign.html). Часто путают с DiffAb, [RFdiffusion](/tools/rfdiffusion.html), [Chroma](/tools/chroma.html), [BoltzGen](/tools/boltzgen.html) (ids: joint diffusion / coordinate diffusion — **не** FM, methods не говорят иное). [dyMEAN](/tools/dymean.html) — prior FlowDesign, не flow sampler."
+        source: MATRIX
+        locator: "tools/flowdesign.yaml architecture_ids; boltzgen.yaml omits flow-matching"
+      - text: "Proteina / FrameFlow / FoldFlow — foundational literature, **не** карточки tools. Не EVOLVEpro, не UCB."
+        source: MATRIX
+  - id: intuition
+    title: "2. Интуитивный принцип"
+    paragraphs:
+      - text: "Выбирают условный путь, соединяющий sample из $p_0$ (шум / informative prior) с datapoint $x_1$. Сеть регрессирует **известное** условное поле $u_t(\\cdot|x_1)$ simulation-free: на train ODE не интегрируют. На inference стартуют из $p_0$ и интегрируют выученное $v_\\theta$. При inference меняется состояние $x_t$ вдоль траектории; веса $\\theta$ фиксированы."
+        source: PAPER
+        locator: "Lipman §3 CFM vs intractable marginal u_t"
+      - text: "OT / rectified линейный путь даёт прямые траектории постоянной скорости vs «overshoot» diffusion paths (Lipman Fig. 3). Это мотивация меньшего числа NFE, не физический folding."
+        source: PAPER
+        locator: "Lipman §4 Example II OT; Fig. 3 straight vs diffusion backtracking"
+      - text: "Главный эмпирический рычаг **класса**: выбор $p_0$ и interpolant (не обязан быть $\\mathcal{N}(0,I)$). Главный рычаг **FlowDesign**: informative prior, empirically dyMEAN (retrained without CDR seq/struct) ≈15% AAR vs random на H3. [PAPER]"
+        source: PAPER
+        locator: "FlowDesign Results four priors; nearly 15% improvement Fig. 2A"
+      - text: "Главный рычаг FrameFlow: geodesic interpolant + IGSO(3) $\\sigma=1.5$ на train (избежать geodesic near $\\pi$) при $U(\\mathrm{SO}(3))$ на sampling; Kabsch pre-align noise. [PAPER]"
+        source: PAPER
+        locator: "FrameFlow IGSO3 σ=1.5 training prior; Kabsch alignment"
+      - text: "Главный рычаг Proteina: масштаб (до ~21M структур, transformer до ~400M) + CATH hierarchical CFG; optional $\\gamma<1$ на SDE — empirical noise scale, **не** principled temperature. [PAPER]"
+        source: PAPER
+        locator: "Proteina contributions (i)–(iv); §3.4 γ not principled temperature"
+      - text: "Предостережение по метрикам. AAR, Cα RMSD, Rosetta REF2015 $\\Delta G$/«$\\Delta\\Delta G$», IMP, scRMSD, designability, FPSD, pLDDT **не** experimental affinity / $K_d$ / ELISA / BLI. ODE $x_t$ $\\neq$ MD. One-hot промежуточный $s^t$ $\\neq$ валидная аминокислота до decode. Energy ranking после pack — **evaluator**, не generator."
+        source: INTERPRETATION
+      - text: "FlowDesign Intro упоминает SPR для Ibalizumab; STAR/Fig. 6 — **BLI** Octet R8 vs CD4 d1–d2. Цитировать assay Fig. 6, не Intro. Neutralization IC50 — отдельный oracle (11 pseudoviruses), не BLI $K_D$."
+        source: PAPER
+        locator: "FlowDesign Intro SPR; STAR Biolayer interferometry Octet R8; Fig. 6F–J"
+      - text: "«Direct matching of discrete distributions» в FlowDesign abstract — one-hot Euclidean MSE на $\\mathbb{R}^{20}$, не Campbell CTMC. Не читать как categorical flow."
+        source: PAPER
+        locator: "STAR Loss Function MSE on vectorized AA types"
+  - id: math
+    title: "3. Формальная математическая постановка"
+    paragraphs:
+      - text: "Сначала родовой CFM Lipman. Затем подтипы с **разными** уравнениями: (A) Euclidean OT-CFM / Proteina Cα; (B) Riemannian SE(3) FrameFlow; (C) FlowDesign joint one-hot+Cα+SLERP — tool [FlowDesign](/tools/flowdesign.html). Не одна seed-формула $x_t=(1-t)x_0+tx_1$ на все."
+        source: INTERPRETATION
+      - text: "Формулы, которые **не** принадлежат классу как train target / default catalog tool: DDPM $\\varepsilon$-prediction; SE(3) score FrameDiff; DiffAb seq KL; UCB/EI; AF2 FAPE; AR NLL; Meier $\\Delta\\ell$; discrete CTMC rate. Seed one-liner $v\\approx x_1-x_0$ — предел $\\sigma_{\\min}\\to 0$ OT-CFM / rectified flow, **не** уравнение quaternion-loss FlowDesign и не marginal FM Eq. 5."
+        source: INTERPRETATION
+      - text: "Negative / non-binder / affinity labels в loss $v_\\theta$: **нет**. Пары $(x_0,x_1)$ — prior и datapoint, не docking decoys. Rosetta energy — post-hoc ranker FlowDesign, не слагаемое CFM."
+        source: PAPER
+        locator: "Lipman CFM on (t,x0,x1); FlowDesign STAR PyRosetta after generation"
+      - text: "Не сравнивать Proteina designability %, FrameFlow scRMSD designability, FlowDesign AAR/Rosetta и Ibalizumab BLI как один benchmark: generated object и oracle разные."
+        source: INTERPRETATION
+      - text: "Lipman также определяет diffusion-style Gaussian paths (Example I, не скопирован здесь): CFM на них — альтернатива score matching, всё ещё $v\\approx u$, не $\\varepsilon$-prediction Ho. Не подменять DDPM loss на эту страницу «потому что Gaussian equivalent»."
+        source: PAPER
+        locator: "Lipman §4 Example I vs Example II; §5 related work score matching"
+    equations:
+      - latex: "\\mathcal{L}_{\\mathrm{CFM}}(\\theta)=\\mathbb{E}_{t,q(x_1),p_t(x\\mid x_1)}\\bigl\\|v_t(x)-u_t(x\\mid x_1)\\bigr\\|^2"
+        caption: "Родовой Conditional Flow Matching, Lipman Eq. (9). $t\\sim\\mathcal{U}[0,1]$. Marginal FM Eq. (5) с $u_t(x)$ intractable; Thm. 2: одинаковые градиенты. Generic. Не default FlowDesign (там сумма четырёх MSE/SO(3) голов)."
+        generic_or_specific: generic
+        source: PAPER
+        locator: "Lipman Eq. (9); Theorem 2"
+        symbols:
+          - {sym: t, type: "time", meaning: "в [0,1]; не diffusion noise-level σ_t DDPM, хотя связанные Gaussian paths существуют"}
+          - {sym: x, type: "state", meaning: "точка на условном пути"}
+          - {sym: "x_1", type: "datapoint", meaning: "sample из unknown q"}
+          - {sym: "u_t(\\cdot|x_1)", type: "vector field", meaning: "условное поле, генерирующее p_t(·|x_1)"}
+          - {sym: "v_t", type: "network", meaning: "CNF vector field с параметрами θ"}
+          - {sym: q, type: "data dist", meaning: "неизвестная плотность; доступны только samples"}
+        meaning: "Оптимизируется MSE поля. Семплируется x_1 и x~p_t(·|x_1) на train; на inference интегрируется ODE dx/dt=v_θ."
+    sections:
+      - id: math-ot
+        level: 3
+        title: "Подтип A — Euclidean OT-CFM / rectified flow (Lipman; Proteina Cα — literature, не карточка tools)"
+        paragraphs:
+          - text: "Lipman Gaussian path (10): $p_t(x|x_1)=\\mathcal{N}(x\\mid\\mu_t(x_1),\\sigma_t(x_1)^2 I)$, $\\mu_0=0,\\sigma_0=1$, $\\mu_1=x_1,\\sigma_1=\\sigma_{\\min}$. OT Example II: $\\mu_t=t x_1$, $\\sigma_t=1-(1-\\sigma_{\\min})t$. Proteina: $x_t=t x+(1-t)\\epsilon$, target $x-\\epsilon$; optional distogram CE $t\\ge 0.3$; $p(t)=0.02\\,\\mathcal{U}+0.98\\,\\mathrm{Beta}(1.9,1.0)$. Не FlowDesign. Не SE(3) geodesic."
+            source: PAPER
+            locator: "Lipman Eq. (10)(20)(23); Proteina Eq. (1) and p(t)"
+        equations:
+          - latex: "\\psi_t(x_0)=(1-(1-\\sigma_{\\min})t)x_0+t x_1,\\quad \\mathcal{L}_{\\mathrm{OT}}=\\mathbb{E}\\bigl\\|v_t(\\psi_t(x_0))-(x_1-(1-\\sigma_{\\min})x_0)\\bigr\\|^2"
+            caption: "Lipman Eq. (22)–(23) OT conditional CFM. Предел $\\sigma_{\\min}\\to 0$: прямая $x_t=(1-t)x_0+t x_1$, $u=x_1-x_0$ (seed / Proteina). Literature-specific instantiation, не quaternion FlowDesign."
+            generic_or_specific: generic
+            source: PAPER
+            locator: "Lipman Eq. (22)–(23)"
+            symbols:
+              - {sym: "x_0", type: "prior sample", meaning: "обычно N(0,I); Proteina ε"}
+              - {sym: "\\sigma_{min}", type: "scalar", meaning: "малая ширина p_1(·|x_1)"}
+              - {sym: "\\psi_t", type: "flow", meaning: "OT displacement между двумя Gaussians"}
+            meaning: "Оптимизируется VF вдоль прямой. Семплируется ODE с v_θ (Proteina: также SDE Eq. 3)."
+      - id: math-se3
+        level: 3
+        title: "Подтип B — Riemannian FM on SE(3) (FrameFlow; literature, не карточка tools)"
+        paragraphs:
+          - text: "Prior $p_0=U(\\mathrm{SO}(3))\\otimes\\mathcal{N}(0,I_3)$. Geodesic interpolant Chen & Lipman via FrameFlow Eq. 6. Translations — прямая (7); rotations — exp/log Rodrigues (8). Reparameterization: сеть предсказывает clean $\\hat T_1$, VF $=(\\hat x_1-x_t)/(1-t)$. $t\\sim\\mathcal{U}[0,1-\\epsilon]$, $\\epsilon=10^{-3}$. Clip $1/(1-\\min\\{t,0.9\\})^2$. Rotation loss weight 0.5. Не catalog tool. Не DiffAb SO(3) diffusion."
+            source: PAPER
+            locator: "FrameFlow Eq. (6)–(12); Loss modifications clip 0.9"
+        equations:
+          - latex: "T_t=\\exp_{T_0}\\bigl(t\\log_{T_0}(T_1)\\bigr),\\quad \\mathcal{L}_{\\mathrm{SE}(3)}=\\mathbb{E}\\sum_{n=1}^{N}\\Big\\{\\|v_x^{(n)}-\\dot x_t^{(n)}\\|_{\\mathbb{R}^3}^2+\\|v_r^{(n)}-\\dot r_t^{(n)}\\|_{\\mathrm{SO}(3)}^2\\Big\\}"
+            caption: "FrameFlow Eq. (6) и (9). $\\dot x=(x_1-x_t)/(1-t)$, $\\dot r=\\log_{r_t}(r_1)/(1-t)$. Literature-specific."
+            generic_or_specific: "FrameFlow [PAPER]; literature-specific"
+            source: PAPER
+            locator: "FrameFlow Eq. (6), (9), (10)"
+            symbols:
+              - {sym: T, type: "SE(3) frame", meaning: "rotation r + translation x residue n"}
+              - {sym: N, type: "int", meaning: "число residues backbone"}
+              - {sym: "v_x,v_r", type: "equivariant heads", meaning: "FramePred/IPA"}
+            meaning: "Оптимизируется geodesic VF. Семплируется Euler ODE на SE(3)^N."
+      - id: math-flowdesign
+        level: 3
+        title: "Подтип C — joint CDR one-hot + Cα + SLERP (FlowDesign; tool-specific)"
+        paragraphs:
+          - text: "State residue $i$: type $s_i$ (20 one-hot), Cα $x_i$, orientation $O_i$. CDR index $l+1\\ldots l+m$; context $C$ = remainder of Ab–Ag complex (clamped). Prior $\\mathcal{T}$ vs data $\\mathcal{R}$. Interpolant: linear on $s,x$; SLERP on quaternions $q$. Drift heads F, G, H. AA и Cα — MSE к $(s-T_s)$ / $(x-T_x)$ (prose: difference from initial = ground truth drift). Orientation: quaternion MSE (Grassmann product в HTML назван, формула вырезана) затем SO(3) loss как у DiffAb; $\\alpha+\\beta=1$. Equivariant G: local 3-vector projected by interpolated $O$. Tool-specific [FlowDesign](/tools/flowdesign.html). CODE NR."
+            source: PAPER
+            locator: "STAR Method of interpolation; Loss Function; Parameterization G local-to-global"
+        equations:
+          - latex: "s_i^t=(1-t)T_{s_i}+t s_i,\\quad x_i^t=(1-t)T_{x_i}+t x_i,\\quad q_i^t=\\mathrm{SLERP}(T_{q_i},q_i;t)"
+            caption: "Реконструкция interpolant из STAR prose (t=0 prior $\\mathcal{T}$, t=1 data $\\mathcal{R}$); display Eq. вырезаны — не выдавать за дословный STAR Eq. 1–3. Не CTMC. Не Lipman $\\sigma_{\\min}$ Gaussian path на one-hot."
+            generic_or_specific: "FlowDesign [PAPER prose]; tool-specific"
+            source: PAPER
+            locator: "STAR interpolation amino acid / Cα / SLERP"
+            symbols:
+              - {sym: "T_s,T_x,T_q", type: "prior CDR", meaning: "sample from π0|C (dyMEAN/random/KIC/ESM2)"}
+              - {sym: s, type: "R^{20}", meaning: "one-hot ground-truth type"}
+              - {sym: q, type: "quaternion", meaning: "orientation of data frame"}
+            meaning: "На train подаётся interpolant. Оптимизируется сумма drift MSE, не CE."
+          - latex: "\\mathcal{L}=\\mathbb{E}_t\\bigl[L_{\\mathrm{seq}}^t+L_{\\mathrm{pos}}^t+\\alpha L_{\\mathrm{qua}}^t+\\beta L_{\\mathrm{ori}}^t\\bigr]"
+            caption: "STAR: сумма Eq. (4)–(7) (display NR). α=1, β=0 первые 200k iter; α=0, β=1 последние 5k. Не UCB. Не FAPE."
+            generic_or_specific: "FlowDesign [PAPER]; tool-specific"
+            source: PAPER
+            locator: "STAR Loss Function summing Eq. 4–7; α,β schedule 200000 / 5000"
+            symbols:
+              - {sym: "L_seq,L_pos", type: "MSE", meaning: "one-hot and Cα drift"}
+              - {sym: "L_qua,L_ori", type: "orientation losses", meaning: "quaternion then SO(3); exact latex NR"}
+              - {sym: "\\alpha,\\beta", type: "weights", meaning: "in [0,1], sum 1"}
+            meaning: "Оптимизируется joint drift. Семплируется T циклов с rescale predicted drift (STAR: ×1/T); one-step допустим, авторы: inferior."
+    tables:
+      - title: "Смежные постановки, которые нельзя смешивать"
+        source: INTERPRETATION
+        headers: ["Постановка", "Train target", "Sampler/декодер", "Что в каталоге"]
+        rows:
+          - ["Flow matching (эта страница)", "$v_\\theta\\approx u_t$ interpolant", "ODE (opt. SDE)", "[FlowDesign](/tools/flowdesign.html); Proteina/FrameFlow не tools"]
+          - ["[Coordinate diffusion](/architectures/coordinate-diffusion.html)", "score / ε / x0", "reverse SDE/DDPM", "Chroma, Genie, …"]
+          - ["[Frame diffusion](/architectures/frame-diffusion.html)", "SE(3) score", "IGSO(3)+Gaussian reverse", "[RFdiffusion](/tools/rfdiffusion.html), FrameDiff"]
+          - ["[Joint seq–struct diffusion](/architectures/joint-sequence-structure-diffusion.html)", "ε-pos + rot + seq KL", "T reverse steps", "[DiffAb](/tools/diffab.html)"]
+          - ["Discrete / CTMC FM (Campbell)", "jump rates on tokens", "continuous-time jump process", "не FlowDesign (one-hot MSE)"]
+          - ["[AR structure](/architectures/autoregressive-structure-generation.html)", "next-scale AR (+ optional FM decoder)", "few AR steps", "PAR — не catalog tool"]
+  - id: data-repr
+    title: "4. Представление данных"
+    paragraphs:
+      - text: "Узлы класса — residues (или Cα points), не atoms обязательно. Pair features: Proteina optional pair track (64-bin distogram); FrameFlow IPA pairs внутри FramePred; FlowDesign $z_{ij}$ distances + dihedrals, 3-layer MLP. Time embedding: да (FlowDesign two linear layers concat; Proteina adaptive LN с $t$)."
+        source: PAPER
+        locator: "FlowDesign STAR residue/pairwise MLP; Proteina Fig. 5"
+      - text: "Tokens sequence: FlowDesign one-hot 20 + all-atom coords and $\\chi$ torsions **входа encoder** (features), но generative state type — one-hot drift, не AR token. Proteina/FrameFlow sequence **не** генерируют (IF post-hoc для designability)."
+        source: PAPER
+        locator: "FlowDesign residue-level input AA, all-atom, side-chain torsions; Proteina without sequence inputs"
+      - text: "Masks: FlowDesign CDR slice vs context $C$. Proteina motif inpainting model encodes masked motif coords. Contig RFdiffusion **нет** у FlowDesign. Classifier-free dropout labels — Proteina CATH, не FlowDesign."
+        source: PAPER
+        locator: "FlowDesign ℛ vs C; Proteina motif 60M+12M"
+      - text: "Вход сети vs файл: SAbDab complexes (PDB) — внешние структуры; CDR indices из numbering схемы paper (Chothia/IMGT NR в HTML — **NR**). Library CSV нет. dyMEAN/KIC/ESM2 priors — внешние генераторы, не слои $v_\\theta$."
+        source: NR
+        locator: "CDR numbering scheme in FlowDesign HTML — not stated"
+      - text: "Размерности: FlowDesign F head output 20; G local 3; H quaternion 4. Hidden IPA width — NR (CODE unaudited). Proteina: transformer $\\approx 200$M+$15$M triangle ($\\mathcal{M}_{\\mathrm{FS}}$) или $400$M+$15$M ($\\mathcal{M}_{21\\mathrm{M}}$); Table 16 hyperparams — Appendix, частично в HTML. FrameFlow 17.4M vs GENIE 4.1M."
+        source: PAPER
+        locator: "STAR three MLP heads 20/3/4; Proteina §4 M_FS 200M+15M; FrameFlow 17.4M"
+      - text: "Аугментации геометрии: Proteina centering + random rotation (approx SO(3) equivariance, Appendix E). FrameFlow CoM subtraction + Kabsch align noise to data на train. FlowDesign: Gaussian noise на dyMEAN prior; mix dyMEAN/random с вероятностью $p$ ($p$ numeric NR, Key Resources stripped)."
+        source: PAPER
+        locator: "Proteina random rotations; FrameFlow Kabsch; FlowDesign Gaussian noise on dyMEAN; p hyperparameter"
+      - text: "Conditioner tensors: FlowDesign $C$ framework+antigen coords/types/orientations. Proteina CAT embeddings + optional self-cond $\\hat x=x_t+(1-t)v_\\theta$. Нет ELISA tensor."
+        source: PAPER
+        locator: "Proteina self-cond p=0.5"
+      - text: "Batching: FrameFlow same-length batches (FrameDiff strategy). Proteina batch/GPU — Table 16, cells NR this pass if not fully parsed. FlowDesign batch — NR."
+        source: NR
+        locator: "FlowDesign batch size STAR Key Resources stripped"
+  - id: physical-repr
+    title: "5. Физическое представление"
+    paragraphs:
+      - text: "Математический $x_t$ — интерполянт в feature space (coords / frames / one-hot), не атомы MD. В $t=1$ Cα+frames задают backbone; side chains FlowDesign — Rosetta pack/relax **после** ODE. Proteina/FrameFlow designability: ProteinMPNN sequences + ESMFold scRMSD — post-hoc **evaluator**."
+        source: PAPER
+        locator: "FlowDesign STAR after inference Rosetta pack; FrameFlow eval ProteinMPNN+ESMFold"
+      - text: "SE(3): FrameFlow — **equivariant** IPA + CoM ⇒ invariant samples (Köhler). Proteina — **approx** via centering + rotation aug (non-equivariant transformer). FlowDesign — local-to-global $O_i$ projection для coord drift (**equivariant claim** STAR). Global rotation ломает Proteina без aug; FrameFlow CoM subspace устойчив по постановке."
+        source: PAPER
+        locator: "FrameFlow Symmetries; Proteina Appendix E; FlowDesign roto-translation equivariance of G"
+      - text: "Перестановка residues ломает positional/IPA index. Chain concat FlowDesign: Ab+Ag в одном комплексе $N$ residues; antigen в $C$, не генерируется."
+        source: PAPER
+        locator: "FlowDesign N residues complex; C = non-CDR"
+      - text: "Side chains: в generative state **отсутствуют** (кроме encoder features FlowDesign). Pack post-hoc. OpenMM/FoldX — Fig. S1 alternative evaluators, не default generator."
+        source: PAPER
+        locator: "Fig. S1 OpenMM pack / FoldX energy"
+      - text: "Промежуточный $x_t$ / soft one-hot $\\neq$ folding trajectory и $\\neq$ энергия. Прямая в координатах режет clashes; peptide bonds не conservируются вдоль Euclidean path (FrameFlow geodesic на frames лучше, но всё ещё не MD)."
+        source: INTERPRETATION
+      - text: "Clashy FlowDesign samples discarded at inference (STAR). Это filter, не физический potential в $v_\\theta$."
+        source: PAPER
+        locator: "STAR discarded structures with atomic clashes"
+      - text: "Ibalizumab campaign: generated object = HCDR3 sequences in fixed Ibalizumab backbone, не de novo Fv. Complex context required; wrong dock → wrong CDR (Discussion)."
+        source: PAPER
+        locator: "FlowDesign Discussion relies on Ab–Ag complex"
+      - text: "Assay label не входит в state. BLI $K_D$ и IC50 появляются только в wet-lab, после FACS и expression top-10."
+        source: PAPER
+        locator: "STAR Experimental procedure top 10 mutants expressed"
+  - id: physchem
+    title: "6. Физико-химический смысл"
+    paragraphs:
+      - text: "Нет energy head в $v_\\theta$. REF2015 — post-hoc. Запрещено писать, что модель «считает $\\Delta G$»."
+        source: PAPER
+        locator: "STAR InterfaceAnalyzer REF2015 for ranking"
+    physchem:
+      - feature: "Identity AA"
+        interpretation: "первичная структура CDR / backbone sequence не генерируется Proteina"
+        encoded: "прямо: FlowDesign one-hot drift MSE; Proteina/FrameFlow — не представлена в generator (IF после)"
+        limitation: "soft $s^t$ не валидный AA; AAR ≠ affinity"
+      - feature: "Backbone / frames / torsions"
+        interpretation: "Cα и/или SE(3) frames; χ в FlowDesign encoder"
+        encoded: "прямо в state (Cα/frames); χ — вход encoder, не ODE state"
+        limitation: "pack восстанавливает sc; encoder χ при inference из prior — NR точный источник"
+      - feature: "Antigen / hotspot coords"
+        interpretation: "эпитоп как часть комплекса"
+        encoded: "FlowDesign — прямо clamped в C; Proteina motif optional; FrameFlow this pass — monomers SCOPe"
+        limitation: "нет RFantibody hotspot tensor; wrong complex ломает CDR"
+      - feature: "H-bonds / electrostatics / solvation"
+        interpretation: "интерфейс Ab–Ag"
+        encoded: "косвенно через data $x_1$; прямо только Rosetta ranker post-hoc"
+        limitation: "REF2015 ≠ measured ΔG/Kd"
+      - feature: "Entropy"
+        interpretation: "конформационный ансамбль CDR"
+        encoded: "не представлена (один ODE sample ≠ ensemble)"
+        limitation: "не −TΔS"
+      - feature: "Evolutionary statistics"
+        interpretation: "ESM-2 prior; SAbDab natural Abs; AFDB Proteina"
+        encoded: "косвенно prior/data; ESM2_t30 masked CDR — один из FlowDesign priors (хуже dyMEAN)"
+        limitation: "ESM2 prior низкий AAR на H3 (PAPER Fig. 2)"
+      - feature: "Experimental y / CATH"
+        interpretation: "BLI/FACS не в loss; CATH — fold class"
+        encoded: "CATH прямо CFG Proteina; ELISA/BLI не в v_θ"
+        limitation: "CATH ≠ function; одна Ibalizumab кампания"
+  - id: learned
+    title: "7. Что обучается"
+    paragraphs:
+      - text: "Параметры $\\theta$ векторного поля / голов F,G,H. Frozen: dyMEAN (retrained без CDR, но как prior не backprop через FlowDesign в описании STAR), ESM-2, Rosetta. IPA+MLP FlowDesign обучаются."
+        source: PAPER
+        locator: "STAR retrained dyMEAN without CDR seq/struct"
+      - text: "Generic loss: CFM MSE Lipman (9). Proteina: (1) CFM + optional distogram CE. FrameFlow: SE(3) MSE на clean-frame prediction (11–12). FlowDesign: сумма seq/pos/qua/ori, не CE."
+        source: PAPER
+        locator: "Proteina Eq. (1); FrameFlow Eq. (11)–(12); STAR Eq. 4–8 schema"
+      - text: "Negative / contrastive / affinity: **нет** в $v_\\theta$. Ibalizumab FACS labels не fine-tune flow (library из модели, затем wet-lab sort)."
+        source: PAPER
+        locator: "STAR sample 50000 then yeast; no mention of BLI in training loss"
+      - text: "Fine-tune vs pretrain: Proteina LoRA на natural designable PDB ($\\mathcal{M}_{\\mathrm{LoRA}}$ Table 1). FlowDesign Ibalizumab: **retrain** after filtering H3 ≥50% ID to imab. FrameFlow: train from FrameDiff-like init? HTML «adaptation of FrameDiff» — weights inheritance NR."
+        source: PAPER
+        locator: "Proteina LoRA; FlowDesign MMseqs2 filter 50% H3 then retrain"
+      - text: "Optimizer: FlowDesign Adam (Kingma cite). FrameFlow Adam lr $10^{-4}$, $\\beta=(0.9,0.999)$, 1 day 2×A100-48GB. Proteina Adam, GPU counts Table 16 — wall-clock NR beyond «trained»."
+        source: PAPER
+        locator: "FrameFlow Adam 0.0001 1 day 2×A100; FlowDesign Adam"
+      - text: "Self-conditioning: FrameFlow follows FrameDiff; Proteina p=0.5. FlowDesign self-cond — **не** сказано в STAR (NR)."
+        source: NR
+        locator: "FlowDesign STAR no self-conditioning sentence"
+      - text: "Parameter count FlowDesign — **NR** (STAR даёт DiffAb ~4M, RefineGNN ~6M, dyMEAN ~2M, HERN ~7M; собственный count нет)."
+        source: PAPER
+        locator: "STAR Baselines parameter counts; FlowDesign omitted"
+      - text: "Teacher forcing / diffusion time-sampling schedule DDPM: нет. Proteina Beta time-sampling — специфично backbone FM, не FlowDesign ($t\\sim U[0,1]$)."
+        source: PAPER
+        locator: "STAR t uniform 0 to 1; Proteina p(t) Beta mix"
+  - id: forward
+    title: "8. Прямой проход и information flow"
+    paragraphs:
+      - text: "Train: sample $x_1$ (complex/backbone), sample prior $x_0$, sample $t$, build interpolant, encode, predict $v$, MSE vs $u$. Sequence (FlowDesign) и geometry появляются в одном encoder; score = drift."
+        source: PAPER
+        locator: "Lipman CFM sampling; FlowDesign Algorithm 1 (figure, not transcribed)"
+      - text: "Infer FlowDesign: init CDR from prior → predict drift → rescale $1/T$ → repeat T (AA/Cα multiply; orientations: apply rotation matrix, лучше чем scale $\\theta$) → Rosetta pack/relax → clash discard → optional energy rank. dyMEAN/AF3 — **другой** модуль, если framework не экспериментальный (Fig. 5)."
+        source: PAPER
+        locator: "STAR Model Training and Inference; Fig. 5 AF3/dyMEAN framework"
+      - text: "Infer Proteina: ODE or SDE (3) from noise; optional CFG (4). Sequence появляется только на evaluator (MPNN). Geometry с шага 1."
+        source: PAPER
+        locator: "Proteina §3.4 sampling"
+      - text: "Infer FrameFlow: Euler ODE; ProteinMPNN+ESMFold для Table 1. Не прятать IF внутрь FramePred."
+        source: PAPER
+        locator: "FrameFlow §3 eval 8 sequences per backbone"
+      - text: "Не прятать AF / docking / Rosetta внутрь $v_\\theta$. AF3 — framework structure для sequence-only mode FlowDesign. Docking как отдельный scorer нет в STAR loop."
+        source: PAPER
+        locator: "Fig. 5 sequence-based design uses dyMEAN or AF3 then FlowDesign"
+      - text: "Experiment: Ibalizumab yeast FACS 3 rounds (1 µM / 500 nM / 200 nM CD4), затем Expi293 IgG, BLI, pseudovirus. Не часть ODE."
+        source: PAPER
+        locator: "STAR Experimental procedure three FACS rounds"
+      - text: "Нет beam, нет AF recycle в generator. One-step map FlowDesign — допустимый degenerate sampler, авторы inferior."
+        source: PAPER
+        locator: "STAR one-step transformation likely inferior"
+      - text: "KIC 100 structures/Ab, 50k closure attempts — **prior generator**, не flow."
+        source: PAPER
+        locator: "STAR KIC 50000 attempts, 100 structures"
+    mermaid: |
+      flowchart TD
+        P0["Prior p0: Gaussian / dyMEAN / KIC / ESM2 / IGSO3"] --> XT["Train interpolant xt"]
+        P0 --> ODE["Infer start t=0"]
+        CTX["Clamped context C or CATH or none"] --> NET
+        XT --> NET["GENERATOR v_theta or heads F G H"]
+        ODE --> NET
+        NET --> STEP["ODE or Euler step times T"]
+        STEP --> X1["State t=1: Cα / frames / one-hot"]
+        X1 --> PACK["EVALUATOR: Rosetta pack or MPNN plus ESMFold"]
+        PACK --> RANK["Energy or scRMSD rank - not Kd"]
+        RANK --> EXP["EXPERIMENT optional: FACS BLI IC50"]
+        subgraph genblk ["Generator"]
+          NET
+          STEP
+        end
+        subgraph evblk ["Evaluator not generator"]
+          PACK
+          RANK
+        end
+        subgraph expblk ["Experiment"]
+          EXP
+        end
+    mermaid_caption: "Схема класса по Lipman §3, FlowDesign STAR inference, FrameFlow §3 — не копипаст Fig. 1 papers. dyMEAN/KIC — prior, не v_θ. Rosetta/MPNN — evaluator. BLI — experiment."
+    mermaid_source: INTERPRETATION
+  - id: training
+    title: "9. Training procedure"
+    paragraphs:
+      - text: "Lipman: ImageNet (не белки) — foundational CNF, не catalog split. Не переносить FID на antibodies."
+        source: PAPER
+        locator: "Lipman ImageNet experiments §6"
+      - text: "FlowDesign: SAbDab 13279 complexes; drop non-protein antigens and resolution worse than 4 Å; cluster CDR-H3 50% ID MMseqs2; test = 20 complexes distinct clusters; remainder 20:1 train/val. Mean H3 train ≈12.3, test ≈11.3. Leakage: same-cluster H3 excluded; framework/antigen homology **NR**. Ibalizumab: extra filter H3>50% ID to imab, retrain."
+        source: PAPER
+        locator: "STAR Data Preparation; HIV paragraph MMseqs2 50%"
+      - text: "FrameFlow: SCOPe monomers L<128, 3938 examples. Split vs FrameDiff/GENIE — same length cutoff; exact SCOPe split hash NR besides size."
+        source: PAPER
+        locator: "FrameFlow §3 3938 examples"
+      - text: "Proteina: AFDB-scale up to ~21M synthetic structures (35× vs prior work cited); TED CATH labels; some AFDB unlabeled. LoRA FT on natural designable PDB. Exact PDB ID list — Appendix, NR this pass."
+        source: PAPER
+        locator: "Proteina 21 million; 35×; TED CATH"
+      - text: "Симуляция vs wet-lab: AAR/RMSD/Rosetta/designability/FPSD — in silico. Ibalizumab FACS+BLI+IC50 — prospective wet-lab **одной** кампании. Не смешивать."
+        source: INTERPRETATION
+      - text: "Batching / time-sampling: см. §7. Teacher forcing нет. Self-cond Proteina/FrameFlow да."
+        source: PAPER
+      - text: "Baselines FlowDesign retrained on **same** re-split (STAR). DiffAb sampled same N as FlowDesign; non-generative — one output per test Ab."
+        source: PAPER
+        locator: "STAR Baselines re-partitioned dataset"
+      - text: "CODE trainers / exact epoch count FlowDesign besides 200k+5k orientation schedule — NR."
+        source: NR
+  - id: inference
+    title: "10. Inference and generation"
+    paragraphs:
+      - text: "Старт: не PDB как noisy $x_T$ DDPM. $x_0\\sim p_0$ (Gaussian / IGSO3 / dyMEAN CDR / KIC / ESM2). Context $C$ или CATH задан. Motif Proteina: init centered on motif CoM."
+        source: PAPER
+        locator: "Proteina motif inference centered on motif; FlowDesign CDRs initialized from prior"
+      - text: "Алгоритм: ODE Euler (FrameFlow, FlowDesign cycles). Proteina ODE или SDE (3) с $\\gamma$. Нет AR order. Temperature LM **нет**. Top-k decode one-hot: STAR не описывает argmax vs soft — **NR** (не выдумывать)."
+        source: NR
+        locator: "FlowDesign AA decode rule (argmax vs sample) not in STAR prose"
+      - text: "FrameFlow Table 1: ODE 500 designability 0.81; 100 → 0.77; 10 → 0.33 (collapses). FrameDiff SDE 500 → 0.42. GENIE SDE 1000 → 0.22 scRMSD criterion. Не переносить на FlowDesign T."
+        source: PAPER
+        locator: "FrameFlow Table 1"
+      - text: "FlowDesign: rescale drift $1/T$, T cycles; one-step allowed (inferior). Orientations: apply predicted rotation matrix (лучше scale $\\theta$). T numeric default — NR (CODE)."
+        source: PAPER
+        locator: "STAR Inference rescale; two orientation strategies"
+      - text: "Post-hoc evaluator: Rosetta pack/relax + clash filter; energy rank top-1%/5%/10% для AAR plots; ProteinMPNN+ESMFold (backbone papers). Independent complex: AF3/dyMEAN framework mode."
+        source: PAPER
+        locator: "Fig. 3 energy-sorted AAR; Fig. 5 AF3"
+      - text: "Чего нет: beam, AF recycle в $v_\\theta$, assay-in-the-loop, UCB. HIV: ~50k HCDR3, Rosetta rank, 12k unique yeast library — selection **после** generator."
+        source: PAPER
+        locator: "around 50,000 CDRH3; 12,000 unique sequences"
+      - text: "Proteina $\\gamma=0.35$ vs 0.5: designability 98.2% vs 91.4% (Table 1, tuned not full distribution). FPSD vs PDB 411.2 at $\\gamma=0.35$ — designability-tuned $\\neq$ full-distribution Table 3."
+        source: PAPER
+        locator: "Table 1 M_FS γ=0.35/0.5; Table 3 full distribution discussion"
+      - text: "CFG weight $\\omega$ Proteina Table 2 conditional. FlowDesign CFG — нет."
+        source: PAPER
+        locator: "Proteina Table 2 ω=1.0–2.0; FlowDesign STAR no CFG"
+  - id: conditioning
+    title: "11. Conditioning"
+    paragraphs:
+      - text: "Зажимается FlowDesign: framework+antigen $C$, CDR positions $l+1..l+m$, выбор prior. Sequence-only mode: predicted framework (dyMEAN or AF3) then CDRs. Ibalizumab: framework fixed, HCDR3 only."
+        source: PAPER
+        locator: "STAR ℛ vs C; Fig. 5; HIV redesigned CDRH3"
+      - text: "Proteina: CATH C/A/T hierarchical dropout p=0.5 none, 0.1 C-only, 0.15 drop T, 0.25 all. Motif coords inpainting. Length implicit via $L$."
+        source: PAPER
+        locator: "Proteina fold-class dropout probabilities"
+      - text: "FrameFlow this paper: unconditional monomers L∈[60,128] sampling. Motif TMLR — pointer, не methods this pass."
+        source: PAPER
+        locator: "FrameFlow sample 10 backbones every length 60–128"
+      - text: "Чего нет: epitope hotspot tensor RFantibody; ELISA labels в $v_\\theta$; language prompts Chroma (Proteina — fold class, не text). Не приписывать."
+        source: INTERPRETATION
+      - text: "Classifier-free guidance: Proteina да (Eq. 4, ω). FlowDesign **нет** в STAR. FrameFlow workshop — нет CFG CATH."
+        source: PAPER
+        locator: "Proteina Eq. (4) guided field"
+      - text: "Masking: CDR init from prior, not MLM infill как IgLM (ESM2 prior — masked prediction **как p0**, затем flow). Contig strings RFD — нет."
+        source: PAPER
+        locator: "STAR ESM2 mask all CDR residues then predict as prior"
+      - text: "Library $\\mathcal{X}$ combinatorial не задаётся: непрерывный генератор, дискретизация AA после. Yeast 12k — post-hoc subset, не conditioner train."
+        source: PAPER
+        locator: "12000 unique sequences yeast"
+      - text: "Function keywords ESM3 / measured_var EVOLVEpro — не этот класс."
+        source: INTERPRETATION
+  - id: complexity
+    title: "12. Вычислительная сложность"
+    paragraphs:
+      - text: "Драйверы: $N$ residues (Ab+Ag для FlowDesign IPA $O(N^2)$ pair); NFE $T$ ODE steps; network width; #samples; Proteina triangle ~17M extra; assay latency только в HIV campaign."
+        source: INTERPRETATION
+      - text: "«Меньше шагов, чем DDPM» — **не axiom**. FrameFlow PAPER: 100 ODE vs FrameDiff 500 SDE vs GENIE 1000; V100 L=100: FrameFlow/FrameDiff 100 steps 5.7 s vs GENIE 1000 steps 128 s. Не переносить на FlowDesign без T."
+        source: PAPER
+        locator: "FrameFlow §3 5.7 s vs 128 s; Table 1 timesteps"
+      - text: "FlowDesign motivating «large-scale sampling» vs DiffAb cost — качественный claim, NFE table **NR**. Не писать «дешевле DiffAb» как число."
+        source: INTERPRETATION
+        locator: "FlowDesign abstract high efficiency; no step-count vs DiffAb in STAR prose"
+      - text: "Proteina Table 10 sampling seconds A100-80GB — HTML table present; per-length cells не копировать частично. Wall-clock train FlowDesign — NR. FrameFlow train: 1 day 2×A100."
+        source: PAPER
+        locator: "FrameFlow 1 day 2×A100-48GB; Proteina Table 10 exists"
+      - text: "AR steps / kNN / beam не драйверы. Recycle AF нет."
+        source: INTERPRETATION
+      - text: "GPU hours FlowDesign / Proteina full run — NR без Appendix cells. Не выдумывать."
+        source: NR
+  - id: strengths
+    title: "13. Преимущества"
+    paragraphs:
+      - text: "Из постановки: simulation-free train; произвольный $p_0$; прямые OT-пути упрощают VF (Lipman). Следует из CFM, не из маркетинга «one-step diffusion»."
+        source: PAPER
+        locator: "Lipman OT constant direction VF; FlowDesign prior flexibility"
+      - text: "FrameFlow: 100 steps designability 0.77 vs FrameDiff 500 SDE 0.42; 5× fewer timesteps claim vs FrameDiff (abstract). Same architecture. **Не** antibody. scRMSD<2 Å ≠ Kd."
+        source: PAPER
+        locator: "FrameFlow abstract five times fewer; Table 1 0.77 vs 0.42"
+      - text: "Proteina Table 1 (designability-tuned): $\\mathcal{M}_{\\mathrm{FS}}$ $\\gamma=0.35$ 98.2%; FrameFlow 88.6%; RFdiffusion 94.4%; FoldFlow(OT) 97.2%. FPSD vs PDB: FrameFlow 129.9, RFdiffusion 253.7, Proteina $\\mathcal{M}_{\\mathrm{FS}}$ 411.2 — не ранжировать «лучше RFD» по FPSD при tuned γ. Length 800 without triangle. Не antibody."
+        source: PAPER
+        locator: "Table 1 caption tuned for designability not full distribution"
+      - text: "FlowDesign in silico: dyMEAN prior ≈15% AAR vs random H3; mean RMSD 2.291 Å; H3 Cα RMSD average reduction 0.693 Å vs DiffAb; top-1% energy H3 AAR can exceed 60%; 13.11% more CDRH1 samples better energy than native vs DiffAb. AAR/energy ≠ affinity."
+        source: PAPER
+        locator: "Fig. 2A–B; Fig. 3G 0.693Å; top 1% >60%; 13.11% CDRH1"
+      - text: "FlowDesign wet-lab (одна кампания Ibalizumab HCDR3): ~50k→12k yeast; FACS 3 rounds; top 10 expressed; BLI mut-1/2/3 $K_D$ 0.19 / 0.56 / 0.90 nM vs CD4; WT numeric $K_D$ NR в HTML (magnitude 1e-10). mut-2 CNE4 IC50 0.006 vs WT 0.024 µg/ml. Не универсальный antibody law. Intro SPR не цитировать как Fig. 6."
+        source: PAPER
+        locator: "0.19, 0.56, 0.90 nM; CNE4 0.006 vs 0.024 µg/ml; Fig. 6 BLI"
+      - text: "Это **не** гарантия стабильности / аффинности / экспрессии / нейтрализации всех isolates. mut-3 «performed relatively poorly»; half of 11 viruses better for mut-2 — не все."
+        source: PAPER
+        locator: "imab-mut-2 neutralized half of the pseudoviruses"
+      - text: "Модульность prior (KIC/ESM/dyMEAN/random) следует из transport-map постановки. Не license считать любой prior informative."
+        source: PAPER
+        locator: "Fig. 2 ESM2 struggled"
+      - text: "Количественные числа выше — PAPER с locator; не класс-универсал."
+        source: INTERPRETATION
+  - id: limits
+    title: "14. Ограничения"
+    paragraphs:
+      - text: "Математика: one-hot Euclidean ≠ categorical FM; geodesic singularities near π (FrameFlow IGSO3 workaround); one-step map inferior; Proteina γ не temperature. Marginal VF не обязан быть OT даже если conditional OT (Lipman)."
+        source: PAPER
+        locator: "Lipman nevertheless marginal not OT; FrameFlow π degeneracy"
+      - text: "Представление: FlowDesign требует Ab–Ag complex (exp. или AF3/dyMEAN); Proteina/FrameFlow — не antibody CDR. Mean-pool нет, но pair $O(N^2)$."
+        source: PAPER
+        locator: "FlowDesign Discussion incorrect structures"
+      - text: "Физика/химия: нет растворителя/гликанов в $v_\\theta$; pack/Rosetta после; straight interpolant clashes."
+        source: INTERPRETATION
+      - text: "Данные: 20-complex test; SAbDab bias; Ibalizumab-only prospective; Proteina AFDB synthetic. Framework homology leakage NR."
+        source: PAPER
+        locator: "test 20 complexes"
+      - text: "Обобщение: FrameFlow SCOPe L≤128 preliminary vs RFdiffusion (authors: expect underperform RFD, couldn't retrain). Proteina не Abs. Не переносить Ibalizumab ΔIC50 на другие epitopes."
+        source: PAPER
+        locator: "FrameFlow expect underperform RFdiffusion"
+      - text: "Deployment: FlowDesign GitHub exists, commit/LICENSE NR; catalog official_repository null. Proteina/FrameFlow licenses unaudited. Key Resources table stripped."
+        source: NR
+  - id: failures
+    title: "15. Failure modes"
+    items:
+      - text: "Считать DiffAb / RFdiffusion / BoltzGen flow-matching из‑за continuous 3D generation."
+        source: MATRIX
+      - text: "Считать Rosetta ΔG / AAR / scRMSD / FPSD experimental $K_d$."
+        source: INTERPRETATION
+      - text: "Цитировать Intro SPR вместо Fig. 6 BLI для Ibalizumab."
+        source: PAPER
+        locator: "Intro SPR vs STAR Octet R8"
+      - text: "One-step FlowDesign без T integration (авторы: inferior)."
+        source: PAPER
+        locator: "STAR one-step likely inferior"
+      - text: "ODE truncation: FrameFlow 10 steps designability 0.33."
+        source: PAPER
+        locator: "Table 1 FrameFlow 10 steps 0.33"
+      - text: "Library/complex misspecification: wrong AF3 dock → wrong CDR (Discussion)."
+        source: PAPER
+        locator: "Discussion incorrect structures"
+      - text: "Смешать discrete CTMC FM с FlowDesign one-hot MSE."
+        source: INTERPRETATION
+      - text: "Подмена γ Proteina за thermodynamic temperature (authors: not principled)."
+        source: PAPER
+        locator: "Proteina §3.4 citing Du et al. 2023"
+      - text: "Broken equivariance: оценить Proteina без rotation aug как SE(3)-equivariant IPA."
+        source: PAPER
+        locator: "non-equivariant transformer"
+      - text: "Сравнивать Ibalizumab BLI с RFantibody yeast или Chroma split-GFP как один leaderboard."
+        source: INTERPRETATION
+      - text: "Выдать dyMEAN iterative refine за ODE sampler."
+        source: MATRIX
+      - text: "Использовать seed $x_t=(1-t)x_0+tx_1$ как уравнение quaternion-loss FlowDesign."
+        source: INTERPRETATION
+  - id: tools
+    title: "16. Реализации в инструментах"
+    paragraphs:
+      - text: "Reverse index: ровно один catalog tool. Литература вне каталога — отдельные строки, не колонка «успех»."
+        source: MATRIX
+      - text: "DiffAb/dyMEAN/BoltzGen включены как **не этот класс** / prior, чтобы закрыть частую путаницу. Не равнять Ibalizumab BLI и Proteina designability."
+        source: INTERPRETATION
+    tables:
+      - title: "Реализации с architecture_id flow-matching и соседние методы"
+        source: MATRIX
+        headers: ["Tool", "Generic architecture", "Tool-specific implementation", "Important difference"]
+        rows:
+          - ["[FlowDesign](/tools/flowdesign.html)", "CFM $v_\\theta\\approx u_t$, ODE sample", "NR code. PAPER: IPA encoder; F/G/H on one-hot, Cα, quaternion; SLERP interpolant; dyMEAN/random mix prior; Rosetta pack; T-step rescale 1/T", "Единственный catalog tool этого id. Cell Systems 2025 / bioRxiv v2. Ibalizumab BLI. Не DDPM DiffAb."]
+          - ["Proteina (не карточка tools)", "Euclidean Cα OT-CFM", "non-equivariant transformer ≤400M; optional triangle 15–17M; CFG CATH; SDE γ; LoRA", "ICLR 2025; backbone only; Table 1 in silico"]
+          - ["FrameFlow (не карточка tools)", "SE(3) Riemannian FM", "FramePred/IPA as FrameDiff; geodesic interpolant; Euler ODE; 17.4M", "arXiv 2310.05297; SCOPe L<128; 100 vs 500 steps"]
+          - ["FoldFlow (не карточка tools)", "SE(3) FM + OT/SDE variants", "NR methods this pass; Proteina Table 1 numbers only", "Bose et al.; FrameFlow: no sampling speed-up focus"]
+          - ["[DiffAb](/tools/diffab.html)", "не этот класс", "DDPM seq+Cα+SO(3)", "FlowDesign baseline; architecture_id joint diffusion"]
+          - ["[dyMEAN](/tools/dymean.html)", "не FM sampler", "equivariant iterative refine; FlowDesign prior", "T=3 AME typical — другая страница"]
+          - ["[RFdiffusion](/tools/rfdiffusion.html) / [BoltzGen](/tools/boltzgen.html)", "не этот класс", "не считать FM без methods", "BoltzGen ids omit flow-matching"]
+  - id: applicability
+    title: "17. Где применимо и где не применимо"
+    paragraphs:
+      - text: "Применимо: CDR co-design при известном/предсказанном комплексе — [FlowDesign](/tools/flowdesign.html), задачи [joint CDR](/tasks/joint-cdr-sequence-structure-design.html), [joint seq–struct](/tasks/joint-sequence-structure-generation.html); workflow [cdr-codesign-diffab](/workflows/cdr-codesign-diffab.html) как alternative generator."
+        source: MATRIX
+      - text: "Концептуально (не catalog default pipeline): de novo backbone / motif scaffolding коротким ODE — Proteina/FrameFlow literature. Не ставить их как tools каталога."
+        source: INTERPRETATION
+      - text: "Запрет: [few-shot AL](/tasks/few-shot-active-learning.html) — [EVOLVEpro](/tools/evolvepro.html). Zero-shot mutation — [ESM-1v](/tools/esm-1v-efficient-evolution.html). Inverse folding при готовом backbone — [ProteinMPNN](/tools/proteinmpnn.html) / [AntiFold](/tools/antifold.html)."
+        source: MATRIX
+        locator: "seed not_for_task_ids few-shot-active-learning"
+      - text: "Запрет: epitope-conditioned de novo Fv без framework — [RFantibody](/tools/rfantibody.html), не FlowDesign. Запрет: выдавать AAR за $K_d$."
+        source: INTERPRETATION
+      - text: "Нельзя решать codon/CHO/secretion этим классом. Нельзя сравнивать Ibalizumab BLI с Romero $T_{50}$ или EVOLVEpro ELISA как один успех."
+        source: INTERPRETATION
+      - text: "Если нужен DDPM joint CDR без FM prior — [DiffAb](/tools/diffab.html) (in silico). Если нужен open de novo Ab pipeline — RFantibody, не FlowDesign (workflow decision_criteria)."
+        source: MATRIX
+        locator: "workflows/cdr-codesign-diffab.yaml decision_criteria"
+      - text: "VHH: FlowDesign catalog VHH_relevance null. Не утверждать VHH кампанию."
+        source: MATRIX
+      - text: "Sequence-only CDR без какой-либо структуры framework (exp. или AF3/dyMEAN) — STAR не стартует; Discussion ожидает AF3 complex."
+        source: PAPER
+        locator: "Discussion AF3 then FlowDesign"
+  - id: method-sources
+    title: "18. Методологические источники"
+    paragraphs:
+      - text: "Foundational: Lipman arXiv 2210.02747 **прочитан** HTML (Eq. 5, 9, 20–23). ICLR camera-ready pagination не сличена. Rectified Flow Liu 2209.03003 — pointer (Proteina linear interpolant)."
+        source: PAPER
+      - text: "Catalog primary: FlowDesign bioRxiv v2 STAR **прочитан**; Cell Systems PDF/SI — inaccessible. GitHub pointer, commit NR. Не silent-merge journal edits."
+        source: PAPER
+      - text: "Backbone FM literature **прочитана** как подтипы класса: FrameFlow 2310.05297 HTML; Proteina 2503.00710 HTML. FoldFlow / Chen Riemannian / TMLR motif / MultiFlow — pointer-only. CODE unaudited."
+        source: PAPER
+      - text: "Не библиография всего FM (ImageNet FID Lipman не переносился в strengths как белковый результат). DiffAb/RFD papers — baselines соседних классов, не primary FM."
+        source: INTERPRETATION
+citations:
+  - id: 1
+    text: "Lipman et al. Flow Matching for Generative Modeling. arXiv 2210.02747 / ICLR 2023."
+    url: "https://arxiv.org/abs/2210.02747"
+    doi: "10.48550/arXiv.2210.02747"
+  - id: 2
+    text: "Wu et al. FlowDesign. bioRxiv 10.1101/2024.11.07.622422; journal Cell Systems 10.1016/j.cels.2025.101270."
+    url: "https://doi.org/10.1101/2024.11.07.622422"
+    doi: "10.1101/2024.11.07.622422"
+  - id: 3
+    text: "Yim et al. Fast protein backbone generation with SE(3) flow matching (FrameFlow). arXiv 2310.05297."
+    url: "https://arxiv.org/abs/2310.05297"
+    doi: "10.48550/arXiv.2310.05297"
+  - id: 4
+    text: "Geffner et al. Proteina: Scaling Flow-based Protein Structure Generative Models. arXiv 2503.00710 / ICLR 2025."
+    url: "https://arxiv.org/abs/2503.00710"
+    doi: "10.48550/arXiv.2503.00710"
+  - id: 5
+    text: "Liu, Gong, Liu. Flow Straight and Fast: Rectified Flow. arXiv 2209.03003 (pointer)."
+    url: "https://arxiv.org/abs/2209.03003"
+    doi: "10.48550/arXiv.2209.03003"
+  - id: 6
+    text: "FlowDesign code (STAR Key Resources; commit not audited)."
+    url: "https://github.com/nohandsomewujun/FlowDesign"
+unresolved:
+  - "Cell Systems PDF vs bioRxiv v2: possible journal-only edits to splits, BLI table, STAR numbering."
+  - "STAR display Eq. 1–9 (interpolant and Grassmann quaternion loss) stripped in HTML."
+  - "FlowDesign GitHub commit SHA, LICENSE, default T, batch size, hidden width, AA decode (argmax vs sample)."
+  - "Numeric BLI KD of imab-WT (mutants 0.19/0.56/0.90 nM given; WT only «1e-10 magnitude»)."
+  - "Fig. 6J per-pseudovirus IC50 cells (JRFL and others) not extracted from HTML."
+  - "Mix probability p of dyMEAN vs random prior (hyperparameter, Key Resources stripped)."
+  - "CDR numbering scheme (Chothia/IMGT/Kabat) in FlowDesign data pipeline."
+  - "Chen Riemannian FM theorems; FoldFlow OT/SDE equations; TMLR motif-scaffolding numbers."
+  - "Proteina Table 10 per-length wall-clock cells; Table 16 GPU/step counts not fully parsed."
+  - "Whether FrameFlow initializes from FrameDiff weights (adaptation vs train-from-scratch)."

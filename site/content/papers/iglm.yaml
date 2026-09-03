@@ -1,0 +1,47 @@
+id: paper-iglm
+slug: iglm
+title: 'IgLM: Infilling language modeling for antibody sequence design'
+authors: Richard W. Shuai, Jeffrey A. Ruffolo, Jeffrey J. Gray
+year: '2023'
+venue: Peer-reviewed journal; Cell Systems (Q1)
+publication_status: Peer-reviewed journal; Cell Systems (Q1)
+doi: 10.1016/j.cels.2023.10.001
+url: https://doi.org/10.1016/j.cels.2023.10.001
+preprint_url: null
+tool_ids:
+- iglm
+main_task: Antibody sequence generation, infilling and CDR diversification
+claimed_novelty: null
+model_architecture: Autoregressive infilling language model conditioned on species and chain
+  type
+input_representation: null
+encoder_decoder: null
+generative_state: Full heavy/light-chain sequence or infilled span/CDR
+conditioning: Chain/species tokens; arbitrary infilling span
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Naturalness/diversity/infilling benchmarks
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Naturalness/diversity/infilling benchmarks
+main_results: Naturalness/diversity/infilling benchmarks
+limitations: No antigen conditioning or joint VH/VL pairing; sequence likelihood is not specificity
+  or affinity.
+demonstrates:
+- Naturalness/diversity/infilling benchmarks
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'IgLM: Infilling language modeling for antibody sequence design'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Cell Systems (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

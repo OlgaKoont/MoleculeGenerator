@@ -1,0 +1,8 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Нужен комплекс
+  level: 2
+  blocks:
+  - type: p
+    text: DiffAb не заменяет epitope targeting без структуры комплекса. HDOCK — внешний docking, не генератор CDR. [PAPER]

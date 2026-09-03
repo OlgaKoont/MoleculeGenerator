@@ -1,0 +1,7 @@
+id: fine-tuning
+slug: fine-tuning
+term: Fine-tuning
+term_ru: Дообучение
+definition: Продолжение обучения pretrained модели на узком корпусе (например, antibody structures).
+related_ids:
+- protein-language-model

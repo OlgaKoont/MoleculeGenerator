@@ -1,0 +1,45 @@
+id: ml-guided-directed-evolution
+slug: ml-guided-directed-evolution
+name: ML-guided directed evolution
+group: Оптимизация существующих белков
+definition: Итеративный цикл модель → варианты → assay → обновление модели.
+objective: Ускорить evolution protein activity.
+starting_inputs:
+- parent
+- library definition
+- assay
+generated_objects:
+- next-round variants
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Active learning on PLM embeddings
+  generates: Proposed mutants
+  representation: Embeddings + surrogate
+  examples:
+  - evolvepro
+  limitation: Not zero-shot
+  sampling: Acquisition
+  novel_topology: Нет
+  integrated_scoring: Regression/RF surrogate
+  complexity_drivers: Rounds × assay
+consequences:
+- decision: Need experimental loop
+  consequence: Нельзя заменить assay in-loop scores.
+compute_consequences:
+- Compute мал относительно wet-lab.
+evidence_summary: 'EVOLVEpro: prospective, including antibody example; numbers не генерализуются.'
+incomparable:
+- Не сравнивать с pretrained de novo generators.
+selection_guidance:
+- Если есть assay capacity — EVOLVEpro.
+architecture_ids:
+- active-learning
+- few-shot-mutation-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- active-learning
+- few-shot
+downstream: false

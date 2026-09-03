@@ -1,0 +1,44 @@
+id: de-novo-non-antibody-binder-design
+slug: de-novo-non-antibody-binder-design
+name: De novo non-antibody binder design
+group: Общий белковый дизайн
+definition: Дизайн небольших белковых binder'ов, не являющихся antibodies.
+objective: Получить miniprotein/peptide binder к target surface.
+starting_inputs:
+- target structure
+- hotspots
+generated_objects:
+- binder sequence and designed complex
+generator_classes:
+- target-conditioned-binder
+strategies:
+- name: AF2 hallucination workflow
+  generates: Binder sequence/complex
+  representation: Differentiable structure model
+  examples:
+  - bindcraft
+  limitation: Не переносится на antibody loop geometry автоматически
+  sampling: Optimization + MPNN
+  novel_topology: Да
+  integrated_scoring: AF2 + Rosetta filters
+  complexity_drivers: Target size, filter cascade
+consequences:
+- decision: Miniprotein fold space
+  consequence: Hit rates могут быть выше, чем у de novo antibodies, но формат другой.
+compute_consequences:
+- PyRosetta license может блокировать commercial use.
+evidence_summary: 'BindCraft: prospective nanomolar binders. AlphaProteo: closed technical report.'
+incomparable:
+- Не сравнивать с RFantibody как с тем же классом объектов.
+selection_guidance:
+- Открытый pipeline — BindCraft.
+- Closed frontier — AlphaProteo.
+architecture_ids:
+- inverse-folding
+- multi-objective-optimization
+workflow_ids:
+- miniprotein-binder-bindcraft
+paper_ids: []
+glossary_ids:
+- epitope
+downstream: false

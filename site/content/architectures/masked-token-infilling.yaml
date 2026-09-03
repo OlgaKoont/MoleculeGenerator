@@ -1,0 +1,37 @@
+id: masked-token-infilling
+slug: masked-token-infilling
+name: Masked-token infilling
+name_ru: Заполнение masked-токенов
+intuition: Часть sequence скрыта. Модель восстанавливает только masked span, используя левый и правый
+  контекст — удобно для CDR redesign.
+mathematical_formulation: 'Обучение на $p(x_M\mid x_{\setminus M})$. Inference: итеративное unmasking
+  или independent masked decode.'
+input_representation: Observed tokens + [MASK] + optional structure/function tracks.
+generated_state: Filled amino-acid identities at masked positions.
+training_objective: Masked language modelling loss.
+inference: Single-pass or iterative unmasking (ESM3-style).
+conditioning: Unmasked context, species/chain tokens, multimodal prompts.
+complexity_drivers:
+- Число masked positions
+- Итерации unmasking
+strengths:
+- Локальный redesign без переписывания всего белка
+- Двусторонний контекст
+limitations:
+- Не создаёт новую topology
+- Зависит от качества контекста
+failure_modes:
+- Слишком большой mask превращается в почти unconditional generation
+applicable_task_ids:
+- cdr-sequence-generation
+- joint-sequence-structure-generation
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-iglm
+- paper-esm3
+- paper-evodiff
+subtypes: []
+glossary_ids:
+- infilling
+- cdr

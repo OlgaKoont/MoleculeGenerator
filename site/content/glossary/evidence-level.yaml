@@ -1,0 +1,7 @@
+id: evidence-level
+slug: evidence-level
+term: Evidence class
+term_ru: Класс доказательности
+definition: 1 in silico; 2 retrospective; 3 prospective binding; 4 prospective function; 5 developability/manufacturability.
+related_ids:
+- benchmark

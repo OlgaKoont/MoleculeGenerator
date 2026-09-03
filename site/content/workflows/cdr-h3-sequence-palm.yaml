@@ -1,0 +1,68 @@
+id: cdr-h3-sequence-palm
+slug: cdr-h3-sequence-palm
+name: Antigen-conditioned CDR-H3 generation (PALM-H3)
+use_case: Есть antigen/epitope sequence и antibody framework; нужно сгенерировать CDR-H3.
+required_input:
+- antigen/epitope sequence
+- antibody framework/context
+stages:
+- name: CDR-H3 generation
+  architecture_class: Antigen encoder + autoregressive decoder
+  what_happens: Генерируется CDR-H3
+  generation_or_evaluation: generation
+  generator: palm-h3
+  intermediate_object: CDR-H3 sequences
+  alternatives:
+  - iglm
+  node_links:
+  - palm-h3
+  - autoregressive-generation
+- name: A2binder ranking
+  architecture_class: Learned affinity/specificity predictor
+  what_happens: Кандидаты ранжируются predicted scores
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Ranked grafts
+  alternatives: []
+  node_links: []
+- name: Downstream structure
+  architecture_class: External predictor
+  what_happens: Структура моделируется отдельно
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Modeled Fv
+  alternatives:
+  - alphafold2
+  node_links:
+  - alphafold2
+- name: Binding/neutralization
+  architecture_class: null
+  what_happens: Wet-lab
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Assayed antibodies
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: NR. Code + Zenodo weights.
+evidence_level: 3–4 prospective on SARS-CoV-2 family; predicted affinity ≠ experimental result.
+failure_points:
+- Перенос на другой antigen family.
+- Интерпретация A2binder как Kd.
+decision_criteria:
+- Есть ли antigen sequence, но нет reliable structure?
+- Нужна ли 3D co-design?
+task_ids:
+- cdr-sequence-generation
+- antigen-conditioned-antibody-design
+tool_ids:
+- palm-h3
+- iglm
+architecture_ids:
+- protein-language-models
+- autoregressive-generation
+paper_ids:
+- paper-palm-h3
+mermaid: "flowchart TD\n    A[Antigen/epitope sequence] --> B[PALM-H3 decoder]\n    B --> C[CDR-H3\
+  \ candidates]\n    C --> D[A2binder ranker]\n    D --> E[External structure modeling]\n    E\
+  \ --> F[Binding assays]"

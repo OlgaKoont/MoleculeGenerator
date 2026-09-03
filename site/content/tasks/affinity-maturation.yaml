@@ -1,0 +1,58 @@
+id: affinity-maturation
+slug: affinity-maturation
+name: Affinity maturation
+group: Оптимизация существующих белков
+definition: Улучшение binding существующего antibody/protein.
+objective: Повысить affinity/potency, контролируя прочие свойства отдельно.
+starting_inputs:
+- parent binder
+- optional complex
+- optional labels
+generated_objects:
+- mutants of parent
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Zero-shot then assay
+  generates: Single substitutions
+  representation: Sequence or complex
+  examples:
+  - esm-1v-efficient-evolution
+  - structural-evolution
+  limitation: Не multi-objective по умолчанию
+  sampling: Ranking
+  novel_topology: Нет
+  integrated_scoring: Likelihood
+  complexity_drivers: Positions enumerated
+- name: Few-shot active learning
+  generates: Next-round variants
+  representation: PLM embeddings + labels
+  examples:
+  - evolvepro
+  limitation: Нужны experimental rounds
+  sampling: Acquisition function
+  novel_topology: Нет
+  integrated_scoring: Supervised surrogate
+  complexity_drivers: Assay turnaround
+consequences:
+- decision: Optimize only affinity
+  consequence: Может ухудшить specificity/developability.
+compute_consequences:
+- Wet-lab dominates.
+evidence_summary: Есть prospective antibody examples, но gains assay-specific.
+incomparable:
+- De novo design ≠ maturation of a parent.
+selection_guidance:
+- Нет labels — zero-shot.
+- Есть ~10+ labels — EVOLVEpro.
+architecture_ids:
+- zero-shot-mutation-scoring
+- few-shot-mutation-optimization
+- active-learning
+workflow_ids:
+- zero-shot-mutation
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- active-learning
+downstream: false

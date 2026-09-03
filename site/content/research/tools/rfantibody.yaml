@@ -1,0 +1,224 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Что именно делает инструмент
+  level: 2
+  blocks:
+  - type: p
+    text: 'RFantibody — <strong>многостадийный workflow</strong>, не одна сеть. Генерируются CDR backbones и ориентация Fv относительно target при фиксированном antibody framework; затем CDR sequences; затем фильтр структуры. Форматы: VHH и scFv. De novo относительно CDR+dock, parent-based относительно framework. [PAPER]'
+- title: 2. Архитектура в одном абзаце
+  level: 2
+  blocks:
+  - type: p
+    text: 'Antibody-fine-tuned RFdiffusion (SE(3) frames: Cα + N-Cα-C; Gaussian translations, Brownian SO(3); MSE on predicted x0) генерирует CDR + rigid-body dock, framework sequence+structure подаётся как invariant 2D template (distances/dihedrals), hotspots one-hot. ProteinMPNN проектирует только CDR sequences. Fine-tuned RoseTTAFold2 — self-consistency/PAE filter (авторы отмечают, что AF3 — лучший filter и не был доступен в начале проекта). Rosetta ddG — in silico. Experiment: yeast display ~9k или E. coli+SPR 95; OrthoRep maturation; cryo-EM. [PAPER]+[CODE modules]'
+- title: 3. Модульная схема
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Module
+    - Model class
+    - Input
+    - Output
+    - Trained or frozen
+    - Generator or evaluator
+    rows:
+    - - Ab-FT RFdiffusion
+      - frame diffusion generator
+      - target, hotspots, framework template, contigs
+      - CDR backbone + orientation
+      - fine-tuned RF diffusion weights
+      - generator
+    - - ProteinMPNN
+      - inverse folding generator
+      - designed backbone, CDR-only design mask
+      - CDR sequences
+      - pretrained MPNN (Ab settings in pipeline)
+      - generator
+    - - RoseTTAFold2 FT
+      - structure/complex predictor
+      - seq+template
+      - structure, PAE/pLDDT-like confidence
+      - fine-tuned predictor
+      - evaluator, not generator
+    - - AF3 (paper recommendation)
+      - complex predictor
+      - sequences
+      - confidence / pose
+      - external
+      - better filter; not original integrated default
+    - - Rosetta ddG
+      - energy approximation
+      - complex
+      - ddG-like score
+      - external physics-ish
+      - evaluator
+    - - Yeast display / SPR / cryo-EM / OrthoRep
+      - experiment
+      - DNA library
+      - binding, Kd, structure
+      - wet lab
+      - experimental
+- title: 4. Математическая модель
+  level: 2
+  blocks:
+  - type: p
+    text: Генератор 1 (diffusion) — class frame diffusion, см. <a href="/architectures/frame-diffusion.html">frame diffusion</a>. Не joint sequence diffusion. Генератор 2 — ProteinMPNN \(p(s_{\mathrm{CDR}}\mid x_{\mathrm{bb}})\). RF2 не семплирует дизайны, а предсказывает структуру для фильтра. Нельзя схлопывать три модели в одну likelihood.
+- title: 5–6. Физика
+  level: 2
+  blocks:
+  - type: p
+    text: 'Состояние diffusion: backbone frames CDR + ориентация антитела к антигену. Framework atoms/sequence фиксированы шаблоном. Химия интерфейса: learned interface statistics + later Rosetta; нет explicit solvent/entropy в генераторе. Equivariance frames ≠ стабильность. [PAPER]+[INTERPRETATION]'
+- title: 7. Training
+  level: 2
+  blocks:
+  - type: p
+    text: RFdiffusion antibody fine-tune on antibody and other loop-mediated complexes (точный mix — сверять SI). Vanilla RFdiffusion fails on antibody loops — qualitative ablation/motivation. ProteinMPNN и RF2 имеют собственные pretrain/FT. [PAPER]
+- title: 8. Inference
+  level: 2
+  blocks:
+  - type: p
+    text: 'Pipeline scripts в репозитории: rfdiffusion → proteinmpnn → rf2. Quiver files (.qv) хранят дизайны и scores. Docker/uv environment. GPU required (tests A4000/H100). Candidate counts: experimental campaigns 95 or ~9000 displayed. Diffusion step count: NR here without config dump. [CODE]+[PAPER]'
+- title: 9. Generator versus evaluator
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Component
+    - Role
+    - Integrated or external
+    - Required or optional
+    - Influences generation or only ranks afterward
+    rows:
+    - - RFdiffusion Ab-FT
+      - generator
+      - integrated
+      - required
+      - generation
+    - - ProteinMPNN
+      - generator (sequence)
+      - integrated
+      - required in described pipeline
+      - generation (after backbone)
+    - - RF2 / AF3 confidence
+      - evaluator
+      - integrated RF2; AF3 recommended external
+      - used for filtering
+      - ranks afterward; may also discard before experiment
+    - - Rosetta ddG
+      - evaluator
+      - in silico
+      - optional filter
+      - not experimental Kd
+    - - Display / SPR
+      - experiment
+      - external
+      - required for binding claims
+      - only real binding evidence
+- title: 10. Почему авторы считают метод эффективным
+  level: 2
+  blocks:
+  - title: Proposed mechanism
+    level: 3
+    blocks:
+    - type: p
+      text: Antibody-specific FT восстанавливает loop geometry, которой нет у vanilla RFdiffusion; hotspot+framework template удерживает epitope и Fv; MPNN заполняет sequence; RF2/AF3 отбрасывает inconsistent poses. [PAPER]
+  - title: Author claim
+    level: 3
+    blocks:
+    - type: p
+      text: Atomically accurate de novo antibody design; VHH binders; cryo-EM agreement for some CDRs; maturation can reach nM. [PAPER]
+  - title: Evidence
+    level: 3
+    blocks:
+    - type: p
+      text: 'Prospective binding 0–2% per target; initial Kd tens–hundreds nM; OrthoRep to single-digit nM; cryo-EM; TcdB neutralization after maturation. Retrospective: vanilla RF fails loops. [PAPER]'
+  - title: Causal support
+    level: 3
+    blocks:
+    - type: p
+      text: 'Vanilla vs FT — qualitative/architectural + failure mode, не обязательно полный factorial wet-lab ablation. Success rate низкий: метод работает иногда, не как robust therapeutic engine. AF3 filter superiority — author statement, original campaign used RF2. [PAPER]+[INTERPRETATION]'
+- title: 11. Claim–evidence matrix
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Claim
+    - Proposed mechanism
+    - Evidence type
+    - Dataset or experiment
+    - Comparator
+    - Metric/result
+    - Source
+    - Caveat
+    rows:
+    - - De novo VHH binders to specified epitopes
+      - Ab-FT diffusion + MPNN + filter
+      - 4 prospective binding
+      - several targets, yeast/SPR
+      - undesigned / controls in paper
+      - 0–2% success; nM after maturation
+      - Nature 2025
+      - hit rate низкий; initial Kd modest
+    - - Atomic accuracy of CDR geometry
+      - frame diffusion + template
+      - 4/5 cryo-EM + in silico RMSD
+      - selected designs
+      - crystal/cryo-EM
+      - atomic for some CDRs
+      - paper structures
+      - selected successes, not all designs
+    - - Vanilla RFdiffusion insufficient for Ab loops
+      - need Ab FT
+      - 2/3 retrospective or qualitative
+      - Ab loop generation
+      - vanilla RF
+      - fails canonical loops
+      - paper
+      - confirm exact figure/SI if deploying
+    - - RF2 ipAE is affinity
+      - —
+      - unsupported
+      - —
+      - —
+      - filter only
+      - scope rule
+      - confidence ≠ Kd
+    - - Framework humanization solved
+      - example h-NbBcII10F GLA
+      - limited example
+      - one framework
+      - —
+      - used as input framework
+      - paper
+      - framework not generated
+- title: 12. Ablation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Ключевая: vanilla RFdiffusion vs antibody FT на петлях. Полная wet-lab ablation MPNN vs alternative IF, RF2 vs AF3 на тех же 9k libraries — частично author-reported (AF3 better filter, not available at start). Статистика 0–2% already indicates high failure. [PAPER]'
+- title: 13. What is not represented
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - explicit solvent, protonation, glycans, Fc, developability NN, true ΔG, CDR humanness optimization, long MD. Side chains after MPNN still need packing. Target holo conformation assumed known.
+- title: 14–15. Limitations and reproducibility
+  level: 2
+  blocks:
+  - type: p
+    text: 'License: repo LICENSE (BSD-like — verify file). Modules: src/ for rfdiffusion, proteinmpnn, rf2. Docker recommended. Paper vs code: campaign used RF2 filter; README/workflow may emphasize current recommended AF3 — записать как расхождение практики. Independent replication: NR in this pass.'
+  - type: refs
+    items:
+    - text: Bennett et al., Nature 2025, 10.1038/s41586-025-09721-5
+      url: https://doi.org/10.1038/s41586-025-09721-5
+    - text: IPD PDF
+      url: https://www.ipd.uw.edu/wp-content/uploads/2025/11/Bennett-Nature-2025-RFantibody-s41586-025-09721-5.pdf
+    - text: RFantibody commit 8fe3114
+      url: https://github.com/RosettaCommons/RFantibody
+    - text: Watson RFdiffusion 2023
+      url: https://doi.org/10.1038/s41586-023-06415-8
+commit: 8fe311415754e0276d1a39c87c57e69c88927a2d (RosettaCommons/RFantibody)
+inaccessible:
+- 'Nature SI PDF не разобран постранично в этом проходе: доли fine-tune mix (SAbDab/TCR/loop) помечены как требующие SI, если не повторены в main text PDF.'
+- Полные hyperparameters denoiser (точный T, crop) — проверять configs в репозитории при deployment; CLAUDE.md репозитория не считается scientific source.

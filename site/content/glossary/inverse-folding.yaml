@@ -1,0 +1,8 @@
+id: inverse-folding
+slug: inverse-folding
+term: Inverse folding
+term_ru: Обратное сворачивание
+definition: Генерация sequence, совместимой с заданным backbone. Не создаёт новую topology.
+related_ids:
+- backbone
+- conditioning

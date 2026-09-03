@@ -1,0 +1,38 @@
+id: autoregressive-generation
+slug: autoregressive-generation
+name: Autoregressive generation
+name_ru: Авторегрессионная генерация
+intuition: 'Модель пишет sequence слева направо (или в заданном порядке residues): каждый токен conditioned
+  на уже сгенерированные.'
+mathematical_formulation: $x_i \sim p_\theta(x_i\mid x_{<i}, c)$, где $c$ — conditioning (backbone,
+  antigen, tags).
+input_representation: Tokens plus optional conditioner embeddings.
+generated_state: Discrete sequence tokens one-by-one.
+training_objective: Next-token cross-entropy.
+inference: Sequential decoding; runtime линейно зависит от длины.
+conditioning: Prefix, encoder–decoder, or feature concatenation.
+complexity_drivers:
+- Длина L
+- Beam/sample count
+strengths:
+- Простая likelihood
+- Хорошо изученный sampling
+limitations:
+- Exposure bias
+- Ошибки ранних токенов каскадируют
+failure_modes:
+- Mode collapse при низкой температуре
+- Несогласованность дальних contacts
+applicable_task_ids:
+- general-protein-sequence-generation
+- inverse-folding
+- cdr-sequence-generation
+not_for_task_ids:
+- de-novo-backbone-generation
+paper_ids:
+- paper-progen
+- paper-proteinmpnn
+- paper-iglm
+subtypes: []
+glossary_ids:
+- sampling

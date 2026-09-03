@@ -1,0 +1,49 @@
+id: paper-abdiffuser
+slug: abdiffuser
+title: 'AbDiffuser: full-atom generation of in vitro functioning antibodies'
+authors: null
+year: 2023/2024
+venue: arXiv preprint (Frontier/Watchlist)
+publication_status: arXiv preprint (Frontier/Watchlist)
+doi: 10.48550/arXiv.2308.05027
+url: https://arxiv.org/abs/2308.05027
+preprint_url: https://arxiv.org/abs/2308.05027
+tool_ids:
+- abdiffuser
+main_task: Full-atom antibody sequence–structure generation with length changes
+claimed_novelty: null
+model_architecture: Equivariant physics-informed diffusion with aligned antibody priors
+input_representation: null
+encoder_decoder: null
+generative_state: Full-atom antibody sequence + structure
+conditioning: Antibody priors; sequence-length variation
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Prospective HER2 binding and expression; publication
+  remains preprint
+tested_designs: 16 HER2 antibody designs expressed; 57.1% of selected designs reported as
+  tight binders
+success_criterion: Prospective HER2 binding and expression; publication remains preprint
+main_results: Prospective HER2 binding and expression; publication remains preprint
+limitations: Preprint and no verified implementation; selected-design success rate is selection-conditional
+  and target-specific.
+demonstrates:
+- Prospective HER2 binding and expression; publication remains preprint
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'AbDiffuser: full-atom generation of in vitro functioning antibodies'
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: arXiv preprint (Frontier/Watchlist)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.
+- Official repository/service not verified.

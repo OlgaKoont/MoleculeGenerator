@@ -1,0 +1,46 @@
+id: off-target-optimization
+slug: off-target-optimization
+name: Off-target optimization
+group: Оптимизация существующих белков
+definition: Снижение binding к конкретным off-target молекулам.
+objective: Сохранить on-target, уменьшить выбранные off-targets.
+starting_inputs:
+- parent
+- off-target panel
+- labels
+generated_objects:
+- mutants
+generator_classes:
+- mutation-optimizer
+strategies:
+- name: Multi-objective / few-shot with off-target assay
+  generates: Ranked variants
+  representation: Sequence + labels
+  examples:
+  - evolvepro
+  - makowski-affinity-specificity
+  limitation: Нет универсального pretrained off-target generator
+  sampling: Acquisition or Pareto
+  novel_topology: Нет
+  integrated_scoring: Assay-trained surrogate
+  complexity_drivers: Panel size
+consequences:
+- decision: No negative antigen examples in de novo models
+  consequence: De novo generators обычно не решают off-target напрямую.
+compute_consequences:
+- Нужна experimental panel.
+evidence_summary: Отдельного универсального generative tool в матрице нет; это campaign-specific
+  optimization.
+incomparable:
+- Не сравнивать с de novo epitope-conditioned design.
+selection_guidance:
+- Строить вокруг EVOLVEpro/Makowski, не вокруг RFantibody.
+architecture_ids:
+- multi-objective-optimization
+- few-shot-mutation-optimization
+workflow_ids:
+- few-shot-active-learning
+paper_ids: []
+glossary_ids:
+- multi-objective
+downstream: false

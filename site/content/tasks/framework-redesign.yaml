@@ -1,0 +1,54 @@
+id: framework-redesign
+slug: framework-redesign
+name: Framework redesign
+group: Антитела и antibody-like форматы
+definition: Изменение framework вокруг сохранённых CDRs.
+objective: Повысить humanness/nativeness, сохранив binding, если это проверяется отдельно.
+starting_inputs:
+- parent VH/VL or CDRs
+generated_objects:
+- framework sequence / mutations
+generator_classes:
+- humanization
+strategies:
+- name: Iterative mutation humanization
+  generates: Mutation set on framework
+  representation: Sequence + gene classifiers
+  examples:
+  - humatch
+  limitation: Humanness ≠ immunogenicity
+  sampling: Greedy/iterative mutation
+  novel_topology: Нет
+  integrated_scoring: Humanness/pairing
+  complexity_drivers: Число mutable positions
+- name: Framework generation from CDRs
+  generates: Whole V-region around CDRs
+  representation: Sequence diffusion / AR diffusion
+  examples:
+  - hudiff
+  - huabdiffusion
+  limitation: Binding retention нужно измерять
+  sampling: Diffusion
+  novel_topology: Нет
+  integrated_scoring: Nativeness
+  complexity_drivers: Sampling steps
+consequences:
+- decision: CDR fixation
+  consequence: Не исследует новый paratope.
+compute_consequences:
+- Обычно дешевле de novo antibody generation.
+evidence_summary: Humatch retrospective; HuDiff preprint with limited prospective series.
+incomparable:
+- Humanization ≠ de novo antibody design.
+selection_guidance:
+- Нужны paired VH/VL и прозрачный open tool — Humatch.
+architecture_ids:
+- sequence-diffusion
+- multi-objective-optimization
+workflow_ids:
+- humanization-framework
+paper_ids: []
+glossary_ids:
+- humanization
+- framework
+downstream: false

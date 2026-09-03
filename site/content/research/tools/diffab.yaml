@@ -1,0 +1,128 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Что делает инструмент
+  level: 2
+  blocks:
+  - type: p
+    text: 'DiffAb co-design CDR sequence и backbone geometry при фиксированных framework + antigen coordinates. Нужен bound complex или предварительный dock (HDOCK в paper). Не de novo target dock без комплекса. Generated: CDR residues \(R=\{(s_j,x_j,O_j)\}\). [PAPER]+[CODE]'
+- title: 2. Архитектура в одном абзаце
+  level: 2
+  blocks:
+  - type: p
+    text: 'ResidueEmbedding + PairEmbedding → FullDPM: EpsilonNet (GAEncoder) предсказывает coordinate noise, next orientation, softmax over 20 AA. Forward: RotationTransition, PositionTransition, AminoacidCategoricalTransition. Sampling: T steps from random frames/seq on generate_flag residues. Side-chain packing Rosetta; AMBER99 OpenMM refine — external, not the generator. [CODE diffab.py, dpm_full.py]'
+- title: 3. Модульная схема
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Module
+    - Model class
+    - Input
+    - Output
+    - Trained/frozen
+    - Generator or evaluator
+    rows:
+    - - Residue/Pair embed
+      - SE(3)-aware encoder
+      - aa, atoms, fragment type, masks
+      - res_feat, pair_feat, R, p
+      - trained
+      - encoder
+    - - FullDPM / EpsilonNet
+      - joint diffusion
+      - noisy v,p,s + context feats
+      - denoised frames + AA dist
+      - trained
+      - generator
+    - - Rosetta packer
+      - rotamer packing
+      - backbone+seq
+      - side chains
+      - external energy
+      - post hoc, not generator of CDR backbone
+    - - OpenMM AMBER99
+      - MD relaxation
+      - full atom
+      - refined coords
+      - external
+      - evaluator/refiner
+    - - In silico energy / affinity metrics in paper
+      - scoring
+      - models
+      - numbers
+      - external
+      - not experimental affinity
+- title: 4. Математическая модель
+  level: 2
+  blocks:
+  - type: math
+    latex: \mathcal{L}=\lambda_{\mathrm{pos}}\|\epsilon_p-\hat\epsilon_p\|^2+\lambda_{\mathrm{rot}}L_{\cos}(R_{\mathrm{pred}},R_0)+\lambda_{\mathrm{seq}}\mathrm{KL}\bigl(q(s_{t-1}\mid s_t,s_0)\|q(s_{t-1}\mid s_t,\hat c)\bigr)
+    caption: 'Code-level losses in FullDPM.forward (unweighted sum in returned dict; λ defaults = 1 unless config says otherwise — check train yaml). Position: MSE on noise. Rotation: cosine embedding loss on matrix columns. Sequence: KL between true posterior and posterior from predicted categorical \(\hat c\).'
+    source: '[CODE] diffab/modules/diffusion/dpm_full.py'
+  - type: p
+    text: Positions normalized by position_scale default 10.0 Å. Sampling initializes generated residues with random_uniform_so3 and randn coords and randint AA 0–19. [CODE]
+- title: 5–6. Физика
+  level: 2
+  blocks:
+  - type: p
+    text: 'State: AA identity, Cα, local frame from N-CA-C. Context heavy atoms used in embeddings (resolution backbone+CB or full). Equivariant coordinate updates. Chemistry of interface — implicit PDB statistics. No explicit H-bond terms in NN loss.'
+- title: 7–8. Train / inference
+  level: 2
+  blocks:
+  - type: p
+    text: Trained on antibody–antigen complexes (SAbDab-based; exact filters in paper). Inference configs under configs/test. optimize() adds noise to step t then denoises — for CDR optimization, not de novo from fully random if opt_step < T. [CODE]+[PAPER]
+- title: 9. Generator vs evaluator
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Component
+    - Role
+    - Integrated/external
+    - Required/optional
+    - Generation or rank
+    rows:
+    - - DiffAb DPM
+      - generator
+      - integrated
+      - required
+      - generation
+    - - Rosetta / OpenMM
+      - packer/relax
+      - external in paper protocol
+      - post-processing
+      - after generation
+    - - Energy/affinity tables
+      - in silico scores
+      - paper evaluation
+      - not wet-lab
+      - rank only
+    - - HDOCK
+      - docking to get complex if needed
+      - external
+      - if no crystal complex
+      - defines context; error-prone
+- title: 10–12. Claims and ablation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Authors: antigen-specific CDR co-design via equivariant diffusion. Evidence: retrospective structure/energy benchmarks, designability vs baselines in paper. Prospective wet-lab: none. Causal: equivariance + joint diffusion supported by architectural comparison in paper, not by affinity ablation. Energy ≠ Kd. [PAPER]'
+- title: 13–15. Absent physics and reproducibility
+  level: 2
+  blocks:
+  - type: p
+    text: 'Absent: solvent, protonation, glycans, experimental ΔG, developability. Repo archived/read-only. License: check repo. Commit c3e2966. Paper vs code: paper describes three-modality diffusion; code confirms separate transitions and KL sequence loss rather than a single textbook DDPM equation.'
+  - type: refs
+    items:
+    - text: Luo et al. NeurIPS 2022 PDF
+      url: https://proceedings.neurips.cc/paper_files/paper/2022/file/3fa7d76a0dc1179f1e98d1bc62403756-Paper-Conference.pdf
+    - text: bioRxiv 10.1101/2022.07.10.499510
+      url: https://doi.org/10.1101/2022.07.10.499510
+    - text: luost26/diffab
+      url: https://github.com/luost26/diffab
+    - text: Joint diffusion architecture
+      url: /architectures/joint-sequence-structure-diffusion.html
+commit: c3e2966601bf8025025ab87717b31b08fdd4834e (luost26/diffab)
+inaccessible:
+- NeurIPS SI / appendix если отдельный файл — методы в основном в paper PDF + code. Wet-lab отсутствует.

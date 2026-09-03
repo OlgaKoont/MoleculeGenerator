@@ -1,0 +1,59 @@
+id: graph-neural-networks
+slug: graph-neural-networks
+name: Graph neural networks
+name_ru: Графовые нейронные сети (GNN)
+intuition: 'Белок как граф: узлы — residues/atoms, рёбра — kNN / radius / bonds. Message
+  passing собирает локальный 3D контекст; decode head делает генератор. Не dense pair
+  Transformer и не diffusion process.'
+mathematical_formulation: '$h_i^{(l+1)}=U(h_i^{(l)}, \bigoplus_{j\in\mathcal{N}(i)}
+  M(h_i^{(l)}, h_j^{(l)}, e_{ij}))$. ProteinMPNN: random-order AR $p(s\mid x)$. dyMEAN:
+  full-atom multi-channel $X_i\in\mathbb{R}^{3\times c_i}$.'
+input_representation: Residue or atom nodes; kNN/radius/bond edges; distances among N/Cα/C/O/virtual
+  Cβ; optional ligand atoms; epitope graph (dyMEAN).
+generated_state: Per-node amino-acid distributions (IF MPNN); optional side-chain χ (LigandMPNN);
+  sequence+full-atom coords+docked pose (dyMEAN). Not a backbone diffusion sample.
+training_objective: Sequence CE on native identities; optional χ / coordinate losses. Not
+  FAPE as class default. Predicted ΔΔG (dyMEAN affinity MLP) is not an assay.
+inference: Autoregressive decode over a random node permutation, or iterative full-atom
+  updates then Kabsch docking. One dyMEAN structure per forward.
+conditioning: Design masks, tied oligomer positions, ligand/NA/metal atoms, epitope subgraph.
+  Not ELISA labels.
+complexity_drivers:
+- Число узлов L
+- Степень kNN
+- Слои message passing
+- AR decode steps (ProteinMPNN)
+strengths:
+- Локальный packing inductive bias
+- Sub-quadratic vs dense pair Transformer
+- ProteinMPNN wet-lab rescue of failed Rosetta/AF sequences
+limitations:
+- kNN cutoff misses some long-range contacts
+- Residue graph misses clashes until packing
+- Likelihood / recovery / DockQ ≠ experimental affinity
+failure_modes:
+- Treating ESM-IF1 as this GNN class (it is GVP then Transformer)
+- Treating sequence recovery as folding or Kd
+- Using dyMEAN predicted ΔΔG as SPR
+applicable_task_ids:
+- inverse-folding
+- joint-cdr-sequence-structure-design
+- functional-site-design
+not_for_task_ids:
+- few-shot-active-learning
+- de-novo-backbone-generation
+paper_ids:
+- paper-proteinmpnn
+- paper-ligandmpnn
+- paper-dymean
+- paper-chroma
+subtypes:
+- Residue MPNN inverse folding (ProteinMPNN)
+- Atom-context MPNN (LigandMPNN)
+- Full-atom E(3) multi-channel GNN (dyMEAN)
+- GNN as denoiser/design-net (Chroma)
+glossary_ids:
+- backbone
+- equivariance
+- inverse-folding
+- sampling

@@ -1,0 +1,24 @@
+id: expression-prediction
+slug: expression-prediction
+name: Expression prediction
+group: Downstream engineering (не генерация)
+definition: Предсказание уровня экспрессии.
+objective: Приоритизация constructs.
+starting_inputs:
+- sequence
+generated_objects:
+- predicted expression
+generator_classes: []
+strategies: []
+consequences: []
+compute_consequences: []
+evidence_summary: Predictor only.
+incomparable:
+- Не generator.
+selection_guidance:
+- Не использовать как design engine.
+architecture_ids: []
+workflow_ids: []
+paper_ids: []
+glossary_ids: []
+downstream: true

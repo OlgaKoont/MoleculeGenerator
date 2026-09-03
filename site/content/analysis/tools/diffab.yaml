@@ -1,0 +1,202 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Код DiffAb просмотрен (модели и train/test configs). NeurIPS PDF не close-read: retrospective цифры paper — NR, кроме того что заявлено в README как in silico design tool."
+lede: "DiffAb — antigen-conditioned **joint diffusion** CDR residue type, Cα и ориентации. Framework и antigen зажаты. Optional HDOCK и PyRosetta — **не** нейросеть. Archived repository."
+inaccessible:
+  - source: "NeurIPS 2022 PDF full Results/Ablations"
+    reason: "Не постраничное чтение"
+    workaround: "code + README + configs"
+sources:
+  - kind: CODE
+    citation: "https://github.com/luost26/diffab"
+    url: "https://github.com/luost26/diffab"
+  - kind: DOC
+    citation: "README design modes; Hugging Face weights"
+    url: "https://huggingface.co/luost26/DiffAb"
+  - kind: PAPER
+    citation: "Luo et al. NeurIPS 2022"
+    url: "https://openreview.net/forum?id=jSorGn2Tjg"
+repo:
+  url: "https://github.com/luost26/diffab"
+  commit: "c3e2966601bf8025025ab87717b31b08fdd4834e"
+  ref: "main (archived)"
+  license: "Apache-2.0 (каталог YAML)"
+  files:
+    - diffab/models/diffab.py
+    - diffab/modules/diffusion/dpm_full.py
+    - configs/train/codesign_single.yml
+    - configs/test/codesign_single.yml
+    - README.md
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** antibody–antigen PDB, heavy/light IDs, config mode. **Выход:** CDR sequence + backbone geometry на маске. **Фиксируется:** framework и antigen (в codesign). Modes: codesign single/multi CDR, abopt, fixbb (sequence only), strpred (structure only). Parent complex-based, не sequence-only de novo."
+        source: DOC
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "`DiffusionAntibodyDesign`: ResidueEmbedding + PairEmbedding + FullDPM. EpsilonNet (GAEncoder, 6 layers) предсказывает rotation update, position epsilon и softmax по 20 АК. T=100. Position normalized /10 Å. Sequence embedding 25 types (padding)."
+        source: CODE
+  - id: math-model
+    title: "4. Математическая модель"
+    paragraphs:
+      - text: "См. класс [joint sequence–structure diffusion](../architectures/joint-sequence-structure-diffusion.html). Потери rot cosine, pos MSE-on-noise, seq KL posterior. Sampling: полный шум на generate mask, затем 100 denoise steps."
+        source: CODE
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "На каждом t: (s_t, p_t, v_t) для каждого residue. Context — истинные (или observed) s,p,v. Fitness не в state."
+        source: CODE
+  - id: physchem
+    title: "6. Физико-химическая интерпретация"
+    paragraphs:
+      - text: "Интерфейс может отражаться в pair geometry. H-bonds/electrostatics — не explicit. Optional PyRosetta binding energy — **external approximate energy**, не learned ΔG."
+        source: DOC
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "SAbDab chothia structures + summary TSV. mask_single_cdr. 200k iterations. Точный N комплексов и split hashes — NR без paper/processed data. Fine-tuning from general protein diffusion — не заявлено в просмотренном config (train from DiffAb model type)."
+        source: CODE
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "100 samples default test config. GPU required (качественно). HDOCK для antigen-only. Ray для parallel relax. Runtime boundary: neural sampling ≠ docking ≠ Rosetta ≠ experiment."
+        source: DOC
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Proposed mechanism (from title/README):** antigen-specific co-design via equivariant diffusion so sequence and structure remain consistent. **Author claim:** design and optimization of antibodies with diffusion models (NeurIPS). **Evidence this pass:** in silico / retrospective per catalog; **не** prospective wet-lab в primary paper по YAML/README. **Causal support:** unclear without ablation tables from PDF — marked NR."
+        source: NR
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "Ablations NeurIPS (fixbb vs codesign vs strpred как режимы inference существуют в configs, но количественные таблицы paper не извлечены). Наличие отдельных train flags `train_structure`/`train_sequence` позволяет режимы, не доказывая causal gain на binding."
+        source: CODE
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Экспериментальный binding"
+      - "Явный растворитель, гликаны, протоны"
+      - "Full conformational ensemble"
+      - "Developability"
+      - "Unbound antigen без HDOCK/template"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Archived repo (2023 last commit env.yaml). Energy scores are evaluation. Не сравнивать hit rate с RFantibody prospective campaigns."
+        source: INTERPRETATION
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "Apache-2.0, weights on Hugging Face luost26/DiffAb. CUDA 11.3 env.yaml. SAbDab download required. Commit `c3e29666`."
+        source: DOC
+modules:
+  - module: "Residue/Pair embedding"
+    model_class: "learned geometric embed"
+    input: "aa, coords, chain, fragment_type"
+    output: "res_feat, pair_feat"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "encoder for generator"
+  - module: "FullDPM EpsilonNet"
+    model_class: "equivariant denoiser"
+    input: "noisy v,p,s + feats + beta"
+    output: "updated frames, eps_pos, p(aa)"
+    trained_or_frozen: "trained"
+    generator_or_evaluator: "generator"
+  - module: "HDOCK"
+    model_class: "docking"
+    input: "unbound antigen + Ab template"
+    output: "posed complex"
+    trained_or_frozen: "external binary"
+    generator_or_evaluator: "external initializer, not neural generator"
+  - module: "PyRosetta energy"
+    model_class: "physical energy approx."
+    input: "structure"
+    output: "energy"
+    trained_or_frozen: "external"
+    generator_or_evaluator: "post_hoc evaluator"
+gen_vs_eval:
+  - component: "DiffAb reverse diffusion"
+    role: "primary generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "Rosetta energy / structural metrics"
+    role: "scorer"
+    integrated_or_external: "optional external"
+    required_or_optional: "optional"
+    influences: "post_hoc"
+  - component: "HDOCK"
+    role: "docking initializer"
+    integrated_or_external: "optional external"
+    required_or_optional: "optional (antigen-only path)"
+    influences: "starting pose, not neural sampling"
+  - component: "Experimental assay"
+    role: "validation"
+    integrated_or_external: "external"
+    required_or_optional: "required for binding claims"
+    influences: "not in model"
+claim_evidence:
+  - claim: "Joint diffusion co-designs CDR sequence and structure in antigen context"
+    mechanism: "coupled discrete-continuous DPM"
+    evidence_type: "architectural rationale only"
+    dataset: "implementation + README modes"
+    comparator: "fixbb / strpred configs exist"
+    metric: "NR without PDF tables"
+    source: CODE
+    locator: "models/diffab.py sample/optimize"
+    caveat: "Не wet-lab"
+  - claim: "Prospective therapeutic antibodies demonstrated in primary paper"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "не показано в каталоге/README"
+    source: MATRIX
+    locator: "evidence_level 1–2"
+    caveat: "Не путать с RFantibody"
+diagrams:
+  - code: |
+      flowchart LR
+        subgraph gen["Generator"]
+          DPM["FullDPM T=100"]
+        end
+        subgraph opt["Optional external"]
+          HD["HDOCK"]
+          PR["PyRosetta"]
+        end
+        subgraph exp["Experiment"]
+          W["Wet-lab — not in paper as prospective"]
+        end
+        HD --> DPM
+        DPM --> PR
+        PR -.-> W
+    caption: "Разделение neural generator и external docking/relax."
+    source_note: "README + dpm_full.py"
+paper_vs_code:
+  - paper_version: "NeurIPS 2022 (PDF not fully read)"
+    repo_commit: "c3e29666"
+    model_version: "trained_models/codesign_single.pt (path in yaml; file not hashed here)"
+    file: "configs/train/codesign_single.yml"
+    difference: "T=100, dims 128/64, 6 layers — code-grounded; paper wording may differ in notation"
+    consequence: "Сверять sampling steps с config, не с обзорами"
+citations:
+  - id: 1
+    text: "Luo et al. NeurIPS 2022 DiffAb"
+    url: "https://openreview.net/forum?id=jSorGn2Tjg"
+  - id: 2
+    text: "GitHub luost26/diffab c3e2966601bf8025025ab87717b31b08fdd4834e"
+    url: "https://github.com/luost26/diffab"
+unresolved:
+  - "Quantitative tables from NeurIPS"
+  - "Exact SAbDab date snapshot leakage"
+physchem_table:
+  - feature: "generate_flag CDRs"
+    interpretation: "проектируемые петли"
+    encoded: "прямо маской"
+    limitation: "длина CDR задаётся шаблоном"
+  - feature: "pair_feat to antigen"
+    interpretation: "геометрия интерфейса"
+    encoded: "learned"
+    limitation: "не энергия"

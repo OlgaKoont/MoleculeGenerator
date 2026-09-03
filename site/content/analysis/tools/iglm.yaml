@@ -1,0 +1,252 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "Cell Systems HTML (STAR Methods + Results) прочитан. Preprint bioRxiv 10.1101/2021.12.13.472419 использован как согласованный open text. Код `iglm/model/IgLM.py` на commit `de819b56`. Table S1/S2 species counts и точные OASis численные дельты в фигурах не перенесены таблично."
+lede: "IgLM — **sequence infilling generator** для unpaired VH/VL. GPT-2 decoder обучается на перестановке span (ILM): маска 10–20 residues уходит в конец после `[SEP]`. Это не inverse folding, не structure diffusion и не affinity predictor. In silico developability / OASis / AF pLDDT $\\neq$ experimental binding."
+inaccessible:
+  - source: "Cell Systems STAR supplemental PDF (Table S1 species counts, Table S2 prompt motifs)"
+    reason: "S-tables не извлечены построчно"
+    workaround: "Основной HTML: 809M → 588M cluster → 558M train / 1M val / 5% test; N-terminal truncation >40% OAS"
+sources:
+  - kind: PAPER
+    citation: "Shuai, Ruffolo, Gray. IgLM: Infilling language modeling for antibody sequence design. Cell Systems 14, 979–989 (2023)."
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+    doi: "10.1016/j.cels.2023.10.001"
+  - kind: PAPER
+    citation: "bioRxiv 10.1101/2021.12.13.472419 (preprint of the same work)"
+    url: "https://doi.org/10.1101/2021.12.13.472419"
+    doi: "10.1101/2021.12.13.472419"
+  - kind: CODE
+    citation: "Graylab/IgLM"
+    url: "https://github.com/Graylab/IgLM"
+    note: "commit de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+repo:
+  url: "https://github.com/Graylab/IgLM"
+  commit: "de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+  ref: "main"
+  license: "JHU Academic Software License (non-commercial); commercial via JHTV"
+  files:
+    - iglm/model/IgLM.py
+    - iglm/model/tokens.py (imported; not fully re-read)
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход (infill):** родительская unpaired sequence, chain token (`[HEAVY]`/`[LIGHT]`), species token, полуинтервал `[start, end)` для span. **Вход (generate):** только conditioning tags ± optional prompt."
+        source: CODE
+        locator: "IgLM.infill / generate"
+      - text: "**Выход:** синтетические AA sequences (полная цепь или infilled span). Нет координат, нет paired VH–VL в одном forward (цепи независимы)."
+        source: PAPER
+      - text: "Parent-based CDR diversification или species-conditioned full-chain generation. Не de novo docked antibody."
+        source: PAPER
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "Decoder-only GPT-2 (HuggingFace `GPT2LMHeadModel`). IgLM: 4 layers, $d=512$, 8 heads, FFN 2048, **12,889,600** params. IgLM-S: 3 layers, $d=192$, 6 heads, FFN 768, **1,439,616**. Токенизатор `BertTokenizerFast` по `vocab.txt` (AA + specials). Infilling Donahue-style: span $S$ заменяется `[MASK]`, исходная последовательность + `[SEP]` + $S$ + `[ANS]`."
+        source: PAPER
+        locator: "Table 1; STAR Methods; CODE from_pretrained"
+  - id: math-model
+    title: "4. Математическая модель"
+    equations:
+      - latex: "A=(a_1,\\ldots,a_n),\\quad m\\sim\\mathrm{Unif}\\{10,\\ldots,20\\},\\quad j\\sim\\mathrm{Unif}\\{1,\\ldots,n-m+1\\}"
+        caption: "Train: длина и старт маски. Conditioning tokens $c_c,c_s$ prepend."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+      - latex: "p_\\theta(S\\mid A\\setminus S)=\\prod_{i} p_\\theta(S_i\\mid A\\setminus S, S_{<i})"
+        caption: "Infill: генерировать span до `[ANS]`. $A\\setminus S$ содержит фланги, `[MASK]`, `[SEP]`."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+        symbols:
+          - {sym: "A", type: "token sequence", meaning: "антитело VH или VL"}
+          - {sym: "S", type: "span", meaning: "маскированный участок 10–20 residues при train; при infill — произвольный пользовательский диапазон"}
+          - {sym: "c_c,c_s", type: "discrete tags", meaning: "chain and species"}
+      - latex: "p(x_i)=\\frac{e^{z_i/T}}{\\sum_j e^{z_j/T}}\\quad\\text{nucleus }P\\text{: оставить минимальный набор с cumul}\\ge P"
+        caption: "Inference sampling. Default code: `temperature=1`, `top_p=1`, `max_length=150`."
+        generic_or_specific: "tool-specific [PAPER Eq. 6 + CODE generate]"
+        source: CODE
+      - latex: "\\mathrm{PPL}_{\\mathrm{infill}}=\\exp\\Bigl[-\\frac{1}{N_{S'}}\\sum \\log p(S'_i\\mid \\cdot)\\Bigr]"
+        caption: "Infilling perplexity = per-token PPL после `[SEP]` (Eq. 4)."
+        generic_or_specific: "tool-specific"
+        source: PAPER
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Состояние — дискретная unpaired antibody sequence. Нет атомов, frames, antigen. Species/chain tags — датасетные метки OAS, не 3D. Перестановка span — NLP-трюк, не биологический splicing (V(D)J уже произошёл в train sequences)."
+        source: INTERPRETATION
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "OAS unpaired: после фильтра ошибок 809M unique → LinClust 95% → 588M. Random 5% test; 558M train, 1M val. Skew: human heavy ~70%. Split **не** germline-holdout: авторы сознательно оставляют все conserved regions в train."
+        source: PAPER
+        locator: "STAR: Antibody sequence dataset"
+      - text: "Batch 512, 2 grad accum, DeepSpeed, ~3 days × 4×A100. Objective — стандартный AR NLL на перестроенной последовательности (включая infilled span)."
+        source: PAPER
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "`generate`: sample until `[ANS]` (`eos` = CLS token в коде), `bad_words_ids`, duplicate filter. Full-length sequences из ILM содержат `[MASK]/[SEP]/[ANS]` и **пересобираются**. Prompt из 3 N-terminal residues (Table S2, NR exact motifs here) из-за >40% OAS truncations."
+        source: PAPER
+        locator: "Full-length antibody generation; CODE _generate"
+      - text: "Infill библиотек в статье: 49 Thera-SAbDab mAbs, CDR H3 по Chothia удалён, 1000 seq × {T∈0.8,1.0,1.2} × {P∈0.5,0.75,1.0} = 9000/parent. AF-Multimer pLDDT — **внешний predictor**."
+        source: PAPER
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Mechanism.** Bidirectional context для CDR (фланги видны до генерации span) vs left-to-right ProGen2-OAS; species/chain tags vs prompting."
+        source: PAPER
+      - text: "**Author claim.** Generates full-length and infilled libraries resembling natural antibodies with tunable diversity and improved in silico developability/humanness vs random; could then be experimentally screened."
+        source: PAPER
+        locator: "Discussion: 'which could then be experimentally screened'"
+      - text: "**Evidence.** Infilling PPL vs ProGen2 (Fig. 1D); ANARCI species/chain controllability; germline identity vs T; in silico aggregation/solubility/OASis on 49 therapeutics. **Нет prospective binding/function assay IgLM-designed clones в primary paper.**"
+        source: PAPER
+      - text: "**Causal support.** Bidirectional vs preceding-only PPL — ablation-like. Developability — in silico scores, не wet-lab. Causal claim 'reduces non-functional fraction vs random libraries' **не** подтверждён экспериментом в этой статье."
+        source: INTERPRETATION
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "IgLM vs IgLM-S (capacity). Bidirectional vs preceding-only infill PPL (Fig. 1D). Temperature / nucleus vs diversity, length, OASis (Figs. 2–3). Нет ablation 'remove species token' с таблицей recovery в извлечённом HTML (NR beyond qualitative rat failure)."
+        source: PAPER
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Структура, antigen, epitope, dock"
+      - "Paired chain covariation (unpaired OAS)"
+      - "Растворитель, PTM, glycosylation"
+      - "Истинная аффинность; AF pLDDT и OASis ≠ Kd / immunogenicity assay"
+      - "Developability в CHO как экспериментальный readout"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Авторы прямо откладывают experimental screening. N-terminal truncations, human-heavy skew, rat generation failure, OAS sequencing error residuals. `max_length=150` в коде может обрезать длинные CDR3. Non-commercial license."
+        source: PAPER
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "Checkpoints `trained_models/IgLM` и `IgLM-S`. Dataset OAS95: data.graylab.jhu.edu/OAS95.tar.gz (не скачивался). Commit de819b56 — licensing text update (2026-07-20)."
+        source: CODE
+physchem_table:
+  - feature: "AA tokens"
+    interpretation: "первичная структура VH/VL"
+    encoded: "прямо"
+    limitation: "нет 3D / antigen"
+  - feature: "species / chain tags"
+    interpretation: "репертуарный prior OAS"
+    encoded: "прямо как special tokens"
+    limitation: "OAS label ≠ ANARCI class (camel↔alpaca)"
+  - feature: "span permutation ILM"
+    interpretation: "двусторонний sequence context для CDR"
+    encoded: "train-time rearrangement"
+    limitation: "не физический механизм созревания"
+  - feature: "OASis / aggregation predictors in paper"
+    interpretation: "in silico developability / humanness"
+    encoded: "external evaluators"
+    limitation: "не часть generator; не assay"
+modules:
+  - module: "GPT2LMHeadModel"
+    model_class: "decoder-only transformer"
+    input: "tags + (masked) tokens"
+    output: "next-token logits"
+    trained_or_frozen: "trained (released frozen)"
+    generator_or_evaluator: "generator"
+  - module: "log_likelihood()"
+    model_class: "same GPT-2"
+    input: "sequence ± infill_range"
+    output: "mean NLL (negative returned as likelihood)"
+    trained_or_frozen: "frozen"
+    generator_or_evaluator: "evaluator"
+  - module: "AlphaFold-Multimer / OASis / aggregation"
+    model_class: "external"
+    input: "generated sequences"
+    output: "pLDDT / humanness / in silico scores"
+    trained_or_frozen: "n/a"
+    generator_or_evaluator: "external evaluation"
+gen_vs_eval:
+  - component: "GPT-2 infill/generate"
+    role: "primary_generator"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "log_likelihood"
+    role: "integrated_scorer"
+    integrated_or_external: "integrated"
+    required_or_optional: "optional"
+    influences: "post_hoc"
+  - component: "AF-Multimer pLDDT"
+    role: "structure predictor"
+    integrated_or_external: "external"
+    required_or_optional: "paper only"
+    influences: "post_hoc; не sample()"
+  - component: "wet-lab affinity"
+    role: "experimental_validation"
+    integrated_or_external: "external"
+    required_or_optional: "not in primary paper"
+    influences: "absent"
+claim_evidence:
+  - claim: "Bidirectional infill лучше left-to-right на CDR PPL"
+    mechanism: "ILM span-at-end"
+    evidence_type: "retrospective benchmark"
+    dataset: "30M held-out OAS infill PPL"
+    comparator: "IgLM [pre], ProGen2-base, ProGen2-OAS"
+    metric: "infilling perplexity by CDR (Fig. 1D); CDR3 hardest"
+    source: PAPER
+    locator: "Fig. 1D"
+    caveat: "PPL ≠ function"
+  - claim: "Species/chain tags контролируют генерацию"
+    mechanism: "conditioning tokens"
+    evidence_type: "retrospective benchmark"
+    dataset: "220k full-length samples"
+    comparator: "ANARCI classification vs tag"
+    metric: "agreement high for most species; rat failure; camel heavy-only"
+    source: PAPER
+    locator: "Fig. 2C"
+    caveat: "ANARCI taxonomy ≠ OAS labels"
+  - claim: "Infilled CDR-H3 libraries improve in silico developability/humanness"
+    mechanism: "natural OAS prior"
+    evidence_type: "developability/manufacturability evidence"
+    dataset: "49 Thera-SAbDab; 9000 variants/parent"
+    comparator: "parent sequences; sampling T/P"
+    metric: "in silico aggregation/solubility/OASis (figures)"
+    source: PAPER
+    locator: "Fig. 3, S10"
+    caveat: "Класс evidence 6 in silico, не experimental developability и не binding"
+  - claim: "IgLM designed antibodies bind antigen"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "не показано в primary paper"
+    source: PAPER
+    locator: "Discussion: libraries 'could then be experimentally screened'"
+    caveat: "Не заполнять как prospective binding"
+paper_vs_code:
+  - paper_version: "Cell Systems 2023"
+    repo_commit: "de819b56238b5cb9c23d7a6fec4c55d7fc0395e4"
+    model_version: "IgLM 12.9M / IgLM-S 1.4M"
+    file: "iglm/model/IgLM.py"
+    difference: "Paper max context не равен коду `max_length=150` в generate(). eos_token_id = tokenizer.cls_token_id. log_likelihood returns `-nll` (higher better)."
+    consequence: "Очень длинные CDR3 могут обрезаться; не путать знак likelihood."
+diagrams:
+  - code: |
+      flowchart TD
+        Tags["chain + species tokens"] --> ILM["GPT-2 decoder AR"]
+        Seq["Unpaired VH or VL"] --> Mask["Replace span with MASK, append span after SEP"]
+        Mask --> ILM
+        ILM --> Out["Infilled or full-length sequence"]
+        Out -.->|"paper only"| AF["AF-Multimer / OASis"]
+    caption: "Generator — GPT-2. AF и OASis только post hoc в статье."
+    source_note: "Shuai et al. Cell Systems 2023 Fig. 1A; схема оригинальная"
+citations:
+  - id: "1"
+    text: "Shuai R.W., Ruffolo J.A., Gray J.J. IgLM: Infilling language modeling for antibody sequence design. Cell Systems 14, 979–989 (2023)."
+    doi: "10.1016/j.cels.2023.10.001"
+    url: "https://doi.org/10.1016/j.cels.2023.10.001"
+  - id: "2"
+    text: "bioRxiv 10.1101/2021.12.13.472419."
+    doi: "10.1101/2021.12.13.472419"
+    url: "https://doi.org/10.1101/2021.12.13.472419"
+  - id: "3"
+    text: "Graylab/IgLM commit de819b56."
+    url: "https://github.com/Graylab/IgLM"
+unresolved:
+  - "Table S2 exact 3-mer prompts"
+  - "tokens.py BAD_WORD_IDS полный список"
+  - "Independent experimental validation of IgLM libraries — NR this pass"

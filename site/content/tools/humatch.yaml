@@ -1,0 +1,191 @@
+identity:
+  id: humatch
+  name: Humatch
+  slug: humatch
+  aliases:
+  - Humatch
+  version: null
+  release_year: '2024'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/oxpig/Humatch
+  official_documentation: null
+  official_service: null
+  license: BSD-3-Clause
+  commercial_use_status: Code + web service
+  publication_status: Peer-reviewed journal; mAbs; Q1 status NR
+classification:
+  task_ids:
+  - humanization
+  - framework-redesign
+  workflow_ids:
+  - humanization-framework
+  architecture_ids:
+  - multi-objective-optimization
+  generator_classes:
+  - humanization
+  output_modalities:
+  - sequence
+  supported_formats: Paired antibody VH/VL
+  de_novo_or_optimization: Optimizes existing antibody
+  general_protein_relevance: Antibody-only
+  antibody_relevance: High for humanization
+  VHH_relevance: Not primary
+  mutation_relevance: Direct framework mutation proposals
+  compatibility_group: humanization
+generation:
+  exact_generated_object: Humanized heavy/light variable-domain sequences and mutation set
+  required_input: Paired non-human VH/VL sequences
+  conditioning: CDRs excluded by default; target human V-genes; paired-chain compatibility
+  fixed_components: null
+  editable_components: null
+  generated_components: Humanized heavy/light variable-domain sequences and mutation set
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: Humanness + pairing; not affinity/developability
+    Pareto optimization
+  candidate_generation_mechanism: Gene-specific CNN classifiers + iterative mutation selection
+    and VH/VL pairing score
+architecture:
+  base_model: null
+  model_family: Gene-specific CNN classifiers + iterative mutation selection and VH/VL pairing
+    score
+  model_type: 7 Humanization/framework redesign workflow
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: CDRs excluded by default; target human V-genes; paired-chain compatibility
+  generation_mechanism: Gene-specific CNN classifiers + iterative mutation selection and VH/VL
+    pairing score
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Humanized heavy/light variable-domain sequences and mutation set
+  internal_scorer: Human V-gene classifiers + pairing model
+  structure_generation: No structure/complex predictor
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: Iterative humanization mutation workflow
+  integrated_generators: []
+  integrated_scorers:
+  - Human V-gene classifiers + pairing model
+  integrated_structure_predictor: No structure/complex predictor
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Structure, binding retention, developability and immunogenicity assessment
+  optional_external_dependencies:
+  - Humanness/pairing scoring integrated
+  breakdown:
+  - name: Iterative humanization mutation workflow
+    role: primary_generator
+    architecture_class: Gene-specific CNN classifiers + iterative mutation selection and VH/VL
+      pairing score
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Human V-gene classifiers + pairing model
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Structure, binding retention, developability and immunogenicity assessment
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 2 retrospective evaluation on 177 humanized antibodies
+  retrospective_validation: No prospective wet-lab validation in primary paper
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary paper
+  success_criterion: Retrospective similarity to experimental humanizations; no measured affinity
+    retention
+  independent_validation: null
+  evidence_summary: Retrospective similarity to experimental humanizations; no measured affinity
+    retention
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - Humanness is not immunogenicity.
+  - CDR preservation does not guarantee binding retention.
+  - no prospective validation.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Immediate retrospective evaluation
+relations:
+  related_tools:
+  - hudiff
+  - huabdiffusion
+  alternatives:
+  - hudiff
+  - huabdiffusion
+  complementary_tools:
+  - iglm
+  - antifold
+  incompatible_comparisons:
+  - alphaproteo
+  - bindcraft
+  - boltzgen
+  - framediff
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-humatch
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids:
+  - humanization
+  - framework
+detailed_architecture: {}
+review_queue: []

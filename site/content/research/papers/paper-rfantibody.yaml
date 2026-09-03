@@ -1,0 +1,12 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: Статья
+  level: 2
+  blocks:
+  - type: p
+    text: <strong>Bennett NR, Watson JL, Ragotte RJ, et al.</strong> (Baker lab). Atomically accurate de novo design of antibodies with RFantibody. <em>Nature</em> 2025. DOI <a href="https://doi.org/10.1038/s41586-025-09721-5">10.1038/s41586-025-09721-5</a>.
+  - type: p
+    text: 'Question: можно ли epitope-conditioned de novo спроектировать VHH/scFv с atomic CDR accuracy? Multi-model: RFdiffusion FT + ProteinMPNN + RF2 filter. Prospective binding yes (low rate). Does not prove high-throughput therapeutic discovery. Confidence metrics are filters. SI needed for exact FT mixture weights.'
+inaccessible:
+- Nature SI not fully extracted page-by-page.

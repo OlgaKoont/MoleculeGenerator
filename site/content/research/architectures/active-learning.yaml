@@ -1,0 +1,305 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: 'Active learning (AL) — это <strong>не</strong> отдельная нейронная архитектура. Это последовательная схема принятия решений: на каждом раунде выбирается, какие кандидаты измерить экспериментально, чтобы обновить модель и улучшить целевое свойство при ограниченном бюджете assays.'
+  - type: p
+    text: По роли в пайплайне AL — <em>workflow organization principle</em> / стратегия оптимизации. Генератором в узком смысле является правило предложения кандидатов (ранжирование, sampling из generative model, или ручная библиотека). Surrogate — внутренний scorer/predictor. Assay — experimental stage.
+  - type: p
+    text: 'Объекты: обычно варианты белка \(x\) (мутанты parent sequence) из заранее заданного пула \(U\); метки \(y\) — экспериментальный fitness, binding, activity, yield и т.д. Не генерируется de novo backbone и не решается docking.'
+  - type: p
+    text: 'В этом каталоге AL используется для <a href="/tasks/few-shot-active-learning.html">few-shot active learning</a>, <a href="/tasks/ml-guided-directed-evolution.html">ML-guided directed evolution</a> и, при нескольких свойствах, <a href="/tasks/multi-objective-optimization.html">multi-objective optimization</a>. Эталон инструмента: <a href="/tools/evolvepro.html">EVOLVEpro</a>.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: На старте есть parent и либо случайная/diversified начальная панель, либо уже накопленные labels. Surrogate учится отображать представление варианта (часто PLM embedding) в измеренное свойство.
+  - type: p
+    text: Неопределённость моделируется только если surrogate это делает явно (GP, ensemble, dropout). Многие практические белковые AL-системы, включая released EVOLVEpro, <strong>не</strong> используют calibrated \(\sigma(x)\) и выбирают кандидатов по предсказанному среднему.
+  - type: p
+    text: После выбора batch \(B_t\) ставится эксперимент, labels добавляются в \(D_{t+1}\), surrogate переобучается. Цикл повторяется, пока не исчерпан бюджет или не достигнуто целевое свойство.
+  - type: warn
+    text: Фраза «модель учится быстрее» без указания механизма неинформативна. Ускорение относительно случайного скрининга возникает только если (i) представление отделяет high-fitness варианты и (ii) правило отбора не схлопывается в локальный оптимум.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Ниже — <strong>generic</strong> pool-based active learning. Это не уравнение EVOLVEpro. Tool-specific правило отбора см. <a href="/tools/evolvepro.html">страницу EVOLVEpro</a>.
+  - type: math
+    latex: '\begin{aligned}
+
+      D_t &= \{(x_i,y_i)\}_{i=1}^{n_t}, \quad x_i \in \mathcal{X},\ y_i \in \mathbb{R},\\
+
+      U_t &= \mathcal{X}\setminus \{x:(x,\cdot)\in D_t\},\\
+
+      \hat{p}_t(y\mid x) &= p(y\mid x, D_t),\\
+
+      B_t &= \arg\max_{B\subset U_t,\, |B|=k} A_t(B),\\
+
+      D_{t+1} &= D_t \cup \{(x,y^{\mathrm{exp}}): x\in B_t\}.
+
+      \end{aligned}'
+    caption: Generic pool-based AL. \(D_t\) — накопленные labels после раундов \(1..t\); \(U_t\) — ещё не измеренный пул; \(\hat{p}_t\) — surrogate; \(A_t\) — batch acquisition; \(k\) — размер раунда; \(y^{\mathrm{exp}}\) — экспериментальная метка.
+    source: '[INTERPRETATION] стандартная постановка pool-based AL; ср. Settles 2009'
+  - type: p
+    text: 'Символы: \(\mathcal{X}\) — дискретное пространство вариантов (например, все single mutants + выбранные combinatorial mutants); \(n_t\) — число измеренных точек; \(k\) — batch size; \(A_t(B)\) — скалярная функция полезности набора.'
+  - title: Surrogate и неопределённость
+    level: 3
+    blocks:
+    - type: p
+      text: 'Predictive mean \(\mu_t(x)=\mathbb{E}[y\mid x,D_t]\). Predictive uncertainty \(\sigma_t(x)\) существует только если модель её выдаёт:'
+    - type: ul
+      items:
+      - 'Gaussian process: \(\sigma_t^2(x)=k(x,x)-k_{xD}K_{DD}^{-1}k_{Dx}\);'
+      - 'ensemble / bootstrap: std по членам ансамбля;'
+      - 'Bayesian NN / MC-dropout: std по posterior samples;'
+      - 'distance in embedding space: \(\min_{x''\in D_t}\|e(x)-e(x'')\|\) — это <em>не</em> calibrated \(\sigma\);'
+      - random forest в sklearn по умолчанию даёт \(\hat{y}\), но не \(\sigma\); в released EVOLVEpro \(\sigma\) явно обнуляется.
+  - title: Acquisition functions (generic subtypes)
+    level: 3
+    blocks:
+    - type: p
+      text: Эти формулы относятся к классу методов. <strong>Не переносите их на EVOLVEpro</strong>, если код не реализует соответствующее правило.
+    - type: math
+      latex: a_{\mathrm{UCB}}(x)=\mu_t(x)+\kappa\sigma_t(x)
+      caption: Upper Confidence Bound. \(\kappa>0\) — exploration weight. Требует \(\sigma_t\). EVOLVEpro default это не использует.
+      source: '[PAPER] generic GP-UCB (Srinivas et al.); не EVOLVEpro'
+    - type: math
+      latex: a_{\mathrm{EI}}(x)=\mathbb{E}[\max(0, y-y_{\mathrm{best}}^+)\mid x,D_t]
+      caption: Expected Improvement. \(y_{\mathrm{best}}^+\) — лучшая наблюдённая метка (иногда с jitter). Требует predictive distribution, не только \(\mu\).
+      source: '[PAPER] generic BO; не EVOLVEpro default'
+    - type: math
+      latex: a_{\mathrm{PI}}(x)=P(y>y_{\mathrm{best}}^+ +\xi\mid x,D_t)
+      caption: Probability of Improvement. \(\xi\) — порог минимального улучшения.
+      source: '[PAPER] generic BO'
+    - type: p
+      text: 'Thompson sampling: \(x\mapsto f^{(s)}(x)\) для sample \(f^{(s)}\) из posterior. Entropy / BALD: максимизация взаимной информации между labels и параметрами. Diversity-aware batch: штраф за сходство внутри \(B_t\) (например, k-medoids в embedding space). Pareto / multi-objective: scalarization \(w^\top \mu(x)\) или non-dominated sorting.'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Что предлагается
+      - Откуда кандидаты
+      - Есть ли iterative labels
+      - Типичный инструмент
+      rows:
+      - - Pool-based AL
+        - subset из готового пула
+        - user-defined library / enumerated mutants
+        - да
+        - <a href="/tools/evolvepro.html">EVOLVEpro</a>
+      - - Generative proposal + AL
+        - новые \(x\) вне исходного пула
+        - генеративная модель (LM, diffusion)
+        - да, после assay
+        - в этом каталоге как отдельный released loop — NR
+      - - Bayesian optimization
+        - AL с probabilistic surrogate и acquisition
+        - обычно непрерывный или эмбеддинговый домен
+        - да
+        - GP-вариант в коде EVOLVEpro есть, но не default
+      - - Zero-shot scoring
+        - ранжирование без новых labels
+        - enumerated substitutions
+        - нет
+        - <a href="/tools/esm-1v-efficient-evolution.html">ESM-1v</a>, <a href="/architectures/zero-shot-mutation-scoring.html">zero-shot scoring</a>
+      - - Supervised regression one-shot
+        - fit на всех labels сразу, без цикла
+        - тот же пул
+        - нет цикла
+        - обычный fitness predictor
+    - type: p
+      text: Bayesian optimization ⊂ active learning с явным posterior. Model-guided directed evolution может быть AL, но может быть и жадным отбором по \(\hat{y}\) без uncertainty — это всё ещё sequential optimization, но уже не классический UCB/EI.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: p
+    text: 'Generic AL не фиксирует тензоры. В белковых реализациях типичны:'
+  - type: ul
+    items:
+    - amino-acid tokens parent sequence и mutant strings;
+    - PLM embeddings \(e(x)\in\mathbb{R}^{d}\) (mean-pool residue representations или [CLS]);
+    - опционально PCA(\(e(x)\));
+    - скалярные labels \(y\) (activity, ELISA, yield) и производные scaled/binary колонки;
+    - маска «уже измерен / ещё в пуле».
+  - type: p
+    text: 'EVOLVEpro: замороженные ESM embeddings, pooled average по residues; размер \(d\) зависит от выбранной PLM (для ESM-2 15B это 5120). Точная размерность тензора на диске — свойство checkpoint ESM, не AL-класса. Не изобретаем другие размерности.'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: Состояние \(x\) — это <strong>вариант последовательности</strong> (набор аминокислотных идентичностей относительно parent), а не 3D-координаты. \(y\) — экспериментально измеренное свойство, которое может отражать связывание, катализ, экспрессию или смесь факторов assay.
+  - type: p
+    text: 'Трансляции/ротации структуры не действуют: геометрической эквивариантности нет. Перестановка residues ломает биологический смысл. Цепи и интерфейсы не представлены, пока их не закодировали косвенно через функциональный readout.'
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - PLM embedding
+      - статистика эволюционных и языковых паттернов последовательности
+      - косвенно, pretrained self-supervision
+      - не энергия, не \(\Delta G\), не solvation
+    - - Random forest / linear head
+      - коррелят assay readout в embedding space
+      - прямо учится на \(y\)
+      - не механизм связывания
+    - - Mutation identity
+      - какая аминокислота в какой позиции
+      - прямо в строке варианта
+      - без rotamer/packing
+    - - Hydrogen bonding / electrostatics / hydrophobicity
+      - могут коррелировать с \(y\)
+      - не представлены явно
+      - только если assay и PLM это отразили косвенно
+    - - Protonation, glycans, metals, conformational entropy
+      - —
+      - не представлены
+      - absent
+    - - Developability, aggregation, immunogenicity
+      - только если \(y\) это измеряет
+      - через метку, не через физику
+      - T7 RNAP campaign EVOLVEpro использует weighted multi-property labels, не отдельную developability-сеть
+    source: '[INTERPRETATION] для класса AL; tool-specific — страница EVOLVEpro'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'В generic AL обучается surrogate \(f_\theta: e(x)\mapsto y\). PLM часто заморожена. Loss — обычно squared error \(\sum_i (f_\theta(e(x_i))-y_i)^2\) или impurity decrease в деревьях. Negative examples — низкий fitness в \(D_t\), а не decoy docking.'
+  - type: p
+    text: 'Для EVOLVEpro: sklearn RandomForestRegressor, criterion friedman_mse, 100 trees; PLM не fine-tune. GP / ridge / MLP доступны в коде как ablation/grid, не как published experimental default.'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - Parent + library \(U\)
+    - PLM embed (часто frozen)
+    - labelled \(D_t\)
+    - surrogate fit
+    - rank / acquire \(B_t\)
+    - wet-lab assay
+    - update \(D_{t+1}\)
+    note: 'Оригинальная схема класса AL. Источник логики: Settles 2009 и released EVOLVEpro loop; не копия figure из Science.'
+  - type: p
+    text: Internal scoring = \(\hat{y}\). External validation = assay. Structure predictor в петле нет, если пользователь сам его не добавил.
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'Данные — пользовательские experimental labels, не PDB. Split в online AL не стандартный train/test: каждый раунд — temporal split (прошлое vs пул). Leakage: если близкие мутанты коррелируют, retrospective DMS-симуляции завышают успех относительно настоящего assay noise.'
+  - type: p
+    text: 'EVOLVEpro in silico: 12 DMS; grid search по embedding source, pooling, regressor, first-round strategy. Prospective campaigns — отдельные белки, не тот же split.'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'Старт: round 0 — random / diverse medoids / explicit variants. Далее: fit → score all unlabeled → взять top-\(k\) (или иное правило). Нет diffusion steps, recycles, beam search. Stopping — фиксированное число раундов или ручная остановка.'
+  - type: p
+    text: 'Отделить: (i) embedding inference PLM; (ii) surrogate predict; (iii) experimental assay; (iv) любой внешний structure/MD filter, которого в released loop нет.'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Условие задаётся определением библиотеки: parent, разрешённые позиции, alphabet, single vs multi-mutant, иногда веса multi-objective. Математически это ограничение \(x\in U\subseteq\mathcal{X}\), а не cross-attention на epitope tensor.'
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: Доминируют \(|U|\) (library size), стоимость одного embedding, число раундов \(T\), batch \(k\), и wall-clock assay. Fit RF на сотнях точек — секунды–минуты на CPU. ESM-2 15B embedding — GPU memory. Асимптотика GP \(\mathcal{O}(n_t^3)\) релевантна только если выбран GP.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Явный experimental feedback замыкает петлю на истинный readout, а не на pLDDT/likelihood.
+    - Frozen PLM embeddings дают фиксированный feature space, в котором малому \(n_t\) проще обучить мелкий surrogate, чем fine-tune миллиарды параметров.
+    - Pool-based постановка не требует генерации валидной геометрии.
+  - type: p
+    text: Это не гарантия нахождения глобального оптимума и не доказательство, что uncertainty sampling всегда лучше greedy \(\hat{y}\).
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: без \(\sigma\) нет principled exploration; greedy \(\hat{y}\) — exploitation.'
+    - 'Представление: нет атомов, rotamers, интерфейса.'
+    - 'Физика/химия: нет явной энергии, растворителя, протонирования.'
+    - 'Данные: качество = качество assay; batch effects переносятся в модель.'
+    - 'Обобщение: surrogate не переносится между белками без новых labels.'
+    - 'Deployment: нужен closed-loop wet lab; это не zero-shot design tool.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Exploitation collapse: все раунды крутятся вокруг одного локального пика ([INTERPRETATION] ожидаемо для greedy top-\(k\)).'
+    - 'Poor uncertainty calibration: если кто-то включает GP/ensemble, \(\sigma\) может не соответствовать assay noise.'
+    - 'Distribution shift: combinatorial mutants вне поддержки single-mutant training.'
+    - Assay noise / batch effects принимаются за сигнал.
+    - 'Library misspecification: полезные позиции не входят в \(U\).'
+    - Смешение readout (expression vs binding) в одной метке «activity».
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/evolvepro.html">EVOLVEpro</a>
+      - pool-based sequential optimization + frozen PLM features
+      - ESM-2 15B mean-pool + RandomForestRegressor; selection = sort \(\hat{y}\) desc (topn)
+      - нет UCB/EI/PI в experimental default; \(\sigma\) обнулён
+    - - <a href="/tools/makowski-affinity-specificity.html">Makowski affinity–specificity</a>
+      - multi-objective experimental loop
+      - нет released package в матрице
+      - не отождествлять с EVOLVEpro
+    - - Код EVOLVEpro, strategy=dist
+      - diversity via embedding distance
+      - sort dist_metric descending
+      - это не BALD и не UCB
+    - - Код EVOLVEpro, regression_type=gp
+      - optional GP surrogate
+      - sklearn GaussianProcessRegressor
+      - не published default campaign
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо: есть parent, определена библиотека, можно собрать ≥ порядка 10 labels/раунд. См. <a href="/tasks/few-shot-active-learning.html">задачу</a> и <a href="/workflows/few-shot-active-learning.html">workflow</a>.'
+  - type: p
+    text: 'Не применимо как замена de novo antibody generation, inverse folding или diffusion backbone design. Не сравнивать hit rate EVOLVEpro с RFantibody: разные starting points и generated objects.'
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Settles, Active Learning Literature Survey, 2009 (foundational AL).
+      url: https://minds.wisconsin.edu/handle/1793/60660
+    - text: Srinivas et al., Gaussian Process Optimization in the Bandit Setting (GP-UCB).
+      url: https://arxiv.org/abs/0912.3995
+    - text: Jiang et al., Rapid in silico directed evolution… EVOLVEpro, Science 2025. DOI 10.1126/science.adr6006
+      url: https://doi.org/10.1126/science.adr6006
+    - text: bioRxiv preprint 10.1101/2024.07.17.604015 (полный текст методов в этом проходе)
+      url: https://doi.org/10.1101/2024.07.17.604015
+    - text: Official repo mat10d/EvolvePro, inspected commit 1c77697
+      url: https://github.com/mat10d/EvolvePro
+    - text: Страница инструмента EVOLVEpro
+      url: /tools/evolvepro.html
+commit: EvolvePro 1c77697d0c09bf6989a1562a55da99301a12e2cd (tool-specific check; architecture class is generic)
+inaccessible:
+- 'Полный PDF Science 10.1126/science.adr6006 (paywall): методы сверены с bioRxiv 10.1101/2024.07.17.604015 и с released code.'
+- 'Science Supporting Information: не получен как отдельный файл в этом проходе.'

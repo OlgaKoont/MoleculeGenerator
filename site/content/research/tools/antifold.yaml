@@ -1,0 +1,261 @@
+status: verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Что именно делает инструмент
+  level: 2
+  blocks:
+  - type: p
+    text: 'AntiFold — antibody-specific inverse folding: по структуре Fv или VHH (IMGT-numbered, позиции 1–128) выдаёт per-residue logits и может сэмплировать последовательности на масках CDR/framework. Backbone фиксирован. De novo topology нет. Optional antigen chain добавляет координатный контекст, но модель не выполняет docking. [PAPER]+[CODE]'
+- title: 2. Архитектура в одном абзаце
+  level: 2
+  blocks:
+  - type: p
+    text: 'Fine-tune ESM-IF1: 4-слойный GVP-GNN geometric encoder + 8-слойный Transformer encoder + 8-слойный AR decoder, rotation/translation invariant. Paired H+L конкатенируются с 10 gap tokens. Sampling — temperature categorical по выбранным IMGT-регионам (default CDR1 CDR2 CDR3, default T=0.20). [PAPER]+[CODE antifold/main.py]'
+- title: 3. Модульная схема
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Module
+    - Model class
+    - Input
+    - Output
+    - Trained or frozen
+    - Generator or evaluator
+    rows:
+    - - PDB/CIF loader + IMGT/ANARCI utilities
+      - preprocessing
+      - structure, chain IDs
+      - atom tensors, region masks
+      - not trained
+      - preprocessing
+    - - ESM-IF1 backbone (GVP+Transformer)
+      - inverse folding NN
+      - backbone ± antigen
+      - token logits
+      - fine-tuned (not frozen)
+      - generator of sequence distribution
+    - - Temperature sampler (sample_from_df_logits_HL / _H)
+      - categorical sampling
+      - logits, regions, T
+      - FASTA variants
+      - no extra train
+      - generator
+    - - Log-probability / log-odds table
+      - score from same logits
+      - sequence vs logits
+      - per-position scores
+      - same network
+      - integrated ranker, not affinity
+    - - ABodyBuilder2 OAS structures (train only)
+      - external structure predictor
+      - OAS sequences
+      - predicted Fv coords
+      - frozen wrt AntiFold train
+      - training-data generator, not inference module
+    - - Experimental binding assay
+      - wet lab
+      - expressed Ig
+      - Kd/ELISA
+      - external
+      - absent in primary paper
+- title: 4. Математическая модель
+  level: 2
+  blocks:
+  - type: math
+    latex: p_\theta(Y\mid X)=\prod_{i=1}^{L} p_\theta(y_i\mid y_{<i}; X)
+    caption: \(Y\) — concatenated Fv sequence; \(X\) — backbone (and optional antigen) coordinates. AntiFold inherits ESM-IF1 AR factorization.
+    source: '[PAPER] Høie et al.; ESM-IF1 Hsu et al.'
+  - type: p
+    text: 'Fine-tune tricks [PAPER]: span masking, shotgun masking, 3:1 CDR vs framework loss weight, layer-wise LR decay \(\alpha=0.85\), Gaussian noise 0.1 Å on predicted coordinates. Sampling temperature T default 0.20 [CODE].'
+  - type: p
+    text: Equation of UCB/diffusion here would be incorrect.
+- title: 5. Физическое устройство состояния
+  level: 2
+  blocks:
+  - type: p
+    text: 'Вход: backbone atoms IMGT Fv; optional antigen heavy atoms as extra chain. Состояние генерации: discrete AA identities. Нет диффузии frames. Side chains в IF likelihood не пакуются явно (ESM-IF1 использует backbone geometry).'
+- title: 6. Физико-химическая интерпретация
+  level: 2
+  blocks:
+  - type: p
+    text: 'Fold compatibility CDR-to-framework — implicit from antibody structures. Interface: optional antigen coords give steric/context, not ΔG. Antigen context improves CDR scores in paper — это structural statistics, не measured affinity. H-bonds/electrostatics — implicit. Solvent, glycans, protonation — absent.'
+- title: 7. Training
+  level: 2
+  blocks:
+  - type: p
+    text: 2,074 SAbDab complexes + 147,458 OAS paired structures from ABodyBuilder2. Split 80/10/10 по 90% concatenated-CDR identity, как AbMPNN. Without ESM-IF1 pretrain, CDRH3 AAR 31.5% vs 58.4% with all augmentations (validation). [PAPER]
+  - type: p
+    text: 'Negative examples: token CE against native AA. Hardware: NR exactly in this pass.'
+- title: 8. Inference
+  level: 2
+  blocks:
+  - type: p
+    text: 'CLI: antifold/main.py — pdb_file, heavy/light/nanobody/antigen chains, regions, num_seq_per_target, sampling_temp. Weights: models/model.pt (downloaded from OPIG) or --esm_if1_mode. Key files: antiscripts.py, esm_util_custom.py, if1_dataset.py. [CODE]'
+- title: 9. Generator versus evaluator
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Component
+    - Role
+    - Integrated or external
+    - Required or optional
+    - Influences generation or only ranks afterward
+    rows:
+    - - AntiFold decoder sampling
+      - generator
+      - integrated
+      - required
+      - generation
+    - - Conditional log-likelihood
+      - ranker
+      - integrated
+      - optional
+      - post hoc / also used zero-shot
+    - - ABodyBuilder2
+      - train-time structures
+      - external
+      - training only
+      - not inference generator
+    - - AF/RF2 pLDDT, docking, ΔΔG
+      - external evaluators
+      - external
+      - not in tool
+      - must not be called AntiFold output
+    - - Wet-lab affinity
+      - experimental
+      - absent in paper
+      - required for affinity claims
+      - not performed in primary paper
+- title: 10. Почему, по мнению авторов, метод эффективен
+  level: 2
+  blocks:
+  - title: Proposed mechanism
+    level: 3
+    blocks:
+    - type: p
+      text: Antibody-specific fine-tune + CDR-weighted loss + predicted OAS structures + coordinate noise учат распределение antibody sequences на antibody geometries, чего нет у general ESM-IF1. [PAPER]
+  - title: Author claim
+    level: 3
+    blocks:
+    - type: p
+      text: Improved CDR recovery vs ESM-IF1/AbMPNN; better mutation ranking on some DMS; antigen context helps. [PAPER]
+  - title: Evidence
+    level: 3
+    blocks:
+    - type: p
+      text: Retrospective AAR (CDRH3 60% vs ESM-IF1 43%, AbMPNN 56%); refold RMSD 0.95 vs native 0.63; Warszawski DMS Spearman 0.42; Hie variants group median rank 80%. No prospective wet-lab. [PAPER]
+  - title: Causal support
+    level: 3
+    blocks:
+    - type: p
+      text: 'Ablation without pretrain / augmentations reported for validation AAR — directly supports fine-tune+augmentation for recovery. Binding claims are not supported: Spearman 0.42 is not Kd, and authors note performance is driven by de-selecting loss-of-binding variants. [PAPER]'
+- title: 11. Claim–evidence matrix
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Claim
+    - Proposed mechanism
+    - Evidence type
+    - Dataset or experiment
+    - Comparator
+    - Metric/result
+    - Source location
+    - Caveat
+    rows:
+    - - Better antibody IF than ESM-IF1
+      - Ab fine-tune + CDR weight
+      - 2 retrospective + 3 ablation
+      - SAbDab/OAS val
+      - ESM-IF1, AbMPNN
+      - CDRH3 AAR 60% vs 43%/56%
+      - paper results
+      - recovery ≠ function
+    - - Pretrain necessary
+      - ESM-IF1 init
+      - 3 ablation
+      - val AAR
+      - train from scratch
+      - 31.5% vs 58.4% CDRH3
+      - paper ablation
+      - isolates pretrain for recovery only
+    - - Antigen context helps
+      - extra coordinates
+      - 2 retrospective
+      - complexes
+      - no antigen
+      - improved CDR scores
+      - paper
+      - not affinity
+    - - Useful mutation ranking
+      - likelihood as proxy
+      - 2 retrospective
+      - Warszawski DMS; Hie set
+      - other IF/LM
+      - Spearman 0.42; median rank 80%
+      - paper
+      - de-selecting dead variants; not affinity maturation proof
+    - - Prospective binding
+      - —
+      - not present
+      - —
+      - —
+      - no wet-lab
+      - paper
+      - do not claim
+- title: 12. Ablation analysis
+  level: 2
+  blocks:
+  - type: p
+    text: 'Reported: w/o ESM-IF1 pretrain; augmentations stack to 58.4% CDRH3 AAR. Isolates sequence recovery, not pharmaceutical developability. Statistical tests on AAR differences: see paper tables; independent prospective test set of therapeutic mAbs — NR. [PAPER]'
+- title: 13. What the model does not represent
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - explicit solvent, protonation, glycans, metals, conformational entropy, expression, aggregation, immunogenicity, true ΔG, docking, backbone generation.
+- title: 14. Evidence and limitations
+  level: 2
+  blocks:
+  - type: p
+    text: Сильная retrospective IF метрика. Нет prospective binding. Likelihood нельзя читать как affinity. Зависит от качества входной структуры и IMGT numbering. [PAPER]
+- title: 15. Reproducibility
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Item
+    - Value
+    rows:
+    - - Repo
+      - <a href="https://github.com/oxpig/AntiFold">oxpig/AntiFold</a>
+    - - Commit inspected
+      - 789d46786624c01eb44f177ef4c0deeeb6e77469
+    - - License
+      - BSD-3-Clause
+    - - Weights
+      - models/model.pt from OPIG downloads; --esm_if1_mode for baseline weights
+    - - Inference example
+      - python antifold/main.py --pdb_file ... --heavy_chain H --light_chain L
+    - - Paper vs code
+      - статья — fine-tune protocol; CLI добавляет region strings, nanobody_mode, custom_chain_mode
+- title: Источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Høie et al., Bioinformatics Advances 2025, 10.1093/bioadv/vbae202
+      url: https://doi.org/10.1093/bioadv/vbae202
+    - text: arXiv 2405.03370
+      url: https://arxiv.org/abs/2405.03370
+    - text: PMC11961221
+      url: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11961221/
+    - text: ESM-IF1 Hsu et al. 2022
+      url: https://arxiv.org/abs/2206.12094
+    - text: Architecture inverse folding
+      url: /architectures/inverse-folding.html
+commit: 789d46786624c01eb44f177ef4c0deeeb6e77469 (oxpig/AntiFold master at inspection)
+inaccessible:
+- Отдельный SI PDF Bioinformatics Advances не скачивался как файл; методы и ablation AAR взяты из arXiv 2405.03370 HTML и peer-reviewed record 10.1093/bioadv/vbae202.

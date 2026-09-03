@@ -1,0 +1,52 @@
+id: paper-palm-h3
+slug: palm-h3
+title: xTrimoPGLM-based antigen-specific antibody CDR-H3 design (PALM-H3)
+authors: null
+year: '2024'
+venue: Peer-reviewed journal; Nature Communications (Q1)
+publication_status: Peer-reviewed journal; Nature Communications (Q1)
+doi: 10.1038/s41467-024-50903-y
+url: https://doi.org/10.1038/s41467-024-50903-y
+preprint_url: null
+tool_ids:
+- palm-h3
+main_task: Antigen/epitope-conditioned CDR-H3 sequence generation
+claimed_novelty: null
+model_architecture: Antigen encoder + autoregressive antibody decoder; A2binder predictor
+  for ranking
+input_representation: null
+encoder_decoder: null
+generative_state: CDR-H3 sequence; grafted antibody candidates
+conditioning: CDR-H3 length/context; antigen epitope sequence
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: Binding and neutralization reported; predicted affinity
+  outputs are not the experimental result
+tested_designs: 'Generated antibodies tested against SARS-CoV-2 variants; exact final count:
+  NR here'
+success_criterion: Binding and neutralization reported; predicted affinity outputs are not
+  the experimental result
+main_results: Binding and neutralization reported; predicted affinity outputs are not the
+  experimental result
+limitations: Single antigen family in prospective validation; sequence-only CDR generation;
+  internal affinity predictor is not affinity improvement.
+demonstrates:
+- Binding and neutralization reported; predicted affinity outputs are not the experimental
+  result
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: xTrimoPGLM-based antigen-specific antibody CDR-H3 design (PALM-H3)
+  kind: interpretation
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Nature Communications (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue:
+- Bibliographic title must be verified against the PDF.

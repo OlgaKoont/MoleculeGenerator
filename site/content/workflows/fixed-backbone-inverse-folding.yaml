@@ -1,0 +1,64 @@
+id: fixed-backbone-inverse-folding
+slug: fixed-backbone-inverse-folding
+name: Fixed-backbone inverse folding
+use_case: Есть backbone (экспериментальный или predicted); нужно подобрать sequence.
+required_input:
+- backbone coordinates
+- design masks
+stages:
+- name: Sequence design
+  architecture_class: Graph/geometric inverse folding
+  what_happens: Генерируются sequences, совместимые с backbone
+  generation_or_evaluation: generation
+  generator: proteinmpnn
+  intermediate_object: Designed sequences
+  alternatives:
+  - esm-if1
+  - ligandmpnn
+  node_links:
+  - proteinmpnn
+  - inverse-folding
+- name: Self-consistency folding
+  architecture_class: External structure predictor
+  what_happens: Проверяется, сворачивается ли sequence в тот же fold
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: scRMSD / pLDDT
+  alternatives:
+  - alphafold2
+  node_links:
+  - alphafold2
+- name: Experimental validation
+  architecture_class: null
+  what_happens: Структура/функция измеряются независимо
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Validated designs
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: ProteinMPNN inference часто CPU-feasible; точные цифры NR.
+evidence_level: 'ProteinMPNN/LigandMPNN: prospective structural/functional. Likelihood ≠ affinity.'
+failure_points:
+- Плохой входной backbone.
+- Interface geometry зафиксирована неверно.
+- Ligand pose неверен для LigandMPNN.
+decision_criteria:
+- Есть ли ligand/metal? Тогда LigandMPNN.
+- Antibody? Тогда AntiFold, не vanilla MPNN.
+task_ids:
+- inverse-folding
+tool_ids:
+- proteinmpnn
+- esm-if1
+- ligandmpnn
+architecture_ids:
+- inverse-folding
+- graph-neural-networks
+- invariant-models
+paper_ids:
+- paper-proteinmpnn
+- paper-esm-if1
+- paper-ligandmpnn
+mermaid: "flowchart TD\n    A[Backbone coordinates] --> B[Inverse-folding model]\n    B --> C[Designed\
+  \ sequences]\n    C --> D[Independent folding]\n    D --> E[Experimental validation]"

@@ -1,0 +1,33 @@
+id: few-shot-mutation-optimization
+slug: few-shot-mutation-optimization
+name: Few-shot mutation optimization
+name_ru: Few-shot оптимизация мутаций
+intuition: После ~10+ измерений на parent library обучается лёгкая модель и предлагает следующие mutants.
+mathematical_formulation: Surrogate $f_\phi(E(s))\approx y$; $E$ — frozen PLM embedding.
+input_representation: Embeddings + numeric assay labels.
+generated_state: Next-round combinatorial or single mutants.
+training_objective: MSE/MAE/ranking loss on labels.
+inference: Score large in silico library, pick batch.
+conditioning: Allowed positions, budget, optional multiple y.
+complexity_drivers:
+- In silico library size
+- label noise
+strengths:
+- Использует реальный assay
+- Может быть multi-objective
+limitations:
+- Не работает без данных
+- Переобучение на шум
+failure_modes:
+- Leaking training clones as 'predictions'
+applicable_task_ids:
+- few-shot-active-learning
+- combinatorial-mutation-design
+not_for_task_ids:
+- de-novo-antibody-design
+paper_ids:
+- paper-evolvepro
+- paper-makowski-affinity-specificity
+subtypes: []
+glossary_ids:
+- few-shot

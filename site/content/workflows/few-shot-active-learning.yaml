@@ -1,0 +1,66 @@
+id: few-shot-active-learning
+slug: few-shot-active-learning
+name: Few-shot / labelled mutation optimization
+use_case: Есть parent и возможность собирать experimental labels; нужна итеративная оптимизация,
+  иногда multi-objective.
+required_input:
+- parent
+- mutational library definition
+- experimental labels
+stages:
+- name: Embed and fit surrogate
+  architecture_class: PLM embeddings + regression
+  what_happens: Обучается fitness model на labels
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Surrogate model
+  alternatives: []
+  node_links:
+  - evolvepro
+  - protein-language-models
+- name: Propose next variants
+  architecture_class: Acquisition / Pareto
+  what_happens: Active learning предлагает mutants
+  generation_or_evaluation: generation
+  generator: evolvepro
+  intermediate_object: Next-round library
+  alternatives:
+  - makowski-affinity-specificity
+  node_links:
+  - active-learning
+- name: Assay round
+  architecture_class: null
+  what_happens: Измеряются свойства
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: New labels
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: Model fit is cheap; assay turnaround dominates. EVOLVEpro may start around ~10
+  labels/round (author-reported in matrix).
+evidence_level: 'EVOLVEpro and Makowski: prospective. Not transferable pretrained generators.'
+failure_points:
+- Assay noise.
+- Library poorly defined.
+- Treating as zero-shot tool.
+decision_criteria:
+- One objective or Pareto?
+- Can you run multiple rounds?
+task_ids:
+- few-shot-active-learning
+- ml-guided-directed-evolution
+- multi-objective-optimization
+- combinatorial-mutation-design
+tool_ids:
+- evolvepro
+- makowski-affinity-specificity
+architecture_ids:
+- active-learning
+- few-shot-mutation-optimization
+- multi-objective-optimization
+paper_ids:
+- paper-evolvepro
+- paper-makowski-affinity-specificity
+mermaid: "flowchart TD\n    A[Parent + labels] --> B[Surrogate on PLM embeddings]\n    B --> C[Acquisition\
+  \ / Pareto proposal]\n    C --> D[Experimental round]\n    D --> A"

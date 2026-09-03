@@ -1,0 +1,61 @@
+id: cdr-sequence-generation
+slug: cdr-sequence-generation
+name: Генерация CDR sequence
+group: Антитела и antibody-like форматы
+definition: Генерация complementarity-determining regions на уровне sequence.
+objective: ' Diversify или de novo спроектировать CDR при фиксированном или заданном framework.'
+starting_inputs:
+- framework sequence
+- optional antigen sequence
+- CDR length
+generated_objects:
+- CDR sequence
+generator_classes:
+- sequence-generator
+- target-conditioned-binder
+strategies:
+- name: Sequence-only autoregressive model
+  generates: CDR sequence
+  representation: Tokens
+  examples:
+  - iglm
+  - palm-h3
+  limitation: Не генерирует 3D geometry
+  sampling: Autoregressive / infilling
+  novel_topology: Нет
+  integrated_scoring: Likelihood или learned affinity predictor
+  complexity_drivers: CDR length
+- name: Fixed-backbone inverse folding
+  generates: Sequence для заданного CDR backbone
+  representation: Residue graph + coordinates
+  examples:
+  - antifold
+  limitation: Backbone должен быть известен
+  sampling: Categorical sampling
+  novel_topology: Нет
+  integrated_scoring: Conditional likelihood
+  complexity_drivers: Fv size
+consequences:
+- decision: PLM conditioning
+  consequence: Может использовать большие sequence priors (OAS), но не гарантирует binding.
+compute_consequences:
+- Sequence-only модели дешевле diffusion co-design.
+evidence_summary: PALM-H3 имеет prospective SARS-CoV-2 evidence; IgLM — retrospective naturalness.
+incomparable:
+- CDR sequence generator ≠ CDR backbone generator.
+selection_guidance:
+- Нужен antigen sequence conditioning — PALM-H3.
+- Нужна локальная диверсификация без antigen — IgLM.
+- Есть структура — AntiFold.
+architecture_ids:
+- protein-language-models
+- autoregressive-generation
+- inverse-folding
+workflow_ids:
+- cdr-h3-sequence-palm
+- antibody-sequence-infilling
+paper_ids: []
+glossary_ids:
+- cdr
+- framework
+downstream: false

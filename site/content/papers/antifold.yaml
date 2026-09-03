@@ -1,0 +1,48 @@
+id: paper-antifold
+slug: antifold
+title: 'AntiFold: improved structure-based antibody design using inverse folding'
+authors: null
+year: '2025'
+venue: Peer-reviewed journal; Bioinformatics Advances; Q1 status NR
+publication_status: Peer-reviewed journal; Bioinformatics Advances; Q1 status NR
+doi: 10.1093/bioadv/vbae202
+url: https://doi.org/10.1093/bioadv/vbae202
+preprint_url: null
+tool_ids:
+- antifold
+main_task: Antibody-specific fixed-backbone inverse folding and masked CDR/framework redesign
+claimed_novelty: null
+model_architecture: ESM-IF1 fine-tuned on antibody structures
+input_representation: null
+encoder_decoder: null
+generative_state: Fv/VHH sequences, per-residue probabilities, sampled masked variants
+conditioning: CDR/framework masks, fixed residues, optional antigen
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Improved CDR recovery and retrospective mutation ranking; not demonstrated
+  affinity improvement
+prospective_experimental_validation: null
+tested_designs: No prospective wet-lab validation in primary paper
+success_criterion: Improved CDR recovery and retrospective mutation ranking; not demonstrated
+  affinity improvement
+main_results: Improved CDR recovery and retrospective mutation ranking; not demonstrated affinity
+  improvement
+limitations: Depends on input structure; no prospective therapeutic evidence; likelihood must
+  not be read as affinity.
+demonstrates:
+- Improved CDR recovery and retrospective mutation ranking; not demonstrated affinity improvement
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: 'AntiFold: improved structure-based antibody design using inverse folding'
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Bioinformatics Advances; Q1 status NR'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

@@ -1,0 +1,214 @@
+identity:
+  id: iglm
+  name: IgLM
+  slug: iglm
+  aliases:
+  - IgLM
+  version: null
+  release_year: '2023'
+  last_verified: '2026-08-27'
+  official_repository: https://github.com/Graylab/IgLM
+  official_documentation: null
+  official_service: null
+  license: JHU Academic Software License; commercial license required
+  commercial_use_status: Code + weights; non-commercial by default
+  publication_status: Peer-reviewed journal; Cell Systems (Q1)
+classification:
+  task_ids:
+  - cdr-sequence-generation
+  - antibody-structure-aware-sequence-design
+  workflow_ids:
+  - antibody-sequence-infilling
+  architecture_ids:
+  - protein-language-models
+  - autoregressive-generation
+  - masked-token-infilling
+  generator_classes:
+  - sequence-generator
+  output_modalities:
+  - sequence
+  supported_formats: Heavy or light variable-domain sequence; chains generated independently
+  de_novo_or_optimization: De novo sequence or local CDR redesign
+  general_protein_relevance: Low outside antibodies
+  antibody_relevance: High for sequence ideation
+  VHH_relevance: Not specifically validated
+  mutation_relevance: Useful for local sequence neighborhoods
+  compatibility_group: antibody-sequence
+generation:
+  exact_generated_object: Full heavy/light-chain sequence or infilled span/CDR
+  required_input: Optional sequence context, span mask, species and chain type
+  conditioning: Chain/species tokens; arbitrary infilling span
+  fixed_components: null
+  editable_components: null
+  generated_components: Full heavy/light-chain sequence or infilled span/CDR
+  support_for_single_mutations: 'Yes'
+  support_for_combinatorial_mutations: 'Yes'
+  support_for_multi_objective_optimization: 'No'
+  candidate_generation_mechanism: Autoregressive infilling language model conditioned on species and
+    chain type
+architecture:
+  base_model: Autoregressive infilling language model
+  model_family: Antibody PLM
+  model_type: Sequence generator
+  input_representation: Heavy or light chain tokens plus species and chain-type control tokens; span
+    masks
+  node_features: null
+  edge_or_pair_features: null
+  encoder: Transformer LM (decoder-style infilling)
+  decoder: Autoregressive token generation into the masked span
+  latent_or_generative_state: Discrete amino-acid tokens
+  equivariance: Нет
+  conditioning_mechanism: Species token, chain type, bidirectional context around the span
+  generation_mechanism: Infilling / full-chain ancestral sampling
+  sampling_procedure: Temperature categorical sampling
+  training_objectives: Language-modelling / infilling CE on unpaired antibody sequences
+  losses: Cross-entropy
+  architectural_modifications: null
+  computational_complexity_drivers: Sequence length; number of samples
+  output: VH or VL sequence, or infilled CDR span
+  internal_scorer: Model likelihood
+  structure_generation: Нет
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (Cell Systems)
+workflow_components:
+  primary_generator: IgLM
+  integrated_generators: []
+  integrated_scorers:
+  - Model likelihood
+  integrated_structure_predictor: 'No'
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Pairing, structure/complex, developability and experimental validation
+  optional_external_dependencies:
+  - No antigen/structure/developability loop
+  breakdown:
+  - name: IgLM
+    role: primary_generator
+    architecture_class: Autoregressive infilling language model conditioned on species and chain type
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Model likelihood
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Pairing, structure/complex, developability and experimental validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 2 retrospective antibody evaluation
+  retrospective_validation: No prospective wet-lab validation in primary paper
+  prospective_binding_validation: null
+  prospective_functional_validation: null
+  developability_validation: null
+  tested_design_count: No prospective wet-lab validation in primary paper
+  success_criterion: Naturalness/diversity/infilling benchmarks
+  independent_validation: null
+  evidence_summary: Naturalness/diversity/infilling benchmarks
+  prospective_flag: false
+  direct_antibody_flag: false
+  preprint_flag: false
+limitations:
+  scientific_limitations:
+  - No antigen conditioning or joint VH/VL pairing.
+  - sequence likelihood is not specificity or affinity.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Retrospective only pending license
+relations:
+  related_tools:
+  - palm-h3
+  - progen
+  - antifold
+  alternatives:
+  - palm-h3
+  - progen
+  complementary_tools:
+  - antifold
+  - humatch
+  incompatible_comparisons:
+  - alphaproteo
+  - bindcraft
+  - boltzgen
+  - framediff
+  - rfdiffusion
+  - rfdiffusion-aa
+  paper_ids:
+  - paper-iglm
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids:
+  - protein-language-model
+  - infilling
+  - cdr
+  - likelihood
+detailed_architecture:
+  summary_card:
+    Base architecture: Autoregressive infilling Transformer
+    Model type: Antibody sequence LM
+    Representation: Tokens
+    Generation unit: Amino-acid token
+    Conditioning: Species, chain type, span context
+    Output: Sequence
+    Sampling: Autoregressive
+    Internal scorer: Likelihood
+    Structure generation: Нет
+  input_representation: Sequence tokens only. No antigen, no coordinates, no paired VH/VL tokenisation
+    in the base generator.
+  generation_mechanism: Infilling uses both left and right context of a span, unlike left-to-right
+    ProGen-style models.
+  integrated_evaluation: Likelihood/naturalness only. Pairing, structure, developability and binding
+    are external.
+  architectural_limitations:
+  - feature: Sequence-only generation
+    limitation: Нет прямой геометрической согласованности.
+  - feature: Independent chain generation
+    limitation: Не обеспечивает joint VH/VL pairing.
+  - feature: No antigen conditioning
+    limitation: Не target-specific generator.
+review_queue:
+- Bibliographic title must be verified against the PDF.

@@ -1,0 +1,199 @@
+identity:
+  id: boltzgen
+  name: BoltzGen
+  slug: boltzgen
+  aliases:
+  - BoltzGen
+  version: null
+  release_year: '2025'
+  last_verified: '2026-08-13'
+  official_repository: https://github.com/HannesStark/boltzgen
+  official_documentation: null
+  official_service: null
+  license: MIT
+  commercial_use_status: Training/inference code + weights/designs
+  publication_status: bioRxiv preprint (Frontier/Watchlist)
+classification:
+  task_ids:
+  - target-conditioned-binder-generation
+  - de-novo-vhh-nanobody-design
+  - joint-sequence-structure-generation
+  workflow_ids:
+  - universal-all-atom-binder
+  architecture_ids:
+  - joint-sequence-structure-diffusion
+  - coordinate-diffusion
+  - joint-sequence-structure-generation
+  generator_classes:
+  - joint-sequence-structure
+  - target-conditioned-binder
+  output_modalities:
+  - sequence
+  - structure
+  - joint
+  supported_formats: Protein, peptide, disulfide peptide, nanobody; complexes
+  de_novo_or_optimization: De novo
+  general_protein_relevance: Very high frontier relevance
+  antibody_relevance: Nanobody-specific prospective evidence; not full IgG evidence
+  VHH_relevance: 'Yes'
+  mutation_relevance: Not mutation-first
+  compatibility_group: general-binder
+generation:
+  exact_generated_object: Binder sequence–structure and target complex
+  required_input: Target biomolecule plus design specification
+  conditioning: Residue/chain masks, modality, target context, geometry; supports diverse
+    biomolecules
+  fixed_components: null
+  editable_components: null
+  generated_components: Binder sequence–structure and target complex
+  support_for_single_mutations: Not primary
+  support_for_combinatorial_mutations: Full sequence
+  support_for_multi_objective_optimization: Specification/filter-based; explicit Pareto support
+    NR
+  candidate_generation_mechanism: All-atom generative diffusion unified with folding; design
+    specification language
+architecture:
+  base_model: null
+  model_family: All-atom generative diffusion unified with folding; design specification language
+  model_type: 4 + 5 Joint sequence–structure and target-conditioned binder generator
+  input_representation: null
+  node_features: null
+  edge_or_pair_features: null
+  encoder: null
+  decoder: null
+  latent_or_generative_state: null
+  equivariance: null
+  conditioning_mechanism: Residue/chain masks, modality, target context, geometry; supports
+    diverse biomolecules
+  generation_mechanism: All-atom generative diffusion unified with folding; design specification
+    language
+  sampling_procedure: null
+  training_objectives: null
+  losses: null
+  architectural_modifications: null
+  computational_complexity_drivers: null
+  output: Binder sequence–structure and target complex
+  internal_scorer: Integrated folding/ranking; affinity components depend on protocol
+  structure_generation: Yes—generation and structure prediction unified
+  summary_notes: []
+  mathematical_details: null
+  source_label: Author-reported (matrix)
+workflow_components:
+  primary_generator: BoltzGen all-atom diffusion
+  integrated_generators: []
+  integrated_scorers:
+  - Integrated folding/ranking; affinity components depend on protocol
+  integrated_structure_predictor: Yes—generation and structure prediction unified
+  integrated_complex_predictor: null
+  integrated_relaxation: null
+  mandatory_external_dependencies:
+  - Independent prediction and experimental binding/function validation
+  optional_external_dependencies:
+  - Ranking/folding integrated
+  breakdown:
+  - name: BoltzGen all-atom diffusion
+    role: primary_generator
+    architecture_class: All-atom generative diffusion unified with folding; design specification
+      language
+    integrated_or_external: integrated
+    required_or_optional: required
+    influences_generation_or_post_hoc: generation
+    runtime_included_or_excluded: included
+  - name: Integrated folding/ranking; affinity components depend on protocol
+    role: integrated_scorer
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: unknown
+  - name: Yes—generation and structure prediction unified
+    role: integrated_structure_predictor
+    architecture_class: null
+    integrated_or_external: integrated
+    required_or_optional: optional
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: included
+    notes: Predictor/ranker, not a generator.
+  - name: Independent prediction and experimental binding/function validation
+    role: mandatory_external_dependency
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+  - name: Experimental binding/function assays
+    role: experimental_validation
+    architecture_class: null
+    integrated_or_external: external
+    required_or_optional: required
+    influences_generation_or_post_hoc: post_hoc
+    runtime_included_or_excluded: excluded
+    notes: Only assays establish measured affinity or function.
+training:
+  training_data: null
+  preprocessing: null
+  negative_examples: null
+  fine_tuning: null
+  label_requirements: null
+  reported_training_hardware: null
+  reported_training_time: null
+inference:
+  candidate_count: null
+  batch_size: null
+  generation_steps: null
+  recycles: null
+  sequence_or_complex_size: null
+  reported_runtime: null
+  runtime_boundary: null
+  CPU: null
+  GPU: null
+  VRAM: null
+  RAM: null
+  disk: null
+  database_requirements: null
+evidence:
+  evidence_level: 3–4 prospective binding/functional validation
+  retrospective_validation: null
+  prospective_binding_validation: Includes nanobody and live-cell/functional examples; still
+    preprint
+  prospective_functional_validation: Includes nanobody and live-cell/functional examples;
+    still preprint
+  developability_validation: null
+  tested_design_count: Distributed multi-lab campaigns across modalities; per-task counts
+    in preprint
+  success_criterion: Includes nanobody and live-cell/functional examples; still preprint
+  independent_validation: null
+  evidence_summary: Includes nanobody and live-cell/functional examples; still preprint
+  prospective_flag: true
+  direct_antibody_flag: false
+  preprint_flag: true
+limitations:
+  scientific_limitations:
+  - Preprint.
+  - unified model scores are not independent validation.
+  - evidence differs greatly by binder modality.
+  architectural_limitations: []
+  dataset_biases: []
+  likely_failure_modes: []
+  reproducibility_limitations: []
+  deployment_limitations:
+  - Frontier; limited pilot after reproduction
+relations:
+  related_tools: []
+  alternatives: []
+  complementary_tools: []
+  incompatible_comparisons:
+  - huabdiffusion
+  - hudiff
+  - humatch
+  - rfantibody
+  - tfold
+  paper_ids:
+  - paper-boltzgen
+  source_ids:
+  - landscape-xlsx-2026-08-13
+  dependency_ids: []
+  glossary_ids: []
+detailed_architecture: {}
+review_queue:
+- Bibliographic title must be verified against the PDF.

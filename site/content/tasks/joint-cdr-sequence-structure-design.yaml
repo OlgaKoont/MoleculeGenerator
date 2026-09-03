@@ -1,0 +1,74 @@
+id: joint-cdr-sequence-structure-design
+slug: joint-cdr-sequence-structure-design
+name: Joint CDR sequence–structure design
+group: Антитела и antibody-like форматы
+definition: Co-design CDR sequence и геометрии.
+objective: Согласовать identity residues CDR с loop geometry и, часто, antigen interface.
+starting_inputs:
+- framework
+- antigen complex context
+- CDR masks
+generated_objects:
+- CDR sequence + backbone/full-atom geometry
+generator_classes:
+- joint-sequence-structure
+- target-conditioned-binder
+strategies:
+- name: Diffusion co-design
+  generates: Sequence и CDR geometry
+  representation: Equivariant 3D representation
+  examples:
+  - diffab
+  limitation: Высокая стоимость sampling; у DiffAb нет prospective wet-lab
+  sampling: Joint denoising of type/position/orientation
+  novel_topology: В пределах CDR
+  integrated_scoring: Energy/structural metrics
+  complexity_drivers: Denoising steps × residues
+- name: Full-atom geometric generation
+  generates: Sequence и атомные координаты
+  representation: Atom/residue graph
+  examples:
+  - dymean
+  - abdiffuser
+  limitation: Сложная подготовка complex input
+  sampling: Iterative equivariant updates or diffusion
+  novel_topology: Ограничена antibody format
+  integrated_scoring: DockQ/ddG or physics priors
+  complexity_drivers: Atoms × iterations
+- name: Flow matching
+  generates: Sequence–structure pair
+  representation: Continuous geometric state
+  examples:
+  - flowdesign
+  limitation: Ограниченная независимая validation; public code NR
+  sampling: Flow-matching trajectory
+  novel_topology: В пределах CDR
+  integrated_scoring: Structure/energy metrics
+  complexity_drivers: Integration steps
+consequences:
+- decision: Requires complex structural context
+  consequence: Плохой input complex ломает generation.
+- decision: Energy metrics in evaluation
+  consequence: Не равны measured affinity.
+compute_consequences:
+- GPU required.
+- Archived DiffAb repo ограничивает воспроизводимость.
+evidence_summary: DiffAb/dyMEAN — in silico; FlowDesign/AbDiffuser — узкий prospective context,
+  с оговорками.
+incomparable:
+- Retrospective co-design ≠ prospective binder campaign.
+selection_guidance:
+- Методологический co-design — DiffAb.
+- Нужен открытый de novo antibody pipeline — RFantibody, а не DiffAb.
+architecture_ids:
+- joint-sequence-structure-diffusion
+- flow-matching
+- se3-equivariant-models
+workflow_ids:
+- cdr-codesign-diffab
+paper_ids: []
+glossary_ids:
+- diffusion
+- cdr
+- equivariance
+downstream: false

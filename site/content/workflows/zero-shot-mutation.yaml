@@ -1,0 +1,52 @@
+id: zero-shot-mutation
+slug: zero-shot-mutation
+name: Zero-shot mutation proposal
+use_case: Есть parent antibody/protein; labels почти нет; нужно предложить single substitutions.
+required_input:
+- parent sequence or complex backbone
+stages:
+- name: Mutation scoring
+  architecture_class: PLM or inverse-folding likelihood
+  what_happens: Все single substitutions ранжируются
+  generation_or_evaluation: generation
+  generator: esm-1v-efficient-evolution
+  intermediate_object: Ranked mutations
+  alternatives:
+  - structural-evolution
+  node_links:
+  - esm-1v-efficient-evolution
+  - zero-shot-mutation-scoring
+- name: Experimental selection
+  architecture_class: null
+  what_happens: Небольшой набор тестируется
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Improved variants
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: Usually a single GPU/CPU scoring pass. Exact runtime NR.
+evidence_level: Both highlighted workflows have prospective antibody-relevant evidence.
+failure_points:
+- Epistasis ignored.
+- No developability panel.
+- Complex structure wrong for ESM-IF1 path.
+decision_criteria:
+- Have complex structure? Structural evolution.
+- Sequence only? ESM-1v.
+- Have labels already? Switch to EVOLVEpro.
+task_ids:
+- single-mutation-proposal
+- affinity-maturation
+tool_ids:
+- esm-1v-efficient-evolution
+- structural-evolution
+architecture_ids:
+- zero-shot-mutation-scoring
+- protein-language-models
+- inverse-folding
+paper_ids:
+- paper-esm-1v-efficient-evolution
+- paper-structural-evolution
+mermaid: "flowchart TD\n    A[Parent sequence or complex] --> B[Zero-shot scorer]\n    B --> C[Ranked\
+  \ substitutions]\n    C --> D[Small experimental set]"

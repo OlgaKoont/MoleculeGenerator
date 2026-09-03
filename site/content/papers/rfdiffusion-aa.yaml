@@ -1,0 +1,46 @@
+id: paper-rfdiffusion-aa
+slug: rfdiffusion-aa
+title: Generalized biomolecular modeling and design with RoseTTAFold All-Atom
+authors: null
+year: '2024'
+venue: Peer-reviewed journal; Science (Q1)
+publication_status: Peer-reviewed journal; Science (Q1)
+doi: 10.1126/science.adl2528
+url: https://doi.org/10.1126/science.adl2528
+preprint_url: null
+tool_ids:
+- rfdiffusion-aa
+main_task: Backbone generation around small molecules and heterogeneous atomic context
+claimed_novelty: null
+model_architecture: All-atom RoseTTAFold-derived diffusion over biomolecular context
+input_representation: null
+encoder_decoder: null
+generative_state: Protein backbone positioned around non-protein atoms; sequence typically
+  downstream
+conditioning: Atomic motifs and heterogeneous biomolecular context
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: null
+prospective_experimental_validation: General biomolecular design evidence
+tested_designs: 'Multiple small-molecule-centered design campaigns; aggregate count: NR'
+success_criterion: General biomolecular design evidence
+main_results: General biomolecular design evidence
+limitations: Legacy environment/container; generates structure before sequence; ligand pose
+  and chemistry assumptions remain critical.
+demonstrates:
+- General biomolecular design evidence
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Generalized biomolecular modeling and design with RoseTTAFold All-Atom
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: Peer-reviewed journal; Science (Q1)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []

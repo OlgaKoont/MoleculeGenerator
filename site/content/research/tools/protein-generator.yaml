@@ -1,0 +1,12 @@
+status: sources_identified
+last_reviewed: '2026-08-20'
+sections:
+- title: Статус исследования
+  level: 2
+  blocks:
+  - type: warn
+    text: Полная source-grounded верификация protein-generator (полный primary paper + SI + implementation files) в этом проходе не завершена. Карточка каталога и matrix fields остаются доступны, но их нельзя читать как проверенный architecture analysis.
+  - type: p
+    text: Lisanza Nat. Biotechnol. 2025; class page joint-sequence-structure-generation (L×20 DDPM, n=42/32, 3.70 Å). protein_generator commit NR.
+  - type: p
+    text: Не отождествляйте likelihood, pLDDT, PAE, docking score, predicted ΔΔG или developability score с экспериментальным связыванием.

@@ -1,0 +1,46 @@
+id: motif-scaffolding
+slug: motif-scaffolding
+name: Motif scaffolding
+group: Общий белковый дизайн
+definition: Встраивание заданного функционального motif в новую supporting structure.
+objective: Сохранить motif geometry/sequence и достроить scaffold.
+starting_inputs:
+- motif coordinates or sequence motif
+- contig specification
+generated_objects:
+- scaffold backbone and/or sequence
+generator_classes:
+- backbone-structure-generator
+- sequence-generator
+strategies:
+- name: Coordinate clamping / contig diffusion
+  generates: Scaffold around fixed motif
+  representation: 3D frames with fixed region
+  examples:
+  - rfdiffusion
+  limitation: Motif placement и hotspot choice критичны
+  sampling: Conditional diffusion
+  novel_topology: Да, вне motif
+  integrated_scoring: Downstream self-consistency
+  complexity_drivers: Contig complexity × trajectories
+consequences:
+- decision: Motif fixation
+  consequence: Модель не должна «размывать» функциональный сайт, но может плохо стыковать scaffold.
+compute_consequences:
+- Много trajectories для редких успешных scaffolds.
+evidence_summary: Есть prospective motif-scaffolding campaigns у RFdiffusion; sequence-only motif
+  presence слабее.
+incomparable:
+- Sequence motif scaffolding ≠ 3D motif scaffolding.
+selection_guidance:
+- Есть 3D motif — RFdiffusion.
+- Только sequence motif — EvoDiff, но без 3D гарантий.
+architecture_ids:
+- coordinate-diffusion
+- sequence-diffusion
+workflow_ids:
+- de-novo-backbone-then-mpnn
+paper_ids: []
+glossary_ids:
+- conditioning
+downstream: false

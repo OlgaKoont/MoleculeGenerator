@@ -1,0 +1,25 @@
+id: manufacturability-assessment
+slug: manufacturability-assessment
+name: Manufacturability assessment
+group: Downstream engineering (не генерация)
+definition: Оценка пригодности к производству (titers, stability, formulation).
+objective: Снизить late-stage risk, не создать sequence.
+starting_inputs:
+- candidate sequence/process data
+generated_objects:
+- risk scores
+generator_classes: []
+strategies: []
+consequences: []
+compute_consequences: []
+evidence_summary: Не входит в generative matrix.
+incomparable:
+- Не generative design.
+selection_guidance:
+- Отдельный слой после wet-lab hits.
+architecture_ids: []
+workflow_ids: []
+paper_ids: []
+glossary_ids:
+- developability
+downstream: true

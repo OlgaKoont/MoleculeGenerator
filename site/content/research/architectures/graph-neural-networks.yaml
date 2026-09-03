@@ -1,0 +1,341 @@
+status: partially_verified
+last_reviewed: '2026-08-20'
+sections:
+- title: 1. Область определения
+  level: 2
+  blocks:
+  - type: p
+    text: Graph neural networks (GNN / MPNN) — сети, которые обновляют представления <strong>узлов</strong> (residues или atoms) сообщениями по <strong>рёбрам</strong> (kNN, radius, bonds). Это inductive bias локального соседства, не diffusion process и не global Transformer. Генератор появляется, когда к MPNN добавляют decode head (AR sequence, coordinate update, side-chain χ).
+  - type: p
+    text: 'Не путать с <a href="/architectures/geometric-transformers.html">geometric transformers</a> (GVP-Transformer ESM-IF1: GNN encoder + Transformer). Не путать с <a href="/architectures/inverse-folding.html">inverse folding</a> как задачей \(p(s\mid x)\). Не <a href="/architectures/se3-equivariant-models.html">SE(3) class</a>: GNN может быть invariant (ProteinMPNN distances) или equivariant (dyMEAN multi-channel). Не ELISA AL.'
+  - type: p
+    text: 'Каталог: <a href="/tools/proteinmpnn.html">ProteinMPNN</a>, <a href="/tools/ligandmpnn.html">LigandMPNN</a> (residue IF); <a href="/tools/dymean.html">dyMEAN</a> (full-atom Ab GNN); <a href="/tools/chroma.html">Chroma</a> помечен GNN как design/denoiser graph — канон генерации на <a href="/architectures/coordinate-diffusion.html">coordinate diffusion</a>.'
+  - type: p
+    text: 'Задачи: <a href="/tasks/inverse-folding.html">inverse folding</a>, <a href="/tasks/functional-site-design.html">ligand-context sequence</a>, <a href="/tasks/joint-cdr-sequence-structure-design.html">CDR co-design</a> (dyMEAN). Не de novo backbone from noise.'
+- title: 2. Интуитивный принцип
+  level: 2
+  blocks:
+  - type: p
+    text: 'Аминокислота «смотрит» на ближайшие residues/atoms. Несколько слоёв расширяют рецептивное поле \(\approx k\times L_{\mathrm{layers}}\), но не дают dense pair memory. ProteinMPNN авторы: identity в основном определяется immediate environment — поэтому sparse graph достаточен, в отличие от structure prediction. [PAPER]'
+  - type: p
+    text: 'Decode: ProteinMPNN семплирует AA по случайному порядку узлов; dyMEAN итеративно обновляет sequence и full-atom coords, затем стыкует paratope к epitope (shadow paratope + Kabsch).'
+  - type: warn
+    text: Sequence recovery / DockQ / predicted \(\Delta\Delta G\) / log \(p(s\mid x)\) ≠ experimental \(K_D\). dyMEAN affinity optimization — Shan GNN / FoldX, не SPR. LigandMPNN требует заданный ligand pose.
+- title: 3. Формальная математическая постановка
+  level: 2
+  blocks:
+  - type: p
+    text: Несколько subtype. Не писать IPA/FAPE как default GNN loss.
+  - title: Generic message passing (Gilmer)
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        m_{ij}^{(\ell)}&=M^{(\ell)}\bigl(h_i^{(\ell)},h_j^{(\ell)},e_{ij}\bigr),\\
+
+        h_i^{(\ell+1)}&=U^{(\ell)}\Bigl(h_i^{(\ell)},\bigoplus_{j\in\mathcal{N}(i)} m_{ij}^{(\ell)}\Bigr).
+
+        \end{aligned}'
+      caption: \(\mathcal{N}(i)\) — kNN/radius/bond neighbors; \(\oplus\) — sum/mean. ProteinMPNN также обновляет edges в encoder (experiment 2). [PAPER] Gilmer et al. 2017; Dauparas Table 1.
+      source: '[PAPER] Gilmer et al. ICML 2017; Dauparas Science 2022'
+  - title: 'ProteinMPNN: order-agnostic AR on residue graph'
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        p(s\mid x)&=\prod_{t=1}^{L} p\bigl(s_{\pi_t}\mid s_{\pi_{<t}},x\bigr),\quad\pi\sim\mathrm{Unif}(S_L),\\
+
+        \mathcal{L}&=-\sum_i\log p(s_i^\star\mid s_{\pi_{<i}}^\star,x).
+
+        \end{aligned}'
+      caption: 'Encoder: 3 MPNN layers, unmasked graph. Decoder: 3 AR layers, 128 hidden, \(\approx 1.7\)M params (Table 1 exp. 4). \(k\) nearest C\(\alpha\) (released \(k=48\); saturation 32–48). Edges: distances N/C\(\alpha\)/C/O/virtual C\(\beta\); chain-same binary; relative index capped \(\pm 32\). Tied positions: average unnormalized logits then softmax (homo-oligomers). [PAPER]'
+      source: '[PAPER] Dauparas et al. Science 2022'
+    - type: p
+      text: 'Train noise: Gaussian SD \(0.02\) Å (Science Table 1) vs \(0.3\) Å для большей AF success at looser cutoffs. Inference temperature повышает diversity при малой потере recovery. [PAPER]'
+  - title: 'LigandMPNN: three graphs'
+    level: 3
+    blocks:
+    - type: p
+      text: 'Protein graph (residues, 25 distances among N/C\(\alpha\)/C/O/virtual C\(\beta\)); protein–ligand graph (each residue \(\leftrightarrow\) 25 nearest ligand atoms); per-residue fully-connected ligand graph on those atoms (element one-hot, distances). Encoder: protein MPNN + 2 protein–ligand blocks; decoder AR sequence + \(\chi\) packing. Train noise \(0.1\) Å. [PAPER] Dauparas et al. Nat. Methods 2025.'
+  - title: 'dyMEAN: adaptive multi-channel E(3) GNN'
+    level: 3
+    blocks:
+    - type: math
+      latex: '\begin{aligned}
+
+        v_i&=(s_i,X_i),\quad X_i\in\mathbb{R}^{3\times c_i},\\
+
+        \tilde X_A,\{p_i\}&=\mathrm{dyMEAN}(\mathcal{G}_E\cup\mathcal{G}_S,\mathcal{G}_A^{(0)}).
+
+        \end{aligned}'
+      caption: '\(c_i\) — число atoms residue (full-atom, не фиксированные 4 backbone). kNN по min pairwise atom distance, \(k=9\), 3 AME layers, \(T=3\) decode iterations. Shadow paratope \(\mathcal{G}_S\) клонирует paratope у epitope; обмен только invariant \(h_i\). Docking: Kabsch native→shadow. Sequence head invariant; coords independently E(3)-equivariant (Theorem 4.1). [PAPER] Kong et al. ICML 2023.'
+      source: '[PAPER] Kong, Huang, Liu, ICML 2023 / arXiv 2302.00203'
+  - title: Смежные постановки, которые нельзя смешивать
+    level: 3
+    blocks:
+    - type: table
+      headers:
+      - Постановка
+      - Граф / decode
+      - Роль
+      - Каталог
+      rows:
+      - - GNN (эта страница)
+        - sparse MPNN
+        - encoder ± generator head
+        - ProteinMPNN, LigandMPNN, dyMEAN
+      - - <a href="/architectures/geometric-transformers.html">Geometric transformer</a>
+        - GVP then dense TF
+        - IF encoder-decoder
+        - ESM-IF1, AntiFold
+      - - <a href="/architectures/inverse-folding.html">Inverse folding</a>
+        - \(p(s\mid x)\)
+        - задача
+        - пересекается с residue GNN
+      - - <a href="/architectures/coordinate-diffusion.html">Coordinate diffusion</a>
+        - GNN as denoiser/design
+        - generative process
+        - Chroma
+      - - <a href="/architectures/frame-diffusion.html">Frame diffusion</a>
+        - RF/IPA, не kNN MPNN
+        - backbone sampler
+        - RFdiffusion uses MPNN after
+      - - Rosetta packer
+        - energy MC
+        - physics proxy
+        - ProteinMPNN baseline, not GNN
+    - type: warn
+      text: FAPE не default ProteinMPNN. Predicted ΔΔG (dyMEAN) не assay.
+- title: 4. Представление данных
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'ProteinMPNN: residue nodes; kNN C\(\alpha\); N/C\(\alpha\)/C/O/virtual C\(\beta\) distances; dihedrals in Ingraham baseline, distances dominate ablation. Chain IDs. Design mask. 19 700 CATH-split monomers for ablations; production models on assemblies. [PAPER]'
+    - 'LigandMPNN: PDB biounits ≤3.5 Å, <6000 residues, 16 Dec 2022; 30% seq cluster split; ligand atoms except HOH/NA/CL/K/BR. Test: 317 small-mol, 74 NA, 83 metal. [PAPER]'
+    - 'dyMEAN: SAbDab Nov 2022; CDR-H3 40% BLOSUM62 clusters (MMseqs2); train 3256 Abs / 1644 clusters, val 365 / 182; RAbD 60 complexes; drop test-cluster Abs. Conserved FR template (type consistent in \(\ge 95\%\)). [PAPER]'
+    - 'Chroma: random long-range graph for equivariant reconstruction; separate design GNN (Ingraham/ProteinMPNN lineage) after backbone. Hidden widths SI NR. [PAPER]'
+- title: 5. Физическое представление
+  level: 2
+  blocks:
+  - type: p
+    text: 'ProteinMPNN/LigandMPNN generated state — discrete AA (LigandMPNN ещё \(\chi\)). Backbone вход фиксирован. dyMEAN generated state — paratope types + full-atom coords + docked complex. Global pose: ProteinMPNN invariant (relative distances); dyMEAN equivariant coords / invariant sequence. Chain permutation: ProteinMPNN binary same-chain + capped index. Ligand atom set permutation: ligand graph, not residue chain.'
+  - type: p
+    text: Cutoff графа не моделирует long-range electrostatics явно. Side chains в ProteinMPNN не пакуются сетью (в отличие от LigandMPNN / dyMEAN).
+- title: 6. Физико-химический смысл
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Feature / operation
+    - Physical/chemical interpretation
+    - Encoded how
+    - Limitation
+    rows:
+    - - kNN C\(\alpha\) / min-atom distance
+      - local packing neighborhood
+      - graph edges
+      - misses long-range salt bridges
+    - - N/C\(\alpha\)/C/O/C\(\beta\) distances
+      - backbone geometry, virtual C\(\beta\) for Gly
+      - edge features
+      - crystal memory without noise
+    - - Ligand element one-hot
+      - chemistry of non-protein atoms
+      - ligand nodes
+      - needs correct pose
+    - - \(\chi\) packing (LigandMPNN)
+      - side-chain rotamers near ligand
+      - AR torsion head
+      - chi3/chi4 poorly recovered [PAPER]
+    - - Shadow paratope
+      - epitope–CDR contacts independent of Ab pose
+      - cloned subgraph
+      - not experimental epitope map
+    - - Tied oligomer logits
+      - symmetry of assemblies
+      - shared sample
+      - wrong symmetry → wrong sequence
+    - - CE recovery / DockQ
+      - PDB statistics / docking score
+      - learned / geometric
+      - not \(K_D\)
+    - - H-bonds, solvent, glycans
+      - implicit in PDB
+      - absent explicit
+      - Ab glycans not in ProteinMPNN
+    source: '[INTERPRETATION] класс; tool rows — cited papers'
+- title: 7. Что обучается
+  level: 2
+  blocks:
+  - type: p
+    text: 'ProteinMPNN: CE native sequence. Negative — softmax over 20. Encoder+decoder. No FAPE. Noise on coords — regularization against crystal-sequence memory. [PAPER]'
+  - type: p
+    text: 'LigandMPNN: CE near-ligand residues + \(\chi\) heads. Retrained ProteinMPNN without context atoms as control. [PAPER]'
+  - type: p
+    text: 'dyMEAN: sequence CE on paratope + coordinate / external distance losses on shadow paratope; \(T=3\). Affinity mode: extra MLP fit to Shan \(\Delta\Delta G\) predictor, then gradient search of initials — not experimental labels. [PAPER]'
+- title: 8. Прямой проход и information flow
+  level: 2
+  blocks:
+  - type: flow
+    nodes:
+    - build kNN / ligand / epitope graph
+    - encoder MPNN (unmasked)
+    - AR decode or iterative AME
+    - sample AA / update coords
+    - optional pack / Kabsch dock
+    - expression, AF, crystallography, BLI
+    note: Схема класса. Не копия Dauparas Fig. 1 / Kong Fig. 3.
+  - type: p
+    text: 'RFantibody: RFdiffusion backbone → ProteinMPNN sequence (external to this class''s train). FlowDesign uses dyMEAN as prior, не как sampler этой страницы.'
+- title: 9. Training procedure
+  level: 2
+  blocks:
+  - type: p
+    text: 'ProteinMPNN: CATH 80/10/10 on 19.7k monomers for Table 1; assemblies for production. Evaluations on 690 monomers / 732 homomers / 98 heteromers (Fig. 2B). [PAPER]'
+  - type: p
+    text: 'LigandMPNN: 30% identity clusters; hold-out ligand/NA/metal sets. [PAPER]'
+  - type: p
+    text: 'dyMEAN: RAbD held out by CDR-H3 cluster. Authors warn unigram ARDG***DY already 39.61% AAR / 26.57% CAAR on test — recovery can be motif copying. [PAPER]'
+- title: 10. Inference and generation
+  level: 2
+  blocks:
+  - type: p
+    text: 'ProteinMPNN: random \(\pi\); skip fixed residues but keep them as context; ~1 s/backbone (authors). Temperature sampling; log \(p(s\mid x)\) для ranking. Released \(k=48\). [PAPER]+[DOC]'
+  - type: p
+    text: 'LigandMPNN: same plus ligand graphs; optional independent \(\chi\) samples (b-factor = log density). [DOC]'
+  - type: p
+    text: 'dyMEAN: SI conserved FR → shadow paratope → \(T=3\) AME → sequence head + Kabsch. One structure per forward (not a diffusion ensemble). [PAPER]'
+- title: 11. Conditioning
+  level: 2
+  blocks:
+  - type: p
+    text: 'Fixed identities / design mask; tied symmetry; ligand/metal/NA atoms; epitope graph + incomplete Ab sequence (dyMEAN). Multi-state: ProteinMPNN averages unnormalized logits across backbones. [PAPER]'
+  - type: p
+    text: Нет ELISA labels. Нет UCB.
+- title: 12. Вычислительная сложность
+  level: 2
+  blocks:
+  - type: p
+    text: \(O(L k \ell)\) per pass vs \(O(L^2)\) pair Transformer. ProteinMPNN AR still \(L\) decode steps. dyMEAN full-atom \(c_i\) увеличивает message cost; \(k=9\) меньше ProteinMPNN 48. Chroma random graph aims \(O(N)\)–\(O(N\log N)\) for large complexes. Wall-clock oracle (crystals, BLI) доминирует claims of function.
+- title: 13. Преимущества
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - ProteinMPNN native recovery 52.4% vs Rosetta 32.9%; Table 1 distances+edge updates+random order 50.8% (unnoised PDB). [PAPER]
+    - 'Wet-lab rescue: N=129 AF-hallucinated backbones, median soluble yield 9→247 mg/L; monomer crystal 2.35 Å / 130 res; 10 cyclic oligomer crystal/cryo-EM; 76 sequences / 27 tetrahedral backbones → 13 assemblies ~1 MDa, one crystal 1.2 Å C\(\alpha\); Grb2 SH3 scaffold BLI signal after Rosetta fail (motif PPPRPPK fixed). [PAPER]'
+    - 'LigandMPNN near-ligand recovery: small-mol 63.3% vs ProteinMPNN 50.5% / Rosetta 50.4%; nucleotides 50.5% vs 34.0%/35.2%; metals 77.5% vs 40.6%/36.0%. Authors: >100 experimental small-mol/DNA binders; 4 X-ray; cholic-acid redesign up to 100-fold affinity. [PAPER]'
+    - 'dyMEAN RAbD CDR-H3: AAR 43.65%, CAAR 28.11%, RMSD 8.11 Å (no Kabsch), DockQ 0.409 vs MEAN* 37.38% / 0.162. In silico only. [PAPER]'
+  - type: p
+    text: ProteinMPNN не antibody-specialist (мотивация AntiFold/AbMPNN). dyMEAN ΔΔG loop ≠ measured affinity; authors discuss energy-function unreliability. [PAPER]
+- title: 14. Ограничения
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - 'Математика: sparse graph; cutoff; ProteinMPNN reflection/chirality via distances+virtual Cβ, не IPA frames.'
+    - 'Представление: residue graph misses some full-atom clashes until packer (ProteinMPNN).'
+    - 'Физика: не force field; LigandMPNN needs ligand coordinates.'
+    - 'Данные: PDB crystal memory; dyMEAN SAbDab unigram bias ARDG***DY.'
+    - 'Обобщение: general MPNN → Ab CDR без FT; dyMEAN не de novo Fv без framework init.'
+    - 'Deployment: MIT code; Chroma weights gated; commits NR this pass.'
+- title: 15. Failure modes
+  level: 2
+  blocks:
+  - type: ul
+    items:
+    - Считать ESM-IF1 «просто GNN» (там Transformer).
+    - Считать recovery folding; один substitution ломает fold при почти том же recovery (Dauparas conclusion). [PAPER]
+    - Неверный ligand conformer / epitope graph → sequence под неправильную химию.
+    - dyMEAN predicted ΔΔG / FoldX как SPR.
+    - Считать Chroma split-GFP доказательством GNN-only (это diffusion+design pipeline).
+    - kNN на разреженной CDR без antigen context.
+    - Сравнивать ProteinMPNN soluble mg/L с tFold SPR и RFantibody yeast как одну \(f\).
+- title: 16. Реализации в инструментах
+  level: 2
+  blocks:
+  - type: table
+    headers:
+    - Tool / method
+    - Generic architecture
+    - Tool-specific implementation
+    - Important difference
+    rows:
+    - - <a href="/tools/proteinmpnn.html">ProteinMPNN</a>
+      - residue MPNN IF
+      - 3+3 layers, k=48, random order, tied pos
+      - Science 2022 wet-lab rescue; not Ab FT
+    - - <a href="/tools/ligandmpnn.html">LigandMPNN</a>
+      - MPNN + ligand/NA/metal graphs
+      - 25 context atoms; χ head; 0.1 Å noise
+      - Nat. Methods 2025; no Ab campaign
+    - - <a href="/tools/dymean.html">dyMEAN</a>
+      - full-atom E(3) multi-channel GNN
+      - shadow paratope; k=9; T=3
+      - ICML 2023; RAbD in silico; FlowDesign prior
+    - - <a href="/tools/chroma.html">Chroma</a>
+      - GNN denoiser + design GNN
+      - random graph; CRF sequence after coords
+      - 'class канон: coordinate diffusion'
+    - - <a href="/tools/esm-if1.html">ESM-IF1</a>
+      - не этот класс как канон
+      - GVP-GNN encoder + Transformer
+      - geometric-transformers
+    - - <a href="/tools/rfantibody.html">RFantibody</a>
+      - uses MPNN as sequence stage
+      - after RFdiffusion
+      - frame diffusion + IF
+    - - GVP-GNN Jing / Ingraham ST
+      - pure geometric GNN / graph+attn
+      - literature
+      - не catalog tools
+    - - AbMPNN
+      - ProteinMPNN Ab FT
+      - AntiFold baseline
+      - не отдельная карточка
+- title: 17. Где применимо и где не применимо
+  level: 2
+  blocks:
+  - type: p
+    text: 'Применимо: sequence на заданном backbone (<a href="/workflows/fixed-backbone-inverse-folding.html">fixed-backbone IF</a>, RFantibody sequence stage); ligand/metal pockets (LigandMPNN); epitope-conditioned full-atom CDR при известном epitope (dyMEAN, in silico).'
+  - type: p
+    text: Не применимо как de novo backbone sampler или few-shot ELISA AL. Не сравнивать ProteinMPNN crystals с dyMEAN DockQ и LigandMPNN 100-fold cholic-acid redesign как одно и то же утверждение о «GNN quality».
+- title: 18. Методологические источники
+  level: 2
+  blocks:
+  - type: refs
+    items:
+    - text: Gilmer et al., Neural Message Passing for Quantum Chemistry, ICML 2017.
+      url: https://arxiv.org/abs/1704.01212
+    - text: Ingraham et al., Generative Models for Graph-Based Protein Design, NeurIPS 2019.
+      url: https://papers.nips.cc/paper/2019/hash/f3a4ff4839c56a5f460c88cce3666a2b-Abstract.html
+    - text: Dauparas et al., Robust deep learning–based protein sequence design using ProteinMPNN, Science 2022, 10.1126/science.add2187.
+      url: https://doi.org/10.1126/science.add2187
+    - text: Dauparas et al. bioRxiv 10.1101/2022.06.03.494563.
+      url: https://doi.org/10.1101/2022.06.03.494563
+    - text: Dauparas et al., Atomic context-conditioned protein sequence design using LigandMPNN, Nat. Methods 2025, 10.1038/s41592-025-02626-1.
+      url: https://doi.org/10.1038/s41592-025-02626-1
+    - text: Kong, Huang, Liu, End-to-End Full-Atom Antibody Design (dyMEAN), ICML 2023.
+      url: https://proceedings.mlr.press/v202/kong23c.html
+    - text: Jing et al., GVP-GNN, ICLR 2021 (pure GNN baseline).
+      url: https://openreview.net/forum?id=1YLJDvSx6J4
+    - text: Architecture inverse folding
+      url: /architectures/inverse-folding.html
+    - text: Architecture geometric transformers
+      url: /architectures/geometric-transformers.html
+    - text: Architecture coordinate diffusion (Chroma GNN)
+      url: /architectures/coordinate-diffusion.html
+    - text: Tool ProteinMPNN
+      url: /tools/proteinmpnn.html
+    - text: Tool LigandMPNN
+      url: /tools/ligandmpnn.html
+    - text: Tool dyMEAN
+      url: /tools/dymean.html
+inaccessible:
+- dauparas/ProteinMPNN и dauparas/LigandMPNN commits в этом проходе не аудировались; уравнения, Table 1, wet-lab — Science HTML 10.1126/science.add2187 и Nat. Methods HTML 10.1038/s41592-025-02626-1 / bioRxiv 10.1101/2023.12.22.573103.
+- ProteinMPNN Science SI fig. S1–S4 не разбирались постранично; k=32–48 saturation — main text; released weights prefix v_48 — [DOC] repo, не commit audit.
+- dyMEAN ICML PDF Appendix k_neighbors=9 / n_layers=3 сверены с arXiv HTML 2302.00203; GitHub thunlp-mt/dyMEAN commit NR.
+- Chroma SI graph hyperparameters (Appendix C–G) NR this pass; GNN role — Nature/bioRxiv as cited on coordinate-diffusion page.

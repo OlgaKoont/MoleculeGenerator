@@ -1,0 +1,7 @@
+id: likelihood
+slug: likelihood
+term: Likelihood / log-probability
+term_ru: Правдоподобие
+definition: Оценка модели, насколько sequence вероятна при условии. Не Kd и не function.
+related_ids:
+- inverse-folding

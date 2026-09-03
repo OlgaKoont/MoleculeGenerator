@@ -1,0 +1,36 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "bioRxiv HTML Hsu 2022 прочитан. PMLR PDF Table A.1 не развёрнут. Prospective wet-lab designs в статье нет."
+lede: "ICML paper по inverse folding с 12M AF2 structures. Основной evidence — CATH recovery, ablations и zero-shot DMS correlations. Не путать Spearman 0.69 на Starr RBD с designed-binder validation."
+sections:
+  - id: question
+    title: "Исследовательский вопрос"
+    paragraphs:
+      - text: "Улучшает ли обучение на миллионах predicted structures inverse folding (GVP vs GVP-Transformer) и zero-shot mutation scoring?"
+        source: PAPER
+  - id: architecture
+    title: "Архитектура"
+    paragraphs:
+      - text: "GVP-Transformer 142M: 4 GVP + 8+8 Transformer; $p(Y\\mid X)=p(Y\\mid TX)$. См. /tools/esm-if1.html."
+        source: PAPER
+  - id: claims-support
+    title: "Утверждения и evidence"
+    paragraphs:
+      - text: "Recovery 51.6% vs 38.3% CATH-only; buried 72%. Table 3 Starr Spearman 0.69 **retrospective** mutational scan, требует ACE2+RBM coords. Нет prospective designed proteins."
+        source: PAPER
+  - id: unsupported
+    title: "Что evidence не поддерживает"
+    items:
+      - "Экспериментально подтверждённые de novo sequences от ESM-IF1 в этой статье"
+      - "Что likelihood ratio = $\\Delta\\Delta G$ или Kd"
+  - id: author-limits
+    title: "Ограничения авторов"
+    paragraphs:
+      - text: "Predicted structures can leak topology if not filtered (Gene3D/Foldseek); single-point SKEMPI may not improve with extra AF2 data; 100% recovery impossible because many sequences share a fold."
+        source: PAPER
+citations:
+  - id: "1"
+    text: "Hsu et al. PMLR 162:8946–8970 (2022)."
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+unresolved:
+  - "Table A.1 numeric hyperparameters"

@@ -1,0 +1,68 @@
+id: antibody-sequence-infilling
+slug: antibody-sequence-infilling
+name: Antibody sequence infilling and CDR diversification
+use_case: Нужно разнообразить CDR или infill span без antigen structure.
+required_input:
+- optional sequence context
+- span mask
+- species/chain tokens
+stages:
+- name: Infilling generation
+  architecture_class: Autoregressive infilling LM
+  what_happens: Заполняется masked span
+  generation_or_evaluation: generation
+  generator: iglm
+  intermediate_object: VH or VL sequences
+  alternatives:
+  - palm-h3
+  node_links:
+  - iglm
+  - masked-token-infilling
+- name: Likelihood filter
+  architecture_class: Model likelihood
+  what_happens: Naturalness ranking
+  generation_or_evaluation: evaluation
+  generator: null
+  intermediate_object: Filtered sequences
+  alternatives: []
+  node_links: []
+- name: Pairing / structure / developability
+  architecture_class: External
+  what_happens: VH/VL pairing и прочие checks
+  generation_or_evaluation: external_evaluation
+  generator: null
+  intermediate_object: Paired candidates
+  alternatives:
+  - abnativ
+  node_links:
+  - abnativ
+- name: Assays
+  architecture_class: null
+  what_happens: Binding if claimed
+  generation_or_evaluation: experiment
+  generator: null
+  intermediate_object: Assayed sequences
+  alternatives: []
+  node_links:
+  - experimental-assays
+hardware_runtime: Usually modest. Academic license; commercial license required.
+evidence_level: Retrospective naturalness/diversity. No antigen conditioning.
+failure_points:
+- Independent chain generation without pairing.
+- Likelihood as specificity.
+decision_criteria:
+- Нужен antigen? Нет, не этот workflow.
+- Commercial use license?
+task_ids:
+- cdr-sequence-generation
+- antibody-structure-aware-sequence-design
+tool_ids:
+- iglm
+architecture_ids:
+- protein-language-models
+- autoregressive-generation
+- masked-token-infilling
+paper_ids:
+- paper-iglm
+mermaid: "flowchart TD\n    A[Sequence context + span mask] --> B[IgLM infilling]\n    B --> C[Likelihood\
+  \ filter]\n    C --> D[Pairing and developability]\n    D --> E[Optional assays]"

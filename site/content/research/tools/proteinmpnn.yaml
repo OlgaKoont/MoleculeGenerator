@@ -1,0 +1,12 @@
+status: sources_identified
+last_reviewed: '2026-08-20'
+sections:
+- title: Статус исследования
+  level: 2
+  blocks:
+  - type: warn
+    text: Полная source-grounded верификация proteinmpnn (полный primary paper + SI + implementation files) в этом проходе не завершена. Карточка каталога и matrix fields остаются доступны, но их нельзя читать как проверенный architecture analysis.
+  - type: p
+    text: Dauparas Science 2022 HTML; class page graph-neural-networks. dauparas/ProteinMPNN commit NR this pass. Sequence stage of RFantibody.
+  - type: p
+    text: Не отождествляйте likelihood, pLDDT, PAE, docking score, predicted ΔΔG или developability score с экспериментальным связыванием.

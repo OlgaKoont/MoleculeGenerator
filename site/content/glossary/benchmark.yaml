@@ -1,0 +1,7 @@
+id: benchmark
+slug: benchmark
+term: Benchmark
+term_ru: Бенчмарк
+definition: Фиксированная оценка на retrospective данных. Не заменяет prospective wet-lab.
+related_ids:
+- evidence-level

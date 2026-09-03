@@ -1,0 +1,63 @@
+id: general-protein-sequence-generation
+slug: general-protein-sequence-generation
+name: Генерация белковых sequences
+group: Общий белковый дизайн
+definition: Генерация amino-acid sequences без обязательного 3D backbone на входе.
+objective: Получить правдоподобные sequences для семейства, функции или unconstrained exploration.
+starting_inputs:
+- нет входа
+- family/function tags
+- prefix/seed sequence
+- partial mask
+generated_objects:
+- amino-acid sequence
+generator_classes:
+- sequence-generator
+strategies:
+- name: Autoregressive protein LM
+  generates: Sequence tokens
+  representation: Tokens
+  examples:
+  - progen
+  - iglm
+  limitation: Нет прямой 3D geometry
+  sampling: Autoregressive decoding
+  novel_topology: Только косвенно через sequence
+  integrated_scoring: Likelihood
+  complexity_drivers: Длина sequence
+- name: Discrete sequence diffusion
+  generates: Sequence tokens
+  representation: Noisy discrete tokens
+  examples:
+  - evodiff
+  limitation: Motif presence ≠ правильная 3D placement
+  sampling: Iterative denoising
+  novel_topology: Косвенно
+  integrated_scoring: NR
+  complexity_drivers: Длина × sampling steps
+consequences:
+- decision: Autoregressive decoding
+  consequence: Runtime растёт с длиной; ошибки ранних токенов влияют на продолжение.
+- decision: Sequence-only generation
+  consequence: Нужен отдельный structure prediction, если важна геометрия.
+compute_consequences:
+- Обычно легче, чем 3D diffusion.
+- Fine-tuning на семейство может требовать отдельный корпус.
+evidence_summary: Prospective function показана для отдельных sequence LM (ProGen2, ESM3), но
+  не переносится автоматически на antibodies.
+incomparable:
+- Не сравнивать напрямую с backbone generators и inverse folding.
+selection_guidance:
+- Нужен широкий sequence prior — ProGen/EvoDiff/ESM3.
+- Для antibodies лучше antibody-specific LM (IgLM), а не общий protein LM.
+architecture_ids:
+- protein-language-models
+- autoregressive-generation
+- sequence-diffusion
+workflow_ids:
+- sequence-first-de-novo
+paper_ids: []
+glossary_ids:
+- protein-language-model
+- sampling
+downstream: false

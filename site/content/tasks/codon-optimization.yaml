@@ -1,0 +1,25 @@
+id: codon-optimization
+slug: codon-optimization
+name: Codon optimization
+group: Downstream engineering (не генерация)
+definition: Перекодирование DNA под host без изменения amino-acid sequence.
+objective: Улучшить экспрессию, не дизайн белка.
+starting_inputs:
+- protein sequence
+- host
+generated_objects:
+- DNA sequence
+generator_classes: []
+strategies: []
+consequences: []
+compute_consequences: []
+evidence_summary: Это nucleotide engineering, не protein generative design.
+incomparable:
+- Не сравнивать с protein generators.
+selection_guidance:
+- После фиксации amino-acid sequence.
+architecture_ids: []
+workflow_ids: []
+paper_ids: []
+glossary_ids: []
+downstream: true

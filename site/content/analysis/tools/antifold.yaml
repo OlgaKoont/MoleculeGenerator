@@ -1,0 +1,268 @@
+research_status: partially_verified
+last_source_check: "2026-08-27"
+status_note: "arXiv HTML 2405.03370 включая Supplementary Methods прочитан. OUP Bioinformatics Advances HTML блокировался Cloudflare. Код `antifold/main.py` и README просмотрены (commit 789d467); веса `model.pt` и полный ESM encoder не дизассемблировались."
+lede: "AntiFold — antibody-specific **inverse folding**: fine-tune ESM-IF1 на solved и predicted Fv/VHH. Генерирует sequences (logits / sampled FASTA) при **фиксированном backbone**. Не генерирует структуру. Zero-shot корреляция log-likelihood с DMS affinity — **score**, не demonstrated affinity engineering."
+inaccessible:
+  - source: "https://academic.oup.com/bioinformaticsadvances/article/5/1/vbae202/8090019"
+    reason: "Cloudflare / HTML недоступен"
+    workaround: "arXiv 2405.03370 HTML + SI methods в том же документе"
+  - source: "Полный binary checkpoint internals"
+    reason: "Не разбирался"
+    workaround: "Архитектура по SI: ESM-IF1 4 GVP + 8+8 Transformer"
+sources:
+  - kind: PAPER
+    citation: "Høie, Hummer et al., arXiv:2405.03370 / Bioinformatics Advances 10.1093/bioadv/vbae202"
+    url: "https://arxiv.org/abs/2405.03370"
+    doi: "10.1093/bioadv/vbae202"
+  - kind: CODE
+    citation: "https://github.com/oxpig/AntiFold"
+    url: "https://github.com/oxpig/AntiFold"
+    note: "master 789d46786624c01eb44f177ef4c0deeeb6e77469"
+  - kind: DOC
+    citation: "README: independent benchmarks listed (Li 2025 PLOS ONE; Clifford 2025 Sci Adv) — papers not fully read"
+    url: "https://github.com/oxpig/AntiFold"
+repo:
+  url: "https://github.com/oxpig/AntiFold"
+  commit: "789d46786624c01eb44f177ef4c0deeeb6e77469"
+  ref: "master"
+  license: "BSD 3-Clause (README / OPIG download)"
+  files:
+    - antifold/main.py
+    - antifold/antiscripts.py
+    - antifold/esm_util_custom.py
+    - README.md
+sections:
+  - id: what
+    title: "1. Что именно делает инструмент"
+    paragraphs:
+      - text: "**Вход:** PDB/CIF variable domain (IMGT 1–128 рекомендуется для region sampling); цепи H/L или nanobody; optional antigen chain. **Выход:** per-residue log-probabilities/CSV, perplexity, sampled FASTA для выбранных IMGT regions. **Фиксируется:** backbone coordinates. **Изменяется:** amino-acid identities на маске. Parent-based / template-based, не de novo fold."
+        source: DOC
+        locator: "README Features/Input; PAPER Figure 1 caption"
+  - id: arch-para
+    title: "2. Архитектура в одном абзаце"
+    paragraphs:
+      - text: "Fine-tune ESM-IF1: 4 GVP-GNN + 8 Transformer encoder + 8 decoder, инвариантность к rotation/translation входа. Комплекс VH/VL: конкатенация координат L после H с 10 gap tokens (missing coordinates). Обучение CE на masked positions; финальные augmentations: span+shotgun mask, CDR-weighted 3:1, layer-wise LR decay $\\alpha=0.85$, OAS predicted structures. Sampling: $\\mathrm{logits}/t$, default $t=0.20$."
+        source: SI
+        locator: "Supplementary Methods 0.1.3–0.1.6"
+  - id: math-model
+    title: "4. Математическая модель"
+    equations:
+      - latex: "p(Y\\mid X)=\\prod_i p(y_i\\mid y_{<i};X)"
+        caption: "AntiFold SI Eq. (1), по Hsu et al."
+        generic_or_specific: "ESM-IF1 / AntiFold [SI]"
+        source: SI
+        symbols:
+          - {sym: X, type: coordinates, meaning: "N, Cα, C (и gap как missing coords)"}
+          - {sym: Y, type: tokens, meaning: "amino acids"}
+      - latex: "\\mathrm{LR}_i = \\mathrm{LR}\\times \\alpha^{i},\\quad \\alpha=0.85,\\; i=0\\ldots 20"
+        caption: "Layer-wise decay, SI Eq. (2)."
+        generic_or_specific: "tool-specific [SI]"
+        source: SI
+      - latex: "p_i(a)=\\mathrm{softmax}(\\mathrm{logits}_i)_a,\\quad \\tilde{\\ell}=\\mathrm{logits}/t"
+        caption: "SI Eq. (4–5, 7). Temperature как в ProteinMPNN."
+        generic_or_specific: "tool-specific [SI]"
+        source: SI
+      - latex: "\\mathrm{perplexity}=2^{-\\sum_{a=1}^{20}p(a)\\log_2 p(a)}"
+        caption: "SI Eq. (6) — энтропийная толерантность позиции, **не** affinity."
+        generic_or_specific: "tool-specific [SI]"
+        source: SI
+  - id: physical-state
+    title: "5. Физическое устройство состояния"
+    paragraphs:
+      - text: "Состояние генерации: дискретная sequence на фиксированных backbone atoms. Side-chain coordinates не сэмплируются. Antigen — дополнительные residues в geometric context, если указан. Experimental fitness не является переменной модели."
+        source: PAPER
+  - id: physchem
+    title: "6. Физико-химическая интерпретация"
+    paragraphs:
+      - text: "Явно: идентичность АК и геометрия остова. Неявно: статистика antibody structures (SAbDab + OAS/ABB2). Электростатика/растворитель/энтропия не считаются. Antigen chain улучшает **корреляцию** likelihood с lysozyme DMS для CDR, не являясь ΔG."
+        source: PAPER
+        locator: "Results 3.3"
+  - id: training
+    title: "7. Training"
+    paragraphs:
+      - text: "Данные (чтобы сравнить с AbMPNN): 2074 solved SAbDab комплексов (protein antigen, resolution <5 Å, redundancy filter AbMPNN) + 147458 OAS paired, ABB2 models. Split 80/10/10 по 90% concatenated CDR identity (Dreyer et al.)."
+        source: PAPER
+        locator: "Methods 2.1; SI 0.1.1–0.1.2"
+      - text: "Без ESM-IF1 pretraining CDRH3 AAR validation 31.5% vs 58.4% с OAS+augmentations (Tables S1–S4 в SI; цифры из HTML). Early stopping: 10 epochs без снижения val loss."
+        source: SI
+      - text: "Hardware/time: NR. Negative antigens как specificity loss: не заявлены."
+        source: NR
+  - id: inference-sec
+    title: "8. Inference"
+    paragraphs:
+      - text: "Default sampling temp 0.20; `--num_seq_per_target` default 0 (только logits). Evaluation в paper: 20 sequences, t=0.20, 56 X-ray <2.5 Å test structures; refold ABodyBuilder2; CDR RMSD после FW align. `--esm_if1_mode` подменяет веса. GPU/MPS поддерживаются README. Batch size default 1."
+        source: DOC
+  - id: why
+    title: "10. Почему, по мнению авторов, метод эффективен"
+    paragraphs:
+      - text: "**Mechanism:** antibody-specific fine-tune + CDR-weighted masking + predicted structures; ESM-IF1 prior с 12M structures."
+        source: PAPER
+      - text: "**Claim:** лучше AAR на CDR (CDRH3 60% vs AbMPNN 56% vs ESM-IF1 43% на AbMPNN test, Table 1 HTML) и выше Spearman на Warszawski DMS (0.42 vs ~0.30–0.33); refold RMSD 0.95 vs native ABB2 0.63."
+        source: PAPER
+      - text: "**Causal support:** ablation masking/OAS/pretrain — **validation AAR** (SI tables), не prospective binding. Overall benchmark Table 1 не изолирует каждый модуль на affinity. Prospective wet-lab designs **отсутствуют** в primary paper."
+        source: PAPER
+  - id: ablation
+    title: "12. Ablation analysis"
+    paragraphs:
+      - text: "SI Tables S1–S4: span-masking, extra random mask, 3:1 CDR weight, layer-wise decay, OAS predicted structures, train from scratch. Метрика — CDRH3 AAR на **validation**, не Kd. Тест на predicted vs experimental structures: AntiFold ΔAAR ~0.5%, AbMPNN хуже на experimental (−2.7%)."
+        source: SI
+        locator: "Methods 2.2; Results 3.1"
+  - id: absent
+    title: "13. What the model does not represent"
+    items:
+      - "Генерация backbone / новой CDR topology"
+      - "Явный растворитель, протонирование, гликаны"
+      - "Конформационная энтропия, MD"
+      - "Developability, иммуногенность, экспрессия"
+      - "Истинная binding free energy (даже при Spearman 0.42 на одном DMS)"
+  - id: evidence-lim
+    title: "14. Evidence and limitations"
+    paragraphs:
+      - text: "Авторы обсуждают de-selection loss-of-binding и ортогональность к PLM scores. Independent: README указывает Li et al. 2025 PLOS ONE и Clifford et al. 2025 Sci Adv — **не читались** здесь, не цитировать их цифры."
+        source: DOC
+      - text: "Ограничения: зависимость от входной структуры и IMGT numbering для regions; dataset bias SAbDab/OAS; likelihood miscalibration вне распределения."
+        source: INTERPRETATION
+  - id: repro
+    title: "15. Reproducibility"
+    paragraphs:
+      - text: "BSD-3, pip package, webserver OPIG, weights https://opig.stats.ox.ac.uk/data/downloads/AntiFold/models/model.pt . Commit `789d4678`. Colab в README. Training scripts полного fine-tune в просмотренном дереве `antifold/` не выделены как отдельный train.py в listing — воспроизведение **обучения** NR без дальнейшего поиска."
+        source: CODE
+modules:
+  - module: "ESM-IF1 geometric encoder + AR decoder"
+    model_class: "GVP-GNN + Transformer (fine-tuned)"
+    input: "backbone coords, masks, optional antigen"
+    output: "per-position logits over amino acids"
+    trained_or_frozen: "fine-tuned from ESM-IF1"
+    generator_or_evaluator: "generator (sequence)"
+  - module: "Temperature sampler"
+    model_class: "categorical sampling"
+    input: "logits, IMGT region mask, T"
+    output: "FASTA"
+    trained_or_frozen: "необучаемый"
+    generator_or_evaluator: "generator"
+  - module: "ABodyBuilder2 (в статье, не обязателен в CLI)"
+    model_class: "structure predictor"
+    input: "designed sequence"
+    output: "predicted Fv"
+    trained_or_frozen: "external"
+    generator_or_evaluator: "evaluator (retrospective RMSD)"
+  - module: "Per-position perplexity / log-likelihood"
+    model_class: "derived score"
+    input: "softmax probabilities"
+    output: "scalar ranks"
+    trained_or_frozen: "n/a"
+    generator_or_evaluator: "evaluator only"
+gen_vs_eval:
+  - component: "AntiFold network"
+    role: "sequence generator / logit model"
+    integrated_or_external: "integrated"
+    required_or_optional: "required"
+    influences: "generation"
+  - component: "log-likelihood / perplexity"
+    role: "ranker"
+    integrated_or_external: "integrated"
+    required_or_optional: "optional for sampling"
+    influences: "post_hoc ranking; не двигает backbone"
+  - component: "ABodyBuilder2 / AF (paper eval)"
+    role: "structure predictor"
+    integrated_or_external: "external"
+    required_or_optional: "optional"
+    influences: "post_hoc"
+  - component: "Wet-lab affinity"
+    role: "experimental"
+    integrated_or_external: "external"
+    required_or_optional: "required для binding claims"
+    influences: "не входит в модель"
+claim_evidence:
+  - claim: "Fine-tune улучшает CDRH3 AAR vs ESM-IF1 и AbMPNN"
+    mechanism: "antibody data + masking recipe + ESM-IF1 init"
+    evidence_type: "retrospective benchmark"
+    dataset: "AbMPNN test split / SAbDab"
+    comparator: "ProteinMPNN, ESM-IF1, AbMPNN"
+    metric: "CDRH3 AAR 60% vs 43% ESM-IF1 vs 56% AbMPNN (Table 1)"
+    source: PAPER
+    locator: "Results 3.1 Table 1"
+    caveat: "Recovery ≠ function; split CDR identity 90%"
+  - claim: "Designed sequences preserve backbone"
+    mechanism: "IF likelihood + low T sampling"
+    evidence_type: "retrospective benchmark"
+    dataset: "56 X-ray <2.5 Å; 20 seq; ABB2 refold"
+    comparator: "ProteinMPNN, ESM-IF1, AbMPNN, native ABB2"
+    metric: "mean CDR RMSD 0.95 vs native 0.63"
+    source: PAPER
+    locator: "Results 3.2"
+    caveat: "Self-consistency через predictor, не crystallography designed variants"
+  - claim: "Zero-shot IF probabilities предсказывают AbAg affinity"
+    mechanism: "log-likelihood variants"
+    evidence_type: "retrospective benchmark"
+    dataset: "Warszawski 2019 lysozyme DMS 2209 variants; Hie 2023 124 variants / 7 Abs"
+    comparator: "ESM-IF1, AbMPNN, ProteinMPNN, ESM-2"
+    metric: "Spearman 0.418; improved-group median rank 80%"
+    source: PAPER
+    locator: "Results 3.3"
+    caveat: "Не prospective design; корреляция ≠ Kd; de-selection LoF"
+  - claim: "Pretraining ESM-IF1 необходим"
+    mechanism: "train from scratch"
+    evidence_type: "ablation evidence"
+    dataset: "validation CDRH3 AAR"
+    comparator: "from-scratch 31.5% vs full recipe 58.4%"
+    metric: "AAR"
+    source: SI
+    locator: "Table S4 / Methods 2.2"
+    caveat: "Validation AAR, не affinity"
+  - claim: "Prospective affinity improvement demonstrated in primary paper"
+    mechanism: "—"
+    evidence_type: "architectural rationale only"
+    dataset: "n/a"
+    comparator: "n/a"
+    metric: "не показано"
+    source: PAPER
+    locator: "Discussion / Availability: no wet-lab campaign"
+    caveat: "Primary paper retrospective only"
+diagrams:
+  - code: |
+      flowchart TD
+        PDB["Fv/VHH PDB backbone"] --> ENC["GVP + Transformer encoder"]
+        ENC --> DEC["AR decoder logits"]
+        DEC --> CSV["Per-residue log p"]
+        DEC --> SMP["Temperature sample on IMGT mask"]
+        CSV --> RANK["Likelihood ranker"]
+        SMP --> FASTA["FASTA sequences"]
+        FASTA --> ABB["Optional ABB2 — evaluator"]
+    caption: "Information flow AntiFold. ABB2 не часть обязательного CLI generator."
+    source_note: "arXiv 2405.03370 SI + README"
+paper_vs_code:
+  - paper_version: "arXiv 2405.03370 SI architecture = ESM-IF1"
+    repo_commit: "789d4678"
+    model_version: "models/model.pt (AntiFold) vs --esm_if1_mode"
+    file: "antifold/main.py"
+    difference: "CLI может считать ESM-IF1 без antibody fine-tune"
+    consequence: "Сравнение с paper AntiFold невалидно, если включён esm_if1_mode"
+citations:
+  - id: 1
+    text: "Høie, Hummer et al. AntiFold. arXiv:2405.03370; Bioinformatics Advances 10.1093/bioadv/vbae202"
+    doi: "10.1093/bioadv/vbae202"
+    url: "https://arxiv.org/abs/2405.03370"
+  - id: 2
+    text: "oxpig/AntiFold commit 789d46786624c01eb44f177ef4c0deeeb6e77469"
+    url: "https://github.com/oxpig/AntiFold"
+  - id: 3
+    text: "Hsu et al. ESM-IF1, ICML 2022"
+    url: "https://proceedings.mlr.press/v162/hsu22a.html"
+unresolved:
+  - "Точные гиперпараметры optimizer / batch size fine-tune сверх SI narrative"
+  - "Полный train script в repo"
+  - "Цифры Li 2025 / Clifford 2025 без чтения papers"
+physchem_table:
+  - feature: "Backbone N,CA,C"
+    interpretation: "остов Fv"
+    encoded: "прямо"
+    limitation: "side chains не генерируются"
+  - feature: "CDRH3 tokens"
+    interpretation: "гипервариабельный loop sequence"
+    encoded: "прямо как labels"
+    limitation: "уникальные H3 topologies в train ограничены"
+  - feature: "Antigen coords"
+    interpretation: "геометрический контекст эпитопа"
+    encoded: "optional direct coords"
+    limitation: "не affinity"

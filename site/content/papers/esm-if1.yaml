@@ -1,0 +1,49 @@
+id: paper-esm-if1
+slug: esm-if1
+title: Learning inverse folding from millions of predicted structures
+authors: Chloe Hsu, Robert Verkuil, Jason Liu, Zeming Lin, Brian Hie, Tom Sercu, Adam Lerer, Alexander Rives
+year: '2022'
+venue: ICML 2022 main track (A*)
+publication_status: ICML 2022 main track (A*)
+doi: 10.48550/arXiv.2204.07148
+url: https://proceedings.mlr.press/v162/hsu22a.html
+preprint_url: https://doi.org/10.1101/2022.04.10.487779
+tool_ids:
+- esm-if1
+main_task: Fixed-backbone inverse folding; interface/multistate sequence design
+claimed_novelty: null
+model_architecture: GVP geometric encoder + autoregressive Transformer
+input_representation: null
+encoder_decoder: null
+generative_state: Sequence and sequence likelihood conditioned on backbone
+conditioning: Partial masks, complexes, interfaces, multistate use cases
+sampling: null
+training_objectives: null
+training_dataset: null
+preprocessing: null
+inference: null
+baselines: null
+retrospective_benchmarks: Retrospective recovery/generalization; later antibody evolution
+  evidence belongs to separate workflow
+prospective_experimental_validation: null
+tested_designs: 'Primary paper: no prospective wet lab'
+success_criterion: Retrospective recovery/generalization; later antibody evolution evidence
+  belongs to separate workflow
+main_results: Retrospective recovery/generalization; later antibody evolution evidence belongs
+  to separate workflow
+limitations: Fixed-backbone assumption; scores fold compatibility more directly than therapeutic
+  function; legacy repository.
+demonstrates:
+- Retrospective recovery/generalization; later antibody evolution evidence belongs to separate
+  workflow
+does_not_demonstrate:
+- Predicted confidence, likelihood, pLDDT, docking or developability scores are not experimental
+  affinity.
+claims:
+- text: Learning inverse folding from millions of predicted structures
+  kind: author-reported
+  locator: DOI/URL from landscape matrix
+- text: 'Publication status: ICML 2022 main track (A*)'
+  kind: author-reported
+  locator: landscape matrix, publication status column
+review_queue: []
