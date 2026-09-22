@@ -154,6 +154,37 @@ tr:last-child td { border-bottom: 0; }
 .locator { color: var(--muted); font-size: 0.86em; }
 .muted { color: var(--muted); }
 .research-banner { margin-bottom: 18px; }
+.primer {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px 6px;
+  margin: 0 0 28px;
+}
+.primer h2 { margin-top: 0; }
+.primer p { margin: 0 0 12px; }
+.class-overview {
+  border-left: 3px solid var(--link);
+  background: #f4f8fc;
+  padding: 10px 14px;
+  margin: 8px 0 16px;
+  border-radius: 0 6px 6px 0;
+}
+.class-overview-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+.class-overview > p:last-child { margin: 0; }
+.arch-lede { margin: 0 0 20px; }
+.research-appendix {
+  margin-top: 40px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
 figure.equation, figure.diagram {
   background: var(--card);
   border: 1px solid var(--line);

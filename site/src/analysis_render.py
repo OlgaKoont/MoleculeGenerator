@@ -4,6 +4,7 @@ import html
 import re
 from typing import Any
 
+from architecture_primer import canonical_section_id, primer_paragraphs, section_overview
 from htmlutil import badge, esc, nr, p, table, ul
 
 
@@ -360,7 +361,34 @@ def render_citations(items: list[dict[str, Any]]) -> str:
     return "<ol class='refs'>" + "".join(lis) + "</ol>"
 
 
-def render_section(section: dict[str, Any]) -> str:
+def _class_overview_text(section: dict[str, Any], arch: Any) -> str | None:
+    """YAML class_overview / overview overrides the auto class blurb; False disables it."""
+    if not arch:
+        return None
+    if "class_overview" in section:
+        raw = section["class_overview"]
+        if raw is False or raw is None:
+            return None
+        if isinstance(raw, dict):
+            text = raw.get("text") or ""
+            return text.strip() or None
+        text = str(raw).strip()
+        return text or None
+    if section.get("overview"):
+        ov = section["overview"]
+        if isinstance(ov, dict):
+            return (ov.get("text") or "").strip() or None
+        text = str(ov).strip()
+        return text or None
+    return section_overview(arch, canonical_section_id(section) or "")
+
+
+def render_section(
+    section: dict[str, Any],
+    *,
+    arch: Any = None,
+    inject_class_overview: bool = False,
+) -> str:
     title = section.get("title") or section.get("id") or "Раздел"
     ident = section.get("id") or re.sub(r"[^a-z0-9а-яё]+", "-", title.lower())[:80]
     try:
@@ -369,6 +397,15 @@ def render_section(section: dict[str, Any]) -> str:
         level = 2
     level = min(max(level, 2), 4)
     parts = [f'<h{level} id="{esc(ident)}">{esc(title)}</h{level}>']
+    if inject_class_overview:
+        overview = _class_overview_text(section, arch)
+        if overview:
+            parts.append(
+                '<div class="class-overview">'
+                '<p class="class-overview-label">Общее для класса</p>'
+                f"<p>{rich(overview)}</p>"
+                "</div>"
+            )
     if section.get("lede"):
         parts.append(paragraph(section["lede"]))
     for para in section.get("paragraphs") or []:
@@ -398,7 +435,7 @@ def render_section(section: dict[str, Any]) -> str:
             + "</p>"
         )
     for nested in section.get("sections") or []:
-        parts.append(render_section(nested))
+        parts.append(render_section(nested, arch=arch, inject_class_overview=False))
     return "".join(parts)
 
 
@@ -440,17 +477,8 @@ def render_sources_block(analysis: dict[str, Any]) -> str:
     return "".join(parts)
 
 
-def render_analysis(analysis: dict[str, Any] | None, *, kind: str = "page") -> str:
-    if not analysis:
-        return research_banner(None)
-    parts = [research_banner(analysis)]
-    if analysis.get("lede"):
-        parts.append(p(rich(analysis["lede"])))
-    if analysis.get("sources") or analysis.get("repo"):
-        parts.append('<h2 id="provenance">Происхождение источников</h2>')
-        parts.append(render_sources_block(analysis))
-    for section in analysis.get("sections") or []:
-        parts.append(render_section(section))
+def _analysis_extra_blocks(analysis: dict[str, Any], *, include_paper_vs_code: bool = True) -> str:
+    parts: list[str] = []
     if analysis.get("physchem_table"):
         parts.append('<h2 id="physchem">Физико-химический смысл</h2>')
         parts.append(render_physchem(analysis["physchem_table"]))
@@ -463,15 +491,100 @@ def render_analysis(analysis: dict[str, Any] | None, *, kind: str = "page") -> s
     if analysis.get("claim_evidence"):
         parts.append('<h2 id="claim-evidence">Claim–evidence matrix</h2>')
         parts.append(render_claim_evidence(analysis["claim_evidence"]))
-    if analysis.get("paper_vs_code"):
+    if include_paper_vs_code and analysis.get("paper_vs_code"):
         parts.append(render_paper_vs_code(analysis["paper_vs_code"]))
     if analysis.get("diagrams"):
         parts.append('<h2 id="diagrams">Схемы information flow</h2>')
         for d in analysis["diagrams"]:
             parts.append(render_mermaid(d))
+    return "".join(parts)
+
+
+def _primer_texts(arch: Any, analysis: dict[str, Any] | None) -> list[str]:
+    raw = (analysis or {}).get("primer")
+    texts: list[str] = []
+    if isinstance(raw, str) and raw.strip():
+        texts.append(raw.strip())
+    elif isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, str) and item.strip():
+                texts.append(item.strip())
+            elif isinstance(item, dict) and (item.get("text") or "").strip():
+                texts.append(item["text"].strip())
+    if texts:
+        return texts
+    return primer_paragraphs(arch) if arch else []
+
+
+def render_architecture_primer(arch: Any, analysis: dict[str, Any] | None) -> str:
+    texts = _primer_texts(arch, analysis)
+    if not texts:
+        return ""
+    parts = [
+        '<section class="primer" id="primer">',
+        "<h2>Что это за класс</h2>",
+        '<p class="muted">Определение класса — общее для всех papers и tools с этим architecture_id. '
+        "Это не карточка одной нейросети. После каждого нумерованного заголовка сначала идёт блок "
+        "«Общее для класса», затем разбор конкретных статей, как раньше.</p>",
+    ]
+    for text in texts:
+        parts.append(f"<p>{rich(text)}</p>")
+    parts.append("</section>")
+    return "".join(parts)
+
+
+def render_architecture_main(analysis: dict[str, Any] | None, arch: Any) -> str:
+    """Class primer + 18 sections. Research status / provenance live in the appendix."""
+    if not analysis:
+        analysis = architecture_fallback(arch) if arch else {}
+    parts = [render_architecture_primer(arch, analysis)]
+    if analysis.get("lede"):
+        parts.append('<div class="arch-lede">' + p(rich(analysis["lede"])) + "</div>")
+    for section in analysis.get("sections") or []:
+        parts.append(render_section(section, arch=arch, inject_class_overview=True))
+    parts.append(_analysis_extra_blocks(analysis, include_paper_vs_code=False))
+    return "".join(parts)
+
+
+def render_architecture_appendix(analysis: dict[str, Any] | None) -> str:
+    """Status banner, paywall/inaccessible table, source provenance — end of the architecture page."""
+    parts = [
+        '<section class="research-appendix" id="research-status">',
+        "<h2>Статус сверки источников</h2>",
+        research_banner(analysis),
+    ]
+    if analysis and (analysis.get("sources") or analysis.get("repo")):
+        parts.append('<h2 id="provenance">Происхождение источников</h2>')
+        parts.append(render_sources_block(analysis))
+    if analysis and analysis.get("paper_vs_code"):
+        parts.append(render_paper_vs_code(analysis["paper_vs_code"]))
+    if analysis and analysis.get("citations"):
+        parts.append('<h2 id="refs">Методологические источники</h2>')
+        parts.append(render_citations(analysis["citations"]))
+    unresolved = (analysis or {}).get("unresolved") or []
+    if unresolved:
+        parts.append('<h2 id="unresolved">Нерешённые научные вопросы</h2>')
+        parts.append(ul([rich(x) for x in unresolved]))
+    parts.append("</section>")
+    return "".join(parts)
+
+
+def render_analysis(analysis: dict[str, Any] | None, *, kind: str = "page", arch: Any = None) -> str:
+    if kind == "architecture":
+        return render_architecture_main(analysis, arch) + render_architecture_appendix(analysis)
+    if not analysis:
+        return research_banner(None)
+    parts = [research_banner(analysis)]
+    if analysis.get("lede"):
+        parts.append(p(rich(analysis["lede"])))
+    if analysis.get("sources") or analysis.get("repo"):
+        parts.append('<h2 id="provenance">Происхождение источников</h2>')
+        parts.append(render_sources_block(analysis))
+    for section in analysis.get("sections") or []:
+        parts.append(render_section(section))
+    parts.append(_analysis_extra_blocks(analysis))
     if analysis.get("citations"):
-        heading = "Методологические источники" if kind == "architecture" else "Источники"
-        parts.append(f'<h2 id="refs">{heading}</h2>')
+        parts.append('<h2 id="refs">Источники</h2>')
         parts.append(render_citations(analysis["citations"]))
     unresolved = analysis.get("unresolved") or []
     if unresolved:

@@ -20,6 +20,8 @@ from analysis_render import (  # noqa: E402
     architecture_fallback,
     paper_fallback,
     render_analysis,
+    render_architecture_appendix,
+    render_architecture_main,
     tool_fallback,
 )
 from htmlutil import (  # noqa: E402
@@ -649,7 +651,7 @@ def architecture_page(catalog: Catalog, index: ReverseIndex, arch, jinja: Enviro
     body = (
         h(1, arch.name)
         + p(f"{arch.name_ru}. Established English term: <strong>{esc(arch.name)}</strong>.")
-        + render_analysis(analysis, kind="architecture")
+        + render_architecture_main(analysis, arch)
         + h(2, "Инструменты, использующие подход")
         + named_links(tools, index.tools_by_id, tool_href, depth)
         + h(2, "Где применимо")
@@ -659,6 +661,7 @@ def architecture_page(catalog: Catalog, index: ReverseIndex, arch, jinja: Enviro
         + h(2, "Papers каталога")
         + named_links(arch.paper_ids, index.papers_by_id, paper_href, depth)
         + (h(2, "Подтипы класса") + ul(arch.subtypes) if arch.subtypes else "")
+        + render_architecture_appendix(analysis)
     )
     render_page(
         jinja, catalog, title=arch.name, body=body,
